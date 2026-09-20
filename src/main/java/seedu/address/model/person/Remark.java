@@ -10,8 +10,9 @@ public class Remark {
     public final String value;
 
     /**
-     * Creates remark class
-     * @param remark
+     * Creates a remark, which may be empty.
+     *
+     * @param remark The non-null remark text.
      */
     public Remark(String remark) {
         requireNonNull(remark);

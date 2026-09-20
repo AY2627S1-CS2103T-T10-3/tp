@@ -1,8 +1,8 @@
 package seedu.address.logic.commands;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
-//import static seedu.address.logic.parser.CliSyntax.PREFIX_REMARK;
 
 import java.util.List;
 
@@ -19,12 +19,8 @@ import seedu.address.model.person.Remark;
 public class RemarkCommand extends Command {
 
     public static final String COMMAND_WORD = "remark";
-    public static final String MESSAGE_ARGUMENTS = "Index: %1$d, Remark: %2$s";
     public static final String MESSAGE_ADD_REMARK_SUCCESS = "Added remark to Person: %1$s";
     public static final String MESSAGE_DELETE_REMARK_SUCCESS = "Removed remark from Person: %1$s";
-
-    private final Index index;
-    private final Remark remark;
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Edits the remark of the person identified "
@@ -35,6 +31,8 @@ public class RemarkCommand extends Command {
             + "Example: " + COMMAND_WORD + " 1 "
             + "r/ Likes to swim.";
 
+    private final Index index;
+    private final Remark remark;
 
     /**
      * @param index of the person in the filtered person list to edit the remark
@@ -50,6 +48,7 @@ public class RemarkCommand extends Command {
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
+        requireNonNull(model);
         List<Person> lastShownList = model.getFilteredPersonList();
 
         if (index.getZeroBased() >= lastShownList.size()) {
