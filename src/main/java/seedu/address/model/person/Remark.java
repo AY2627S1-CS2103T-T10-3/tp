@@ -2,6 +2,9 @@ package seedu.address.model.person;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Represents an optional remark attached to a person.
+ */
 public class Remark {
 
     public final String value;
