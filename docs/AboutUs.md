@@ -10,12 +10,13 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 ## Project team
 
 ### Tristan Ng
+
 <img src="images/trigg770.png" width="200px">
 
 [[github](https://github.com/trigg770)]
 
 * Role: Developer
-* Responsibility: Code Quality
+* Responsibilities: Code Quality
 
 ### Jane Doe
 
