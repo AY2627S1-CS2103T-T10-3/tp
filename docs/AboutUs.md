@@ -9,24 +9,23 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### John Doe
+### Tristan Ng
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/trigg770.png" width="200px">
 
-[[homepage](http://www.comp.nus.edu.sg/~damithch)]
-[[github](https://github.com/johndoe)]
+[[github](https://github.com/trigg770)]
+
+* Role: Developer
+* Responsibilities: Code Quality
+
+### Nahum Liow
+
+<img src="images/liownahum.png" width="200px">
+
+[[github](https://github.com/liownahum)]
 [[portfolio](team/johndoe.md)]
 
-* Role: Project Advisor
-
-### Jane Doe
-
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
-
-* Role: Team Lead
+* Role: Software Developer
 * Responsibilities: UI
 
 ### Johnny Doe
@@ -38,16 +37,6 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Developer
 * Responsibilities: Data
 
-### Jean Doe
-
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
-
-* Role: Developer
-* Responsibilities: Dev Ops + Threading
-
 ### Chun Sheng
 
 <img src="images/cs28118.png" width="200px">
@@ -56,3 +45,12 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Developer
 * Responsibilities: Scheduling and tracking
+
+### Irvin Tan Wei Jie
+
+<img src="images/irtan-cell.png" width="200px">
+
+[[github](http://github.com/irtan-cell)]
+
+* Role: Developer
+* Responsibilities: Integration
