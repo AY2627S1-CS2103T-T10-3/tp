@@ -54,5 +54,5 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](http://github.com/irtan-cell)]
 
-* Role: Integration
-* Responsibilities: UI
+* Role: Developer
+* Responsibilities: Integration
