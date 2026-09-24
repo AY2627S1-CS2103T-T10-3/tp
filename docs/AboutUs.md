@@ -57,3 +57,13 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Developer
 * Responsibilities: UI
+
+### Chun Sheng
+
+<img src="images/cs28118.png" width="200px">
+
+[[github](http://github.com/cs28118)]
+[[portfolio](team/cs28118.md)]
+
+* Role: Developer
+* Responsibilities: UI
