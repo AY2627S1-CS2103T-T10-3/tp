@@ -9,15 +9,13 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### John Doe
+### Tristan Ng
+<img src="images/trigg770.png" width="200px">
 
-<img src="images/johndoe.png" width="200px">
+[[github](https://github.com/trigg770)]
 
-[[homepage](http://www.comp.nus.edu.sg/~damithch)]
-[[github](https://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
-
-* Role: Project Advisor
+* Role: Developer
+* Responsibility: Code Quality
 
 ### Jane Doe
 
