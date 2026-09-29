@@ -261,13 +261,17 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
+* is a coordinator or executive committee member of a Music CCA
+* manages the records of about 50–200 members and alumni of that CCA, including both students and teachers
+* deals with membership that changes frequently (e.g., new intakes each semester, members graduating to become alumni)
+* often needs to find suitable players for a piece or activity based on the instruments they play and how long they have played them
 * prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
+* can type fast, and prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: HiveMind keeps a single, searchable directory of the contact details, membership status, roles and musical experience of a Music CCA's members and alumni. It lets the coordinator shortlist players for a piece or activity (e.g., "current members who have played trumpet for at least 3 years") in a single command, faster than scanning a spreadsheet or a typical mouse-driven GUI app.
+
+**Out of scope**: HiveMind manages the directory of one CCA only. It does not handle event registration, attendance taking, or communication and mass messaging with members.
 
 
 ### User stories
@@ -324,8 +328,23 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Active alumnus**: An alumnus who still plays with the CCA (e.g., in alumni pieces or events).
+* **Alumnus**: A former member of the CCA. An alumnus is either an _active alumnus_ or an _inactive alumnus_.
+* **CCA**: Co-Curricular Activity. A student society, such as a school band or orchestra.
+* **Coordinator**: The user of HiveMind, i.e., the person in the CCA who is responsible for maintaining its member records and organising players for pieces and activities.
+* **Directory**: The full set of member records stored in HiveMind.
+* **Displayed index**: The number shown next to a member in the list currently displayed. It changes after a `find`, `filter` or `list`, and is used to refer to a member in commands such as `delete`.
+* **Filter**: To display only the members who meet all the given criteria (e.g., status, instrument, minimum years played). Unlike _find_, which searches by name only.
+* **Inactive alumnus**: An alumnus who no longer plays with the CCA, but whose record is kept (e.g., for contacting them about alumni events).
+* **Instrument experience**: The whole number of years a member has played a particular instrument. It is recorded separately for each instrument, and is used as the measure of a member's competency on that instrument.
+* **Mainstream OS**: Windows, Linux, Unix, or macOS.
+* **Member**: A person who currently belongs to the CCA. In HiveMind, _member_ is also used loosely to mean any person in the directory, including alumni and teachers.
+* **Participation group**: A group of members formed for a particular piece, activity or training programme (e.g., a group of new members under training).
+* **Possible duplicate**: A person being added whose name or phone number matches that of an existing record. HiveMind warns the user but still adds the person, since two different people can share a name or a phone number.
+* **Prefix**: The short label before a parameter in a command (e.g., `n/` in `n/Tan Wei Ming`) that tells HiveMind which field the value belongs to.
+* **Role**: A position a person holds in the CCA (e.g., Section Leader, Conductor). Roles are free text, since each CCA names its roles differently.
+* **Status**: Whether a person is a _member_, an _active alumnus_ or an _inactive alumnus_ of the CCA.
+* **Type**: Whether a person is a _student_ or a _teacher_ (e.g., an instructor or teacher-in-charge) of the CCA.
 
 --------------------------------------------------------------------------------------------------------------------
 
