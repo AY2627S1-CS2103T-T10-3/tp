@@ -455,6 +455,10 @@ Priorities: High (must have), Medium (nice to have), Low (unlikely to have)
 
 1.  HiveMind should run on any _mainstream OS_ that has Java `25` or above installed.
 2.  With a directory of up to 1,000 members, HiveMind should complete `list`, `find`, and `filter` operations within 2 seconds on a computer with a 2 GHz quad-core processor and 8 GB of RAM.
+3.  A coordinator should be able to `add`, `edit`, `delete`, `list`, `find`, and `filter` operations using only the keyboard.
+4.  HiveMind should display success or error feedback for each submitted command.
+5.  Invalid syntax, field values, or displayed indices should produce an error explaining the rejection without changing member records.
+6.  With a directories of up to 1,000 members, HiveMind should automatically save each change before reporting success, given that the local disk has sufficient free space.
 
 ### Glossary
 
