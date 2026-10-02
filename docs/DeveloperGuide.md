@@ -313,32 +313,66 @@ Priorities: High (must have), Medium (nice to have), Low (unlikely to have)
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is `HiveMind` and the **Actor** is the `society coordinator`.)
 
-**Use case: Delete a person**
+**Use case: Add a member**
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1.  Society coordinator requests to add a member and supplies the member's contact, membership, and musical details.
+2.  HiveMind validates the supplied details.
+3.  HiveMind checks whether the new record is a possible duplicate.
+4.  HiveMind adds the member to the directory.
+5.  HiveMind saves the updated directory.
+6.  HiveMind shows the added member.
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 2a. A required detail is missing or a supplied detail is invalid.
+
+    * 2a1. HiveMind shows an error message describing the problem.
+
+      Use case resumes at step 1.
+
+* 3a. The supplied name or phone number matches an existing record.
+
+    * 3a1. HiveMind warns the society coordinator about each possible duplicate.
+
+      Use case resumes at step 4.
+
+* 5a. HiveMind cannot save the updated directory.
+
+    * 5a1. HiveMind shows an error message.
+    * 5a2. HiveMind does not retain the new member.
 
   Use case ends.
 
-* 3a. The given index is invalid.
+**Use case: Shortlist suitable players**
 
-    * 3a1. AddressBook shows an error message.
+**MSS**
 
-      Use case resumes at step 2.
+1.  Society coordinator requests to filter members using one or more criteria, such as status, instrument, or musical experience.
+2.  HiveMind validates the supplied criteria.
+3.  HiveMind searches the full directory for members who satisfy the criteria.
+4.  HiveMind shows the matching members.
 
-*{More to be added}*
+    Use case ends.
+
+**Extensions**
+
+* 2a. No criterion is supplied or a supplied criterion is invalid.
+
+    * 2a1. HiveMind shows an error message describing the problem.
+
+      Use case resumes at step 1.
+
+* 4a. No member satisfies the criteria.
+
+    * 4a1. HiveMind informs the society coordinator that no members were found.
+
+      Use case ends.
 
 ### Non-Functional Requirements
 
