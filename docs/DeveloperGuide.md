@@ -313,60 +313,137 @@ Priorities: High (must have), Medium (nice to have), Low (unlikely to have)
 
 ### Use cases
 
-(For all use cases below, the **System** is `HiveMind` and the **Actor** is the `society coordinator`.)
+**System:** HiveMind
 
-**Use case: Add a member**
+**Use case:** UC01 - Add a member
 
-**MSS**
+**Actor:** Society coordinator
 
-1.  Society coordinator requests to add a member and supplies the member's contact, membership, and musical details.
-2.  HiveMind validates the supplied details.
-3.  HiveMind checks whether the new record is a possible duplicate.
-4.  HiveMind adds the member to the directory.
-5.  HiveMind saves the updated directory.
-6.  HiveMind shows the added member.
+**MSS:**
+
+1.  Society coordinator requests to add a member.
+2.  HiveMind requests the member's name and contact details, and any membership or musical details to record.
+3.  Society coordinator supplies the requested details.
+4.  HiveMind adds the member to the directory and shows the saved record.
 
     Use case ends.
 
-**Extensions**
+**Extensions:**
 
-* 2a. A required detail is missing or a supplied detail is invalid.
+* 3a. HiveMind detects that a required detail is missing or a supplied detail is invalid.
 
-    * 2a1. HiveMind shows an error message describing the problem.
+    * 3a1. HiveMind shows an error message describing the problem.
+    * 3a2. Society coordinator supplies corrected details.
 
-      Use case resumes at step 1.
+      Steps 3a1-3a2 are repeated until the supplied details are valid.
+      Use case resumes at step 4.
 
-* 3a. The supplied name or phone number matches an existing record.
+* 3b. HiveMind detects that the supplied name or phone number matches an existing record.
 
-    * 3a1. HiveMind warns the society coordinator about each possible duplicate.
+    * 3b1. HiveMind warns the society coordinator about each possible duplicate.
 
       Use case resumes at step 4.
 
-* 5a. HiveMind cannot save the updated directory.
+* 4a. HiveMind cannot save the updated directory.
 
-    * 5a1. HiveMind shows an error message.
-    * 5a2. HiveMind does not retain the new member.
+    * 4a1. HiveMind shows an error message informing the society coordinator that the new record was not saved.
 
-  Use case ends.
+      Use case ends.
 
-**Use case: Shortlist suitable players**
+**System:** HiveMind
 
-**MSS**
+**Use case:** UC02 - Update a member's details
 
-1.  Society coordinator requests to filter members using one or more criteria, such as status, instrument, or musical experience.
-2.  HiveMind validates the supplied criteria.
-3.  HiveMind searches the full directory for members who satisfy the criteria.
-4.  HiveMind shows the matching members.
+**Actor:** Society coordinator
+
+**MSS:**
+
+1.  Society coordinator requests to update a member's recorded details.
+2.  HiveMind requests the member to update and the details to change.
+3.  Society coordinator identifies the member and supplies the new details, such as contact, membership, or musical information.
+4.  HiveMind updates the supplied details, leaves other details unchanged, and shows the updated record.
 
     Use case ends.
 
-**Extensions**
+**Extensions:**
 
-* 2a. No criterion is supplied or a supplied criterion is invalid.
+* 3a. HiveMind detects that the selection is invalid or the member does not exist in the displayed list.
 
-    * 2a1. HiveMind shows an error message describing the problem.
+    * 3a1. HiveMind shows an error message and requests a valid selection.
+    * 3a2. Society coordinator identifies a member in the displayed list.
 
-      Use case resumes at step 1.
+      Steps 3a1-3a2 are repeated until the selection is valid.
+      Use case resumes at step 4.
+
+* 3b. HiveMind detects that no updated detail was supplied or a supplied detail is invalid.
+
+    * 3b1. HiveMind shows an error message describing the problem.
+    * 3b2. Society coordinator supplies corrected details.
+
+      Steps 3b1-3b2 are repeated until the supplied details are valid.
+      Use case resumes at step 4.
+
+* 4a. HiveMind cannot save the updated directory.
+
+    * 4a1. HiveMind shows an error message informing the society coordinator that the change was not saved.
+
+      Use case ends.
+
+**System:** HiveMind
+
+**Use case:** UC03 - Delete a member
+
+**Actor:** Society coordinator
+
+**MSS:**
+
+1.  Society coordinator requests to remove an obsolete or incorrectly added member record.
+2.  HiveMind requests the member to remove.
+3.  Society coordinator identifies the member in the displayed list.
+4.  HiveMind removes the member's record from the directory and confirms which member was removed.
+
+    Use case ends.
+
+**Extensions:**
+
+* 3a. HiveMind detects that the selection is invalid or the member does not exist in the displayed list.
+
+    * 3a1. HiveMind shows an error message and requests a valid selection.
+    * 3a2. Society coordinator identifies a member in the displayed list.
+
+      Steps 3a1-3a2 are repeated until the selection is valid.
+      Use case resumes at step 4.
+
+* 4a. HiveMind cannot save the updated directory.
+
+    * 4a1. HiveMind shows an error message informing the society coordinator that the deletion was not saved.
+
+      Use case ends.
+
+**System:** HiveMind
+
+**Use case:** UC04 - Shortlist suitable players
+
+**Actor:** Society coordinator
+
+**MSS:**
+
+1.  Society coordinator requests to shortlist suitable players.
+2.  HiveMind requests the filtering criteria.
+3.  Society coordinator supplies one or more criteria, such as status, instrument, or musical experience.
+4.  HiveMind shows the members who satisfy the criteria.
+
+    Use case ends.
+
+**Extensions:**
+
+* 3a. HiveMind detects that no criterion was supplied or a supplied criterion is invalid.
+
+    * 3a1. HiveMind shows an error message describing the problem.
+    * 3a2. Society coordinator supplies corrected criteria.
+
+      Steps 3a1-3a2 are repeated until the supplied criteria are valid.
+      Use case resumes at step 4.
 
 * 4a. No member satisfies the criteria.
 
