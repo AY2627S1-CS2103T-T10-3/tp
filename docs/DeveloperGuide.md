@@ -344,11 +344,8 @@ Priorities: High (must have), Medium (nice to have), Low (unlikely to have)
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+1.  HiveMind should run on any _mainstream OS_ that has Java `25` or above installed.
+2.  With a directory of up to 1,000 members, HiveMind should complete `list`, `find`, and `filter` operations within 2 seconds on a computer with a 2 GHz quad-core processor and 8 GB of RAM.
 
 ### Glossary
 
