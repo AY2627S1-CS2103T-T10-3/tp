@@ -63,6 +63,7 @@ public class StringUtil {
 
         return sentence.toLowerCase(Locale.ROOT)
                 .contains(preppedWord.toLowerCase(Locale.ROOT));
+    }
 
     /**
      * Returns a detailed message of {@code t}, including the stack trace.
