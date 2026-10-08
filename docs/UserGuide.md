@@ -128,10 +128,10 @@ Examples:
 
 ### Filter command [under development]: `filter`
 
-Format: `filter`
+Format: `filter t/TAG`
 
-Currently reports the error `Filter command not implemented yet`. Arguments are ignored, and the displayed list and stored records stay unchanged.
-Tag filtering will be added in a subsequent increment.
+Accepts exactly one alphanumeric tag and currently reports the parsed argument as an error, such as `Tag: friends`.
+The displayed list and stored records stay unchanged. Tag filtering will be added in a subsequent increment.
 
 ### Deleting a person: `delete`
 
