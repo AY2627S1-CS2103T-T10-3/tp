@@ -126,6 +126,22 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
+### Filtering persons by tag: `filter`
+
+Format: `filter t/TAG [t/TAG]...`
+
+Shows people with any of the specified tags and reports the number of matches.
+
+* Accepts one or more alphanumeric tags, each introduced by `t/`.
+* Tags are combined with OR: `filter t/friend t/colleague` matches people with either tag or both.
+* Matches complete tag names, ignoring case: `friend` matches `FRIEND`, but not `friends`.
+* Spaces after `t/` are allowed: `filter t/ friend` is equivalent to `filter t/friend`.
+* Searches the full directory, including after a previous `find` or `filter`.
+* If no person matches, the displayed list is empty and the result reports zero matches.
+* Stored records are unchanged. Use `list` to display everyone again.
+
+Example: `filter t/friends`
+
 ### Deleting a person: `delete`
 
 Deletes the specified person from the address book.
@@ -194,5 +210,6 @@ Action | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Filter** | `filter t/TAG [t/TAG]...`<br> e.g., `filter t/friend t/colleague`
 **List** | `list`
 **Help** | `help`
