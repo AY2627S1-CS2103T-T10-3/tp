@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
@@ -11,7 +12,9 @@ import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.DANIEL;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -102,6 +105,18 @@ public class FilterCommandTest {
         assertEquals(List.of(friend, colleague, both), customModel.getFilteredPersonList());
         assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3), result.getFeedbackToUser());
         assertEquals(addressBook, customModel.getAddressBook());
+    }
+
+    @Test
+    public void hashCode_equalTagSets_supportsHashSetLookup() {
+        FilterCommand command = new FilterCommand(Set.of(new Tag("friend"), new Tag("colleague")));
+        FilterCommand equivalentCommand = new FilterCommand(Set.of(new Tag("colleague"), new Tag("friend")));
+        Set<FilterCommand> commands = new HashSet<>();
+        commands.add(command);
+
+        assertEquals(command, equivalentCommand);
+        assertEquals(command.hashCode(), equivalentCommand.hashCode());
+        assertTrue(commands.contains(equivalentCommand));
     }
 
     @Test
