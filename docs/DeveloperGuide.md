@@ -288,77 +288,187 @@ _{Explain here how the data archiving feature will be implemented}_
 
 Priorities: High (must have), Medium (nice to have), Low (unlikely to have)
 
-| Story ID | Scenerio | As a | I can | So that | Urgency |
+| Story ID | Scenario | As a | I can | So that | Urgency |
 | --- | --- | --- | --- | --- | --- |
 | US01 | First use | first-time coordinator | explore representative sample records with guidance on key tasks | I can learn how HiveMind works without affecting real member information | Low |
 | US02 | Second use | society coordinator | add a person with their name and contact details | I can maintain one reliable directory for the society | High |
 | US03 | Second use | society coordinator | view everyone recorded in the directory | I can review all people affiliated with the society | High |
 | US04 | Second use | society coordinator | view all recorded details for one person | I can retrieve their contact, membership, and musical information | High |
 | US05 | Second use | society coordinator | update any recorded detail for a person | the directory remains accurate as information changes | High |
-| US06 | Second use | society coordinator adopting an existing directory | import existing member information in bulk | I can transfer existing records without recreating every person manually | Middle |
+| US06 | Second use | society coordinator adopting an existing directory | import existing member information in bulk | I can transfer existing records without recreating every person manually | Medium |
 | US07 | 10th use | society coordinator | record whether a person is a current member or an alumnus | I can distinguish present membership from past affiliation | High |
 | US08 | 10th use | society coordinator | record whether a person is actively participating | I can identify current participants, including active alumni | High |
-| US09 | 10th use | society coordinator | record whether a person is a student or teacher | I can distinguish players from potential instructors | Middle |
-| US10 | 10th use | society coordinator | record a person's society role | I can identify people with particular responsibilities | Middle |
-| US11 | 10th use | society coordinator | record the participation groups a person belongs to | I can identify the groups in which they are involved | Middle |
+| US09 | 10th use | society coordinator | record whether a person is a student or teacher | I can distinguish players from potential instructors | Medium |
+| US10 | 10th use | society coordinator | record a person's society role | I can identify people with particular responsibilities | Medium |
+| US11 | 10th use | society coordinator | record the participation groups a person belongs to | I can identify the groups in which they are involved | Medium |
 | US12 | 10th use | society coordinator | record all instruments a person plays | I can identify candidates for each musical part | High |
-| US13 | 10th use | society coordinator | record a person's musical experience | I can assess their relevant musical background | Middle |
-| US14 | 10th use | society coordinator | record a person's competency for each instrument | I can judge whether they can handle demanding parts | Middle |
+| US13 | 10th use | society coordinator | record a person's musical experience | I can assess their relevant musical background | Medium |
+| US14 | 10th use | society coordinator | record a person's competency for each instrument | I can judge whether they can handle demanding parts | Medium |
 | US15 | 10th use | society coordinator looking for a known person | search for them by name | I can retrieve their information quickly | High |
 | US16 | 10th use | society coordinator | filter people by membership relationship and participation status | I can find current members, alumni, or active alumni without confusing the groups | High |
-| US17 | 10th use | society coordinator seeking musical advice | filter people by student or teacher status | I can identify an appropriate instructor to approach | Middle |
-| US18 | 10th use | society coordinator | filter people by society role | I can find people with a required responsibility | Middle |
-| US19 | 10th use | society coordinator organising a group | filter people by participation group | I can find everyone involved in the relevant group | Middle |
+| US17 | 10th use | society coordinator seeking musical advice | filter people by student or teacher status | I can identify an appropriate instructor to approach | Medium |
+| US18 | 10th use | society coordinator | filter people by society role | I can find people with a required responsibility | Medium |
+| US19 | 10th use | society coordinator organising a group | filter people by participation group | I can find everyone involved in the relevant group | Medium |
 | US20 | 10th use | society coordinator staffing a musical part | filter people by instrument | I can find candidates who play the required instrument | High |
-| US21 | 10th use | society coordinator planning a piece | filter people by musical experience | I can find candidates with sufficient relevant background | Middle |
-| US22 | 10th use | society coordinator planning a difficult piece | filter people by instrument competency | I can find candidates suited to the piece's difficulty | Middle |
+| US21 | 10th use | society coordinator planning a piece | filter people by musical experience | I can find candidates with sufficient relevant background | Medium |
+| US22 | 10th use | society coordinator planning a difficult piece | filter people by instrument competency | I can find candidates suited to the piece's difficulty | Medium |
 | US23 | 10th use | society coordinator selecting people for an activity | apply several directory criteria together | I can produce a shortlist satisfying all relevant requirements | High |
 | US24 | 100th use | long-term society coordinator | remove an obsolete or incorrectly added record | stale or incorrect information does not clutter or mislead me | High |
-| US25 | 100th use | society coordinator who has identified a relevant group | export chosen details for the people in my current results | I can use a focused roster outside HiveMind without unrelated information | Middle |
-| US26 | 100th use | society coordinator who made one or more mistakes | undo recent changes | I can recover from accidental edits or deletions without re-entering information | Middle |
+| US25 | 100th use | society coordinator who has identified a relevant group | export chosen details for the people in my current results | I can use a focused roster outside HiveMind without unrelated information | Medium |
+| US26 | 100th use | society coordinator who made one or more mistakes | undo recent changes | I can recover from accidental edits or deletions without re-entering information | Medium |
 | US27 | 100th use | society coordinator who undid a correct change | redo the undone change | I can restore it without entering the information again | Low |
 | US28 | 100th use | society coordinator comparing members | sort directory results by a chosen recorded attribute | I can compare or browse people in an order useful to me | Low |
 | US29 | After a prolonged break | returning society coordinator | access my previously saved records | I can continue managing the society without rebuilding the directory | High |
 | US30 | After a prolonged break | returning society coordinator | access concise guidance for HiveMind's main functions | I can refresh my memory and resume work confidently | High |
 
-*{More to be added}*
-
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+**System:** HiveMind
 
-**Use case: Delete a person**
+**Use case:** UC01 - Add a member
 
-**MSS**
+**Actor:** Society coordinator
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+**MSS:**
+
+1.  Society coordinator requests to add a member.
+2.  HiveMind requests the member's name and contact details, and any membership or musical details to record.
+3.  Society coordinator supplies the requested details.
+4.  HiveMind adds the member to the directory and shows the saved record.
 
     Use case ends.
 
-**Extensions**
+**Extensions:**
 
-* 2a. The list is empty.
+* 3a. HiveMind detects that a required detail is missing or a supplied detail is invalid.
 
-  Use case ends.
+    * 3a1. HiveMind shows an error message describing the problem.
+    * 3a2. Society coordinator supplies corrected details.
 
-* 3a. The given index is invalid.
+      Steps 3a1-3a2 are repeated until the supplied details are valid.
+      Use case resumes at step 4.
 
-    * 3a1. AddressBook shows an error message.
+* 3b. HiveMind detects that the supplied name or phone number matches an existing record.
 
-      Use case resumes at step 2.
+    * 3b1. HiveMind warns the society coordinator about each possible duplicate.
 
-*{More to be added}*
+      Use case resumes at step 4.
+
+* 4a. HiveMind cannot save the updated directory.
+
+    * 4a1. HiveMind shows an error message informing the society coordinator that the new record was not saved.
+
+      Use case ends.
+
+**System:** HiveMind
+
+**Use case:** UC02 - Update a member's details
+
+**Actor:** Society coordinator
+
+**MSS:**
+
+1.  Society coordinator requests to update a member's recorded details.
+2.  HiveMind requests the member to update and the details to change.
+3.  Society coordinator identifies the member and supplies the new details, such as contact, membership, or musical information.
+4.  HiveMind updates the supplied details, leaves other details unchanged, and shows the updated record.
+
+    Use case ends.
+
+**Extensions:**
+
+* 3a. HiveMind detects that the selection is invalid or the member does not exist in the displayed list.
+
+    * 3a1. HiveMind shows an error message and requests a valid selection.
+    * 3a2. Society coordinator identifies a member in the displayed list.
+
+      Steps 3a1-3a2 are repeated until the selection is valid.
+      Use case resumes at step 4.
+
+* 3b. HiveMind detects that no updated detail was supplied or a supplied detail is invalid.
+
+    * 3b1. HiveMind shows an error message describing the problem.
+    * 3b2. Society coordinator supplies corrected details.
+
+      Steps 3b1-3b2 are repeated until the supplied details are valid.
+      Use case resumes at step 4.
+
+* 4a. HiveMind cannot save the updated directory.
+
+    * 4a1. HiveMind shows an error message informing the society coordinator that the change was not saved.
+
+      Use case ends.
+
+**System:** HiveMind
+
+**Use case:** UC03 - Delete a member
+
+**Actor:** Society coordinator
+
+**MSS:**
+
+1.  Society coordinator requests to remove an obsolete or incorrectly added member record.
+2.  HiveMind requests the member to remove.
+3.  Society coordinator identifies the member in the displayed list.
+4.  HiveMind removes the member's record from the directory and confirms which member was removed.
+
+    Use case ends.
+
+**Extensions:**
+
+* 3a. HiveMind detects that the selection is invalid or the member does not exist in the displayed list.
+
+    * 3a1. HiveMind shows an error message and requests a valid selection.
+    * 3a2. Society coordinator identifies a member in the displayed list.
+
+      Steps 3a1-3a2 are repeated until the selection is valid.
+      Use case resumes at step 4.
+
+* 4a. HiveMind cannot save the updated directory.
+
+    * 4a1. HiveMind shows an error message informing the society coordinator that the deletion was not saved.
+
+      Use case ends.
+
+**System:** HiveMind
+
+**Use case:** UC04 - Shortlist suitable players
+
+**Actor:** Society coordinator
+
+**MSS:**
+
+1.  Society coordinator requests to shortlist suitable players.
+2.  HiveMind requests the filtering criteria.
+3.  Society coordinator supplies one or more criteria, such as status, instrument, or musical experience.
+4.  HiveMind shows the members who satisfy the criteria.
+
+    Use case ends.
+
+**Extensions:**
+
+* 3a. HiveMind detects that no criterion was supplied or a supplied criterion is invalid.
+
+    * 3a1. HiveMind shows an error message describing the problem.
+    * 3a2. Society coordinator supplies corrected criteria.
+
+      Steps 3a1-3a2 are repeated until the supplied criteria are valid.
+      Use case resumes at step 4.
+
+* 4a. No member satisfies the criteria.
+
+    * 4a1. HiveMind informs the society coordinator that no members were found.
+
+      Use case ends.
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+1.  HiveMind should run on any _mainstream OS_ that has Java `25` or above installed.
+2.  With a directory of up to 1,000 members, HiveMind should complete `list`, `find`, and `filter` operations within 2 seconds on a computer with a 2 GHz quad-core processor and 8 GB of RAM.
+3.  A coordinator should be able to `add`, `edit`, `delete`, `list`, `find`, and `filter` operations using only the keyboard.
+4.  HiveMind should display success or error feedback for each submitted command.
+5.  Invalid syntax, field values, or displayed indices should produce an error explaining the rejection without changing member records.
+6.  With a directories of up to 1,000 members, HiveMind should automatically save each change before reporting success, given that the local disk has sufficient free space.
 
 ### Glossary
 
