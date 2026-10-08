@@ -128,11 +128,12 @@ Examples:
 
 ### Filtering persons by tag: `filter`
 
-Format: `filter t/TAG`
+Format: `filter t/TAG [t/TAG]...`
 
-Shows people with the specified tag and reports the number of matches.
+Shows people with any of the specified tags and reports the number of matches.
 
-* Accepts exactly one alphanumeric tag.
+* Accepts one or more alphanumeric tags, each introduced by `t/`.
+* Tags are combined with OR: `filter t/friend t/colleague` matches people with either tag or both.
 * Matches complete tag names, ignoring case: `friend` matches `FRIEND`, but not `friends`.
 * Spaces after `t/` are allowed: `filter t/ friend` is equivalent to `filter t/friend`.
 * Searches the full directory, including after a previous `find` or `filter`.
@@ -209,6 +210,6 @@ Action | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
-**Filter** | `filter t/TAG`<br> e.g., `filter t/friends`
+**Filter** | `filter t/TAG [t/TAG]...`<br> e.g., `filter t/friend t/colleague`
 **List** | `list`
 **Help** | `help`

@@ -4,6 +4,8 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.Set;
+
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.tag.Tag;
@@ -14,7 +16,7 @@ import seedu.address.model.tag.Tag;
 public class FilterCommandParser implements Parser<FilterCommand> {
 
     /**
-     * Parses a single tag argument and returns a FilterCommand.
+     * Parses one or more tag arguments and returns a FilterCommand.
      *
      * @throws ParseException if the arguments do not conform to the expected format.
      */
@@ -27,8 +29,7 @@ public class FilterCommandParser implements Parser<FilterCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
         }
 
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_TAG);
-        Tag tag = ParserUtil.parseTag(argMultimap.getValue(PREFIX_TAG).orElseThrow());
-        return new FilterCommand(tag);
+        Set<Tag> tags = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
+        return new FilterCommand(tags);
     }
 }

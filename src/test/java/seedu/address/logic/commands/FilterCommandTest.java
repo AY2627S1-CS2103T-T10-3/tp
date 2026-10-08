@@ -25,7 +25,7 @@ import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
 /**
- * Tests single-tag filtering and preservation of directory records.
+ * Tests tag filtering and preservation of directory records.
  */
 public class FilterCommandTest {
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
@@ -81,6 +81,26 @@ public class FilterCommandTest {
 
         assertEquals(List.of(friend), customModel.getFilteredPersonList());
         assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
+        assertEquals(addressBook, customModel.getAddressBook());
+    }
+
+    @Test
+    public void execute_multipleTags_showsPeopleWithEitherTag() throws Exception {
+        Person friend = new PersonBuilder().withName("Alice").withTags("friend").build();
+        Person colleague = new PersonBuilder().withName("Bob").withTags("colleague").build();
+        Person both = new PersonBuilder().withName("Carol").withTags("friend", "colleague").build();
+        Person unrelated = new PersonBuilder().withName("Dan").withTags("family").build();
+        AddressBook addressBook = new AddressBook();
+        for (Person person : List.of(friend, colleague, both, unrelated)) {
+            addressBook.addPerson(person);
+        }
+        Model customModel = new ModelManager(addressBook, new UserPrefs());
+
+        CommandResult result = new AddressBookParser().parseCommand(
+                "filter t/ FRIEND t/colleague").execute(customModel);
+
+        assertEquals(List.of(friend, colleague, both), customModel.getFilteredPersonList());
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3), result.getFeedbackToUser());
         assertEquals(addressBook, customModel.getAddressBook());
     }
 

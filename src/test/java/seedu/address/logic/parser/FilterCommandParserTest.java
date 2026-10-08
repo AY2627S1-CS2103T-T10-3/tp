@@ -1,13 +1,13 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.Messages;
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.model.tag.Tag;
 
@@ -39,11 +39,14 @@ public class FilterCommandParserTest {
     public void parse_invalidTag_throwsParseException() {
         assertParseFailure(parser, "t/", Tag.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "t/friends!", Tag.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "t/friends t/", Tag.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "t/friends! t/colleague", Tag.MESSAGE_CONSTRAINTS);
     }
 
     @Test
-    public void parse_multipleTags_throwsParseException() {
-        assertParseFailure(parser, "t/friends t/owesMoney",
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_TAG));
+    public void parse_multipleTags_returnsFilterCommand() {
+        FilterCommand expectedCommand = new FilterCommand(Set.of(new Tag("friends"), new Tag("owesMoney")));
+        assertParseSuccess(parser, "t/friends t/owesMoney", expectedCommand);
+        assertParseSuccess(parser, "t/ owesMoney t/ friends t/friends", expectedCommand);
     }
 }
