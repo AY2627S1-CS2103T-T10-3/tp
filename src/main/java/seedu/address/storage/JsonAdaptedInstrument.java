@@ -14,13 +14,18 @@ class JsonAdaptedInstrument {
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Instrument's %s field is missing!";
 
     private final String name;
-    private final Integer years;
+
+    /*
+     * Kept as a Number rather than an Integer so that Jackson does not silently truncate decimals
+     * (e.g. 3.9 to 3, or -0.5 to 0) before they can be rejected in toModelType().
+     */
+    private final Number years;
 
     /**
      * Constructs a {@code JsonAdaptedInstrument} with the given instrument details.
      */
     @JsonCreator
-    public JsonAdaptedInstrument(@JsonProperty("name") String name, @JsonProperty("years") Integer years) {
+    public JsonAdaptedInstrument(@JsonProperty("name") String name, @JsonProperty("years") Number years) {
         this.name = name;
         this.years = years;
     }
@@ -49,10 +54,19 @@ class JsonAdaptedInstrument {
         if (years == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "years"));
         }
-        if (!Instrument.isValidYears(years)) {
+        if (!isWholeNumber(years) || !Instrument.isValidYears(years.intValue())) {
             throw new IllegalValueException(Instrument.MESSAGE_YEARS_CONSTRAINTS);
         }
 
-        return new Instrument(name, years);
+        return new Instrument(name, years.intValue());
+    }
+
+    /**
+     * Returns true if the given number is a whole number that fits in an {@code int}.
+     */
+    private static boolean isWholeNumber(Number number) {
+        boolean isIntegerType = number instanceof Integer || number instanceof Long
+                || number instanceof Short || number instanceof Byte;
+        return isIntegerType && number.longValue() == number.intValue();
     }
 }

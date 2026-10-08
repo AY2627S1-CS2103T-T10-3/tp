@@ -47,6 +47,35 @@ public class JsonAdaptedInstrumentTest {
     }
 
     @Test
+    public void toModelType_decimalYearsInJson_throwsIllegalValueException() throws Exception {
+        assertYearsRejected("3.9"); // would otherwise be truncated to 3
+        assertYearsRejected("-0.5"); // would otherwise be truncated to 0
+        assertYearsRejected("3.0");
+    }
+
+    @Test
+    public void toModelType_yearsTooLargeForIntInJson_throwsIllegalValueException() throws Exception {
+        assertYearsRejected("4294967299"); // would otherwise wrap around to 3
+    }
+
+    @Test
+    public void toModelType_wholeYearsInJson_returnsInstrument() throws Exception {
+        assertEquals(new Instrument(VALID_NAME, 0), fromJson("0").toModelType());
+        assertEquals(new Instrument(VALID_NAME, Instrument.MAX_YEARS),
+                fromJson(String.valueOf(Instrument.MAX_YEARS)).toModelType());
+    }
+
+    private static JsonAdaptedInstrument fromJson(String years) throws Exception {
+        String json = "{\"name\": \"" + VALID_NAME + "\", \"years\": " + years + "}";
+        return JsonUtil.fromJsonString(json, JsonAdaptedInstrument.class);
+    }
+
+    private static void assertYearsRejected(String years) throws Exception {
+        JsonAdaptedInstrument instrument = fromJson(years);
+        assertThrows(IllegalValueException.class, Instrument.MESSAGE_YEARS_CONSTRAINTS, instrument::toModelType);
+    }
+
+    @Test
     public void toJsonString_validInstrument_usesNameAndYearsKeys() throws Exception {
         String json = JsonUtil.toJsonString(new JsonAdaptedInstrument(new Instrument(VALID_NAME, VALID_YEARS)));
         assertEquals(new Instrument(VALID_NAME, VALID_YEARS),
