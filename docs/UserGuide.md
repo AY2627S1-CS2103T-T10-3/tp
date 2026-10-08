@@ -126,6 +126,13 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
+### Filter command [under development]: `filter`
+
+Format: `filter`
+
+Currently reports the error `Filter command not implemented yet`. Arguments are ignored, and the displayed list and stored records stay unchanged.
+Tag filtering will be added in a subsequent increment.
+
 ### Deleting a person: `delete`
 
 Deletes the specified person from the address book.
