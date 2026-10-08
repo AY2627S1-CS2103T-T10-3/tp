@@ -123,6 +123,50 @@ public class StringUtilTest {
         assertTrue(StringUtil.containsWordIgnoreCase("AAA bBb ccc  bbb", "bbB"));
     }
 
+    //---------------- Tests for containsSubstringIgnoreCase --------------------------------------
+
+    @Test
+    public void containsSubstringIgnoreCase_nullInputs_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> StringUtil.containsSubstringIgnoreCase(null, "ali"));
+        assertThrows(NullPointerException.class, () -> StringUtil.containsSubstringIgnoreCase("Alice Tan", null));
+    }
+
+    @Test
+    public void containsSubstringIgnoreCase_emptyWord_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> StringUtil.containsSubstringIgnoreCase("Alice Tan", ""));
+        assertThrows(IllegalArgumentException.class, () -> StringUtil.containsSubstringIgnoreCase("Alice Tan", " \t "));
+    }
+
+    @Test
+    public void containsSubstringIgnoreCase_multipleWords_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, ()
+            -> StringUtil.containsSubstringIgnoreCase("Alice Tan", "ali tan"));
+        assertThrows(IllegalArgumentException.class, ()
+            -> StringUtil.containsSubstringIgnoreCase("Alice Tan", "ali\ttan"));
+    }
+
+    @Test
+    public void containsSubstringIgnoreCase_matchingSubstring_returnsTrue() {
+        // Prefix, middle and suffix matches ignore case.
+        assertTrue(StringUtil.containsSubstringIgnoreCase("Alice Tan", "ali"));
+        assertTrue(StringUtil.containsSubstringIgnoreCase("Alice Tan", "LIC"));
+        assertTrue(StringUtil.containsSubstringIgnoreCase("Alice Tan", "iCe"));
+        assertTrue(StringUtil.containsSubstringIgnoreCase("Alice Tan", "tAn"));
+        assertTrue(StringUtil.containsSubstringIgnoreCase("Alice", "ALICE"));
+        assertTrue(StringUtil.containsSubstringIgnoreCase("  Alice   Tan  ", "  aLi  "));
+        assertTrue(StringUtil.containsSubstringIgnoreCase("Member-123", "-12"));
+    }
+
+    @Test
+    public void containsSubstringIgnoreCase_nonMatchingSubstring_returnsFalse() {
+        assertFalse(StringUtil.containsSubstringIgnoreCase("", "ali"));
+        assertFalse(StringUtil.containsSubstringIgnoreCase("   ", "ali"));
+        assertFalse(StringUtil.containsSubstringIgnoreCase("Alice Tan", "bob"));
+        assertFalse(StringUtil.containsSubstringIgnoreCase("Alice", "Alicia"));
+        assertFalse(StringUtil.containsSubstringIgnoreCase("Alice", "Alicee"));
+        assertFalse(StringUtil.containsSubstringIgnoreCase("Alice Tan", "cetan"));
+    }
+
     //---------------- Tests for getDetails --------------------------------------
 
     /*

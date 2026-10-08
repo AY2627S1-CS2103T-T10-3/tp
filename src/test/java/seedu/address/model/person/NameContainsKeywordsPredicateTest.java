@@ -57,6 +57,33 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_nameContainsPartialKeywords_returnsTrue() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("ali"));
+        assertTrue(predicate.test(new PersonBuilder().withName("Alice Tan").build()));
+
+        predicate = new NameContainsKeywordsPredicate(List.of("LIC"));
+        assertTrue(predicate.test(new PersonBuilder().withName("Alice Tan").build()));
+
+        predicate = new NameContainsKeywordsPredicate(List.of("iCe"));
+        assertTrue(predicate.test(new PersonBuilder().withName("Alice Tan").build()));
+
+        // A single partial match is sufficient, even if the other keyword does not match.
+        predicate = new NameContainsKeywordsPredicate(List.of("bob", "tA"));
+        assertTrue(predicate.test(new PersonBuilder().withName("Alice Tan").build()));
+    }
+
+    @Test
+    public void test_nameDoesNotContainPartialKeywords_returnsFalse() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("alicia", "tanaka"));
+        assertFalse(predicate.test(new PersonBuilder().withName("Alice Tan").build()));
+
+        // Partial matches in other fields must not qualify as name matches.
+        predicate = new NameContainsKeywordsPredicate(List.of("123", "example"));
+        assertFalse(predicate.test(new PersonBuilder().withName("Alice Tan").withPhone("12345")
+                .withEmail("alice@example.com").build()));
+    }
+
+    @Test
     public void test_nameDoesNotContainKeywords_returnsFalse() {
         // Zero keywords
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of());
@@ -66,8 +93,8 @@ public class NameContainsKeywordsPredicateTest {
         predicate = new NameContainsKeywordsPredicate(List.of("Carol"));
         assertFalse(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
 
-        // Keywords match phone, email and address, but do not match name
-        predicate = new NameContainsKeywordsPredicate(List.of("12345", "alice@email.com", "Main", "Street"));
+        // Keywords match phone and email, but do not match name
+        predicate = new NameContainsKeywordsPredicate(List.of("12345", "alice@email.com"));
         assertFalse(predicate.test(new PersonBuilder().withName("Alice").withPhone("12345")
                 .withEmail("alice@email.com").build()));
     }
