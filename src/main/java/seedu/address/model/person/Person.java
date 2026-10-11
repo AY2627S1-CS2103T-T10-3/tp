@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -22,16 +23,23 @@ public class Person {
     private final Email email;
 
     // Data fields
+    private final Status status;
+    private final MemberType memberType;
+    private final Optional<Role> role;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, tags);
+    public Person(Name name, Phone phone, Email email, Status status, MemberType memberType,
+            Optional<Role> role, Set<Tag> tags) {
+        requireAllNonNull(name, phone, email, status, memberType, role, tags);
         this.name = name;
         this.phone = phone;
         this.email = email;
+        this.status = status;
+        this.memberType = memberType;
+        this.role = role;
         this.tags.addAll(tags);
     }
 
@@ -45,6 +53,21 @@ public class Person {
 
     public Email getEmail() {
         return email;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public MemberType getMemberType() {
+        return memberType;
+    }
+
+    /**
+     * Returns the person's role, or an empty optional when no role is recorded.
+     */
+    public Optional<Role> getRole() {
+        return role;
     }
 
     /**
@@ -86,13 +109,16 @@ public class Person {
         return name.equals(otherPerson.name)
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
+                && status.equals(otherPerson.status)
+                && memberType.equals(otherPerson.memberType)
+                && role.equals(otherPerson.role)
                 && tags.equals(otherPerson.tags);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, tags);
+        return Objects.hash(name, phone, email, status, memberType, role, tags);
     }
 
     @Override
@@ -101,6 +127,9 @@ public class Person {
                 .add("name", name)
                 .add("phone", phone)
                 .add("email", email)
+                .add("status", status)
+                .add("memberType", memberType)
+                .add("role", role)
                 .add("tags", tags)
                 .toString();
     }

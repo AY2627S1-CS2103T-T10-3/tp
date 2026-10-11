@@ -41,7 +41,12 @@ public class Messages {
                 .append(person.getPhone())
                 .append("; Email: ")
                 .append(person.getEmail())
-                .append("; Tags: ");
+                .append("; Status: ")
+                .append(person.getStatus())
+                .append("; Member type: ")
+                .append(person.getMemberType());
+        person.getRole().ifPresent(role -> builder.append("; Role: ").append(role));
+        builder.append("; Tags: ");
         person.getTags().forEach(builder::append);
         return builder.toString();
     }

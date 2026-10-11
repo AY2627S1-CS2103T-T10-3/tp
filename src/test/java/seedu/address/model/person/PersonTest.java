@@ -80,6 +80,14 @@ public class PersonTest {
         editedAlice = new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
 
+        // different membership fields -> returns false
+        editedAlice = new PersonBuilder(ALICE).withStatus("active-alumnus").build();
+        assertFalse(ALICE.equals(editedAlice));
+        editedAlice = new PersonBuilder(ALICE).withMemberType("teacher").build();
+        assertFalse(ALICE.equals(editedAlice));
+        editedAlice = new PersonBuilder(ALICE).withRole("Section Leader").build();
+        assertFalse(ALICE.equals(editedAlice));
+
         // different tags -> returns false
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
@@ -88,7 +96,9 @@ public class PersonTest {
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", tags=" + ALICE.getTags() + "}";
+                + ", email=" + ALICE.getEmail() + ", status=" + ALICE.getStatus()
+                + ", memberType=" + ALICE.getMemberType() + ", role=" + ALICE.getRole()
+                + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());
     }
 
