@@ -3,8 +3,11 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Represents an instrument a person plays, with the number of years they have played it.
@@ -20,6 +23,12 @@ public class Instrument {
 
     public static final String MESSAGE_YEARS_CONSTRAINTS =
             "Years played should be a whole number from 0 to " + MAX_YEARS;
+
+    public static final String MESSAGE_FORMAT_CONSTRAINTS =
+            "Instruments should be in the format NAME:YEARS, e.g. Piano:5";
+
+    public static final String MESSAGE_DUPLICATE_NAMES =
+            "Each instrument should only be listed once per person";
 
     private final String name;
     private final int years;
@@ -68,6 +77,15 @@ public class Instrument {
     public boolean hasName(String otherName) {
         requireNonNull(otherName);
         return toKey(name).equals(toKey(normalizeName(otherName)));
+    }
+
+    /**
+     * Returns true if two of the given instruments share a name, ignoring case and extra whitespace.
+     */
+    public static boolean hasDuplicateNames(Collection<Instrument> instruments) {
+        requireNonNull(instruments);
+        Set<String> seenKeys = new HashSet<>();
+        return !instruments.stream().allMatch(instrument -> seenKeys.add(toKey(instrument.name)));
     }
 
     private static String normalizeName(String name) {

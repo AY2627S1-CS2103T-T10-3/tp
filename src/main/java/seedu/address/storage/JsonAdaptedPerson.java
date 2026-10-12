@@ -1,7 +1,6 @@
 package seedu.address.storage;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -12,13 +11,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Instrument;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Role;
 import seedu.address.model.person.Status;
-import seedu.address.model.tag.Tag;
 
 /**
  * Jackson-friendly version of {@link Person}.
@@ -33,7 +32,7 @@ class JsonAdaptedPerson {
     private final String status;
     private final String memberType;
     private final String role;
-    private final List<JsonAdaptedTag> tags = new ArrayList<>();
+    private final List<JsonAdaptedInstrument> instruments = new ArrayList<>();
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -42,15 +41,15 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("status") String status,
             @JsonProperty("memberType") String memberType, @JsonProperty("role") String role,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("instruments") List<JsonAdaptedInstrument> instruments) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.status = status;
         this.memberType = memberType;
         this.role = role;
-        if (tags != null) {
-            this.tags.addAll(tags);
+        if (instruments != null) {
+            this.instruments.addAll(instruments);
         }
     }
 
@@ -64,8 +63,8 @@ class JsonAdaptedPerson {
         status = source.getStatus().toString();
         memberType = source.getMemberType().toString();
         role = source.getRole().map(Role::toString).orElse(null);
-        tags.addAll(source.getTags().stream()
-                .map(JsonAdaptedTag::new)
+        instruments.addAll(source.getInstruments().stream()
+                .map(JsonAdaptedInstrument::new)
                 .collect(Collectors.toList()));
     }
 
@@ -75,9 +74,12 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
-        final List<Tag> personTags = new ArrayList<>();
-        for (JsonAdaptedTag tag : tags) {
-            personTags.add(tag.toModelType());
+        final List<Instrument> personInstruments = new ArrayList<>();
+        for (JsonAdaptedInstrument instrument : instruments) {
+            personInstruments.add(instrument.toModelType());
+        }
+        if (Instrument.hasDuplicateNames(Set.copyOf(personInstruments))) {
+            throw new IllegalValueException(Instrument.MESSAGE_DUPLICATE_NAMES);
         }
 
         if (name == null) {
@@ -126,8 +128,9 @@ class JsonAdaptedPerson {
         }
         final Optional<Role> modelRole = role == null ? Optional.empty() : Optional.of(new Role(role));
 
-        final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelStatus, modelMemberType, modelRole, modelTags);
+        final Set<Instrument> modelInstruments = Set.copyOf(personInstruments);
+        return new Person(modelName, modelPhone, modelEmail, modelStatus, modelMemberType, modelRole,
+                modelInstruments);
     }
 
 }

@@ -3,12 +3,12 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.ArrayList;
@@ -37,8 +37,8 @@ public class CommandTestUtil {
     public static final String VALID_STATUS_BOB = "member";
     public static final String VALID_MEMBER_TYPE_BOB = "teacher";
     public static final String VALID_ROLE_BOB = "Section Leader";
-    public static final String VALID_TAG_HUSBAND = "husband";
-    public static final String VALID_TAG_FRIEND = "friend";
+    public static final String VALID_INSTRUMENT_PIANO = "Piano:2";
+    public static final String VALID_INSTRUMENT_VIOLIN = "Violin:5";
 
     public static final String NAME_DESC_AMY = " " + PREFIX_NAME + VALID_NAME_AMY;
     public static final String NAME_DESC_BOB = " " + PREFIX_NAME + VALID_NAME_BOB;
@@ -50,8 +50,8 @@ public class CommandTestUtil {
     public static final String STATUS_DESC_BOB = " " + PREFIX_STATUS + VALID_STATUS_BOB;
     public static final String MEMBER_TYPE_DESC_BOB = " " + PREFIX_MEMBER_TYPE + VALID_MEMBER_TYPE_BOB;
     public static final String ROLE_DESC_BOB = " " + PREFIX_ROLE + VALID_ROLE_BOB;
-    public static final String TAG_DESC_FRIEND = " " + PREFIX_TAG + VALID_TAG_FRIEND;
-    public static final String TAG_DESC_HUSBAND = " " + PREFIX_TAG + VALID_TAG_HUSBAND;
+    public static final String INSTRUMENT_DESC_PIANO = " " + PREFIX_INSTRUMENT + VALID_INSTRUMENT_PIANO;
+    public static final String INSTRUMENT_DESC_VIOLIN = " " + PREFIX_INSTRUMENT + VALID_INSTRUMENT_VIOLIN;
 
     public static final String INVALID_NAME_DESC = " " + PREFIX_NAME + "James&"; // '&' not allowed in names
     public static final String INVALID_PHONE_DESC = " " + PREFIX_PHONE + "911a"; // 'a' not allowed in phones
@@ -59,7 +59,7 @@ public class CommandTestUtil {
     public static final String INVALID_STATUS_DESC = " " + PREFIX_STATUS + "alumnus";
     public static final String INVALID_MEMBER_TYPE_DESC = " " + PREFIX_MEMBER_TYPE + "alumnus";
     public static final String INVALID_ROLE_DESC = " " + PREFIX_ROLE + "   ";
-    public static final String INVALID_TAG_DESC = " " + PREFIX_TAG + "hubby*"; // '*' not allowed in tags
+    public static final String INVALID_INSTRUMENT_DESC = " " + PREFIX_INSTRUMENT + "Cello"; // missing years
 
     public static final String PREAMBLE_WHITESPACE = "\t  \r  \n";
     public static final String PREAMBLE_NON_EMPTY = "NonEmptyPreamble";
@@ -70,10 +70,10 @@ public class CommandTestUtil {
     static {
         DESC_AMY = new EditPersonDescriptorBuilder().withName(VALID_NAME_AMY)
                 .withPhone(VALID_PHONE_AMY).withEmail(VALID_EMAIL_AMY)
-                .withTags(VALID_TAG_FRIEND).build();
+                .withInstruments(VALID_INSTRUMENT_VIOLIN).build();
         DESC_BOB = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB)
                 .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB)
-                .withTags(VALID_TAG_HUSBAND, VALID_TAG_FRIEND).build();
+                .withInstruments(VALID_INSTRUMENT_PIANO, VALID_INSTRUMENT_VIOLIN).build();
     }
 
     /**

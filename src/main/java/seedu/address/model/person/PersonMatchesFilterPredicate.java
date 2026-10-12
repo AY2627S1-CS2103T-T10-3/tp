@@ -5,31 +5,29 @@ import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import seedu.address.model.tag.Tag;
-
 /**
- * Tests whether a person has any of the specified tags, ignoring case.
+ * Tests whether a person plays any of the specified instruments, matching whole names and ignoring case.
  */
 public class PersonMatchesFilterPredicate implements Predicate<Person> {
-    private final Set<Tag> tags;
+    private final Set<String> instrumentNames;
 
     /**
-     * Creates a predicate matching the specified tag.
+     * Creates a predicate matching the specified instrument name.
      */
-    public PersonMatchesFilterPredicate(Tag tag) {
-        this(Set.of(requireNonNull(tag)));
+    public PersonMatchesFilterPredicate(String instrumentName) {
+        this(Set.of(requireNonNull(instrumentName)));
     }
 
     /**
-     * Creates a predicate matching any of the specified tags.
+     * Creates a predicate matching any of the specified instrument names.
      */
-    public PersonMatchesFilterPredicate(Set<Tag> tags) {
-        this.tags = Set.copyOf(requireNonNull(tags));
+    public PersonMatchesFilterPredicate(Set<String> instrumentNames) {
+        this.instrumentNames = Set.copyOf(requireNonNull(instrumentNames));
     }
 
     @Override
     public boolean test(Person person) {
-        return tags.stream().anyMatch(tag -> person.getTags().stream()
-                .anyMatch(personTag -> personTag.tagName.equalsIgnoreCase(tag.tagName)));
+        return instrumentNames.stream().anyMatch(instrumentName -> person.getInstruments().stream()
+                .anyMatch(instrument -> instrument.hasName(instrumentName)));
     }
 }

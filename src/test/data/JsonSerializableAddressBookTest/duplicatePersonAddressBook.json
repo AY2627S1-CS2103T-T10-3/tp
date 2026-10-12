@@ -5,7 +5,10 @@
     "email": "alice@example.com",
     "status": "member",
     "memberType": "student",
-    "tags": [ "friends" ]
+    "instruments": [ {
+      "name": "Violin",
+      "years": 3
+    } ]
   }, {
     "name": "Alice Pauline",
     "phone": "94351253",

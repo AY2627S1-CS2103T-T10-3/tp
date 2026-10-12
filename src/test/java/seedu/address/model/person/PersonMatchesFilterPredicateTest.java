@@ -7,35 +7,37 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonMatchesFilterPredicateTest {
 
     @Test
-    public void test_multipleTags_matchesEitherTag() {
-        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
-                Set.of(new Tag("friend"), new Tag("colleague")));
-        assertTrue(predicate.test(new PersonBuilder().withTags("FRIEND").build()));
-        assertTrue(predicate.test(new PersonBuilder().withTags("colleague").build()));
-        assertTrue(predicate.test(new PersonBuilder().withTags("friend", "colleague").build()));
-        assertFalse(predicate.test(new PersonBuilder().withTags("family").build()));
-        assertFalse(predicate.test(new PersonBuilder().withTags().build()));
+    public void test_multipleInstruments_matchesEitherInstrument() {
+        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(Set.of("Violin", "Cello"));
+        assertTrue(predicate.test(new PersonBuilder().withInstruments("VIOLIN:3").build()));
+        assertTrue(predicate.test(new PersonBuilder().withInstruments("Cello:1").build()));
+        assertTrue(predicate.test(new PersonBuilder().withInstruments("Violin:2", "Cello:4").build()));
+        assertFalse(predicate.test(new PersonBuilder().withInstruments("Flute:5").build()));
+        assertFalse(predicate.test(new PersonBuilder().withInstruments().build()));
     }
 
     @Test
-    public void test_matchingTag_returnsTrue() {
-        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(new Tag("friend"));
-        assertTrue(predicate.test(new PersonBuilder().withTags("friend").build()));
-        assertTrue(predicate.test(new PersonBuilder().withTags("colleague", "FRIEND").build()));
+    public void test_matchingInstrument_returnsTrue() {
+        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate("violin");
+        assertTrue(predicate.test(new PersonBuilder().withInstruments("Violin:0").build()));
+        assertTrue(predicate.test(new PersonBuilder().withInstruments("Cello:2", "VIOLIN:7").build()));
+
+        // extra whitespace inside the name is ignored
+        predicate = new PersonMatchesFilterPredicate("bass   guitar");
+        assertTrue(predicate.test(new PersonBuilder().withInstruments("Bass Guitar:3").build()));
     }
 
     @Test
-    public void test_nonMatchingTag_returnsFalse() {
-        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(new Tag("friend"));
-        assertFalse(predicate.test(new PersonBuilder().withTags("colleague").build()));
-        assertFalse(predicate.test(new PersonBuilder().withTags("friends").build()));
-        assertFalse(predicate.test(new PersonBuilder().withTags().build()));
-        assertFalse(predicate.test(new PersonBuilder().withName("friend").withTags("colleague").build()));
+    public void test_nonMatchingInstrument_returnsFalse() {
+        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate("Guitar");
+        assertFalse(predicate.test(new PersonBuilder().withInstruments("Piano:4").build()));
+        assertFalse(predicate.test(new PersonBuilder().withInstruments("Bass Guitar:4").build()));
+        assertFalse(predicate.test(new PersonBuilder().withInstruments().build()));
+        assertFalse(predicate.test(new PersonBuilder().withName("Guitar").withInstruments("Piano:1").build()));
     }
 }

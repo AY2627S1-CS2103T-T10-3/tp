@@ -1,0 +1,16 @@
+{
+  "persons": [ {
+    "name": "Hans Muster",
+    "phone": "9482424",
+    "email": "hans@example.com",
+    "status": "member",
+    "memberType": "student",
+    "instruments": [ {
+      "name": "Violin",
+      "years": 3
+    }, {
+      "name": "VIOLIN",
+      "years": 5
+    } ]
+  } ]
+}

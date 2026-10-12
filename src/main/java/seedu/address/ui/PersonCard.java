@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
 
 /**
@@ -37,7 +38,7 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label email;
     @FXML
-    private FlowPane tags;
+    private FlowPane instruments;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -49,8 +50,16 @@ public class PersonCard extends UiPart<Region> {
         name.setText(person.getName().fullName);
         phone.setText(person.getPhone().value);
         email.setText(person.getEmail().value);
-        person.getTags().stream()
-                .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+        person.getInstruments().stream()
+                .sorted(Comparator.comparing(Instrument::getName, String.CASE_INSENSITIVE_ORDER))
+                .forEach(instrument -> instruments.getChildren().add(new Label(formatInstrument(instrument))));
+    }
+
+    /**
+     * Formats an instrument as its name followed by the years played, e.g. {@code Violin (5 yrs)}.
+     */
+    private static String formatInstrument(Instrument instrument) {
+        int years = instrument.getYears();
+        return instrument.getName() + " (" + years + (years == 1 ? " yr)" : " yrs)");
     }
 }
