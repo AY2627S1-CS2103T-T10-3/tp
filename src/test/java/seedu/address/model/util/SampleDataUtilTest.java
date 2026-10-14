@@ -29,7 +29,6 @@ public class SampleDataUtilTest {
         }
 
         List<Person> people = List.of(samplePersons);
-        
         assertTrue(people.stream().anyMatch(person -> person.getStatus() == Status.MEMBER));
         assertTrue(people.stream().anyMatch(person -> person.getStatus() == Status.ACTIVE_ALUMNUS));
         assertTrue(people.stream().anyMatch(person -> person.getStatus() == Status.INACTIVE_ALUMNUS));
