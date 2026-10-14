@@ -10,8 +10,11 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Role;
+import seedu.address.model.person.Status;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -104,5 +107,45 @@ public class ParserUtil {
             tagSet.add(parseTag(tagName));
         }
         return tagSet;
+    }
+
+    /**
+     * Parses a membership status, ignoring case and surrounding whitespace.
+     *
+     * @throws ParseException if the status is invalid.
+     */
+    public static Status parseStatus(String status) throws ParseException {
+        requireNonNull(status);
+        if (!Status.isValidStatus(status)) {
+            throw new ParseException(Status.MESSAGE_CONSTRAINTS);
+        }
+        return Status.fromString(status);
+    }
+
+    /**
+     * Parses a member type, ignoring case and surrounding whitespace.
+     *
+     * @throws ParseException if the member type is invalid.
+     */
+    public static MemberType parseMemberType(String memberType) throws ParseException {
+        requireNonNull(memberType);
+        if (!MemberType.isValidMemberType(memberType)) {
+            throw new ParseException(MemberType.MESSAGE_CONSTRAINTS);
+        }
+        return MemberType.fromString(memberType);
+    }
+
+    /**
+     * Parses a non-blank free-text role, trimming surrounding whitespace.
+     *
+     * @throws ParseException if the role is blank.
+     */
+    public static Role parseRole(String role) throws ParseException {
+        requireNonNull(role);
+        String trimmedRole = role.trim();
+        if (!Role.isValidRole(trimmedRole)) {
+            throw new ParseException(Role.MESSAGE_CONSTRAINTS);
+        }
+        return new Role(trimmedRole);
     }
 }

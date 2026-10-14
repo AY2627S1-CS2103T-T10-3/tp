@@ -13,8 +13,11 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Role;
+import seedu.address.model.person.Status;
 import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
@@ -164,5 +167,40 @@ public class ParserUtilTest {
         Set<Tag> expectedTagSet = Set.of(new Tag(VALID_TAG_1), new Tag(VALID_TAG_2));
 
         assertEquals(expectedTagSet, actualTagSet);
+    }
+
+    @Test
+    public void parseStatus_nullOrInvalid_throwsException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseStatus(null));
+        assertThrows(ParseException.class, Status.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseStatus("alumnus"));
+    }
+
+    @Test
+    public void parseStatus_validValue_returnsStatus() throws Exception {
+        assertEquals(Status.ACTIVE_ALUMNUS, ParserUtil.parseStatus(" ACTIVE-ALUMNUS "));
+    }
+
+    @Test
+    public void parseMemberType_nullOrInvalid_throwsException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseMemberType(null));
+        assertThrows(ParseException.class, MemberType.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseMemberType("alumnus"));
+    }
+
+    @Test
+    public void parseMemberType_validValue_returnsMemberType() throws Exception {
+        assertEquals(MemberType.TEACHER, ParserUtil.parseMemberType(" TEACHER "));
+    }
+
+    @Test
+    public void parseRole_nullOrBlank_throwsException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseRole(null));
+        assertThrows(ParseException.class, Role.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseRole(" \t "));
+    }
+
+    @Test
+    public void parseRole_validValue_returnsTrimmedRole() throws Exception {
+        assertEquals(new Role("Section Leader / Conductor"),
+                ParserUtil.parseRole("  Section Leader / Conductor  "));
     }
 }

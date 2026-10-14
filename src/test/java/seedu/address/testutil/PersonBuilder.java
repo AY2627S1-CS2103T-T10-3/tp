@@ -1,12 +1,16 @@
 package seedu.address.testutil;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.model.person.Email;
+import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Role;
+import seedu.address.model.person.Status;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
 
@@ -22,6 +26,9 @@ public class PersonBuilder {
     private Name name;
     private Phone phone;
     private Email email;
+    private Status status;
+    private MemberType memberType;
+    private Optional<Role> role;
     private Set<Tag> tags;
 
     /**
@@ -31,6 +38,9 @@ public class PersonBuilder {
         name = new Name(DEFAULT_NAME);
         phone = new Phone(DEFAULT_PHONE);
         email = new Email(DEFAULT_EMAIL);
+        status = Status.MEMBER;
+        memberType = MemberType.STUDENT;
+        role = Optional.empty();
         tags = new HashSet<>();
     }
 
@@ -41,6 +51,9 @@ public class PersonBuilder {
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail();
+        status = personToCopy.getStatus();
+        memberType = personToCopy.getMemberType();
+        role = personToCopy.getRole();
         tags = new HashSet<>(personToCopy.getTags());
     }
 
@@ -76,8 +89,32 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the membership status of the person being built.
+     */
+    public PersonBuilder withStatus(String status) {
+        this.status = Status.fromString(status);
+        return this;
+    }
+
+    /**
+     * Sets whether the person is a student or teacher.
+     */
+    public PersonBuilder withMemberType(String memberType) {
+        this.memberType = MemberType.fromString(memberType);
+        return this;
+    }
+
+    /**
+     * Sets the person's optional role.
+     */
+    public PersonBuilder withRole(String role) {
+        this.role = Optional.of(new Role(role));
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone, email, tags);
+        return new Person(name, phone, email, status, memberType, role, tags);
     }
 
 }
