@@ -17,8 +17,8 @@ Class Person
 Class Email
 Class Name
 Class Phone
-Class Status
-Class MemberType
+Class "<<enumeration>>\nStatus" as Status
+Class "<<enumeration>>\nMemberType" as MemberType
 Class Role
 Class Instrument
 
