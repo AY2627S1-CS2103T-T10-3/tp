@@ -145,6 +145,7 @@ Shows people who play any of the specified instruments and reports the number of
 * Instruments are combined with OR: `filter i/Violin i/Viola` matches people who play either instrument or both.
 * Matches complete instrument names, ignoring case: `guitar` matches `Guitar`, but not `Bass Guitar`.
 * Spaces after `i/` are allowed: `filter i/ Violin` is equivalent to `filter i/Violin`.
+* Only `i/` is accepted for now; other prefixes such as `s/` or `n/` are rejected with the command format.
 * Searches the full directory, including after a previous `find` or `filter`.
 * If no person matches, the displayed list is empty and the result reports zero matches.
 * Stored records are unchanged. Use `list` to display everyone again.

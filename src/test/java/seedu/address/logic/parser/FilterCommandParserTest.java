@@ -37,6 +37,16 @@ public class FilterCommandParserTest {
     }
 
     @Test
+    public void parse_unsupportedPrefix_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, "i/Violin s/member", expectedMessage);
+        assertParseFailure(parser, "s/member i/Violin", expectedMessage);
+        assertParseFailure(parser, "i/Violin n/Alice", expectedMessage);
+        assertParseFailure(parser, "i/Violin ty/teacher r/Conductor", expectedMessage);
+        assertParseFailure(parser, "i/Violin p/91234567 e/alice@example.com", expectedMessage);
+    }
+
+    @Test
     public void parse_unexpectedPreamble_throwsParseException() {
         assertParseFailure(parser, "1 i/Violin",
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
