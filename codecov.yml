@@ -1,0 +1,3 @@
+# JavaFX UI code needs a display to run, so it is not covered by the automated tests run in CI.
+ignore:
+  - "src/main/java/seedu/address/ui/**"
