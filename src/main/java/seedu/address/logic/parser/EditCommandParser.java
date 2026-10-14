@@ -72,7 +72,7 @@ public class EditCommandParser implements Parser<EditCommand> {
      */
     private Optional<Set<Instrument>> parseInstrumentsForEdit(Collection<String> instruments)
             throws ParseException {
-        assert instruments != null;
+        requireNonNull(instruments);
 
         if (instruments.isEmpty()) {
             return Optional.empty();

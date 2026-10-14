@@ -85,7 +85,12 @@ public class Instrument {
     public static boolean hasDuplicateNames(Collection<Instrument> instruments) {
         requireNonNull(instruments);
         Set<String> seenKeys = new HashSet<>();
-        return !instruments.stream().allMatch(instrument -> seenKeys.add(toKey(instrument.name)));
+        for (Instrument instrument : instruments) {
+            if (!seenKeys.add(toKey(instrument.name))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String normalizeName(String name) {
