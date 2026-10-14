@@ -107,12 +107,15 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void toModelType_repeatedIdenticalInstrument_keepsOneInstrument() throws Exception {
-        List<JsonAdaptedInstrument> repeatedInstruments = List.of(
-                new JsonAdaptedInstrument("Violin", 4), new JsonAdaptedInstrument("Violin", 4));
-        JsonAdaptedPerson person =
-                adaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, repeatedInstruments);
-        assertEquals(Set.of(new Instrument("Violin", 4)), person.toModelType().getInstruments());
+    public void toModelType_repeatedIdenticalInstrument_throwsIllegalValueException() {
+        // same name and years, in the same or a different case, is still a repeated instrument
+        for (String repeatedName : List.of("Violin", "violin")) {
+            List<JsonAdaptedInstrument> repeatedInstruments = List.of(
+                    new JsonAdaptedInstrument("Violin", 4), new JsonAdaptedInstrument(repeatedName, 4));
+            JsonAdaptedPerson person =
+                    adaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, repeatedInstruments);
+            assertThrows(IllegalValueException.class, Instrument.MESSAGE_DUPLICATE_NAMES, person::toModelType);
+        }
     }
 
     @Test

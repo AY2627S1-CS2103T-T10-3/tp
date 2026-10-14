@@ -78,7 +78,7 @@ class JsonAdaptedPerson {
         for (JsonAdaptedInstrument instrument : instruments) {
             personInstruments.add(instrument.toModelType());
         }
-        if (Instrument.hasDuplicateNames(Set.copyOf(personInstruments))) {
+        if (Instrument.hasDuplicateNames(personInstruments)) {
             throw new IllegalValueException(Instrument.MESSAGE_DUPLICATE_NAMES);
         }
 
