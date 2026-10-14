@@ -122,6 +122,13 @@ public class InstrumentTest {
     }
 
     @Test
+    public void toDisplayString_returnsNameAndYearsPlayed() {
+        assertEquals("French Horn (3 yrs)", new Instrument("French Horn", 3).toDisplayString());
+        assertEquals("Flute (1 yr)", new Instrument("Flute", 1).toDisplayString());
+        assertEquals("Cello (0 yrs)", new Instrument("Cello", 0).toDisplayString());
+    }
+
+    @Test
     public void toString_returnsNameAndYears() {
         assertEquals("French Horn:3", new Instrument("French Horn", 3).toString());
     }

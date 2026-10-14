@@ -116,6 +116,14 @@ public class Instrument {
     }
 
     /**
+     * Formats the instrument for display as its name followed by the years played,
+     * e.g. {@code Violin (5 yrs)} or {@code Flute (1 yr)}.
+     */
+    public String toDisplayString() {
+        return name + " (" + years + (years == 1 ? " yr)" : " yrs)");
+    }
+
+    /**
      * Formats the instrument in the same {@code NAME:YEARS} form that users type.
      */
     @Override

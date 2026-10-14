@@ -52,14 +52,6 @@ public class PersonCard extends UiPart<Region> {
         email.setText(person.getEmail().value);
         person.getInstruments().stream()
                 .sorted(Comparator.comparing(Instrument::getName, String.CASE_INSENSITIVE_ORDER))
-                .forEach(instrument -> instruments.getChildren().add(new Label(formatInstrument(instrument))));
-    }
-
-    /**
-     * Formats an instrument as its name followed by the years played, e.g. {@code Violin (5 yrs)}.
-     */
-    private static String formatInstrument(Instrument instrument) {
-        int years = instrument.getYears();
-        return instrument.getName() + " (" + years + (years == 1 ? " yr)" : " yrs)");
+                .forEach(instrument -> instruments.getChildren().add(new Label(instrument.toDisplayString())));
     }
 }
