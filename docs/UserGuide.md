@@ -135,22 +135,26 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
-### Filtering persons by instrument: `filter`
+### Filtering persons by status and instrument: `filter`
 
-Format: `filter i/INSTRUMENT [i/INSTRUMENT]...`
+Format: `filter [s/STATUS]... [i/INSTRUMENT]...`
 
-Shows people who play any of the specified instruments and reports the number of matches.
+Shows people matching the specified status and instrument criteria and reports the number of matches.
 
-* Accepts one or more instrument names, each introduced by `i/`. Years played are not used when filtering.
+* At least one status or instrument criterion is required. Status-only, instrument-only, and combined filters are supported.
+* Introduce each status with `s/`: use `member`, `active-alumnus`, or `inactive-alumnus`, ignoring case and surrounding whitespace.
+* Statuses are combined with OR: `filter s/member s/active-alumnus` matches current members or active alumni.
+* Introduce each instrument name with `i/`. Years played are not used when filtering.
 * Instruments are combined with OR: `filter i/Violin i/Viola` matches people who play either instrument or both.
+* Status and instrument groups are combined with AND: `filter s/member s/active-alumnus i/Violin i/Viola` matches people who are members or active alumni and play violin or viola.
 * Matches complete instrument names, ignoring case: `guitar` matches `Guitar`, but not `Bass Guitar`.
 * Spaces after `i/` are allowed: `filter i/ Violin` is equivalent to `filter i/Violin`.
-* Only `i/` is accepted for now; other prefixes such as `s/` or `n/` are rejected with the command format.
+* Only `s/` and `i/` are supported. Other member-field prefixes such as `n/`, `ty/`, or `r/` are rejected with the command format.
 * Searches the full directory, including after a previous `find` or `filter`.
 * If no person matches, the displayed list is empty and the result reports zero matches.
 * Stored records are unchanged. Use `list` to display everyone again.
 
-Example: `filter i/Violin`
+Example: `filter s/member i/Violin`
 
 ### Deleting a person: `delete`
 
@@ -220,6 +224,6 @@ Action | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [i/INSTRUMENT:YEARS]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
-**Filter** | `filter i/INSTRUMENT [i/INSTRUMENT]...`<br> e.g., `filter i/Violin i/Viola`
+**Filter** | `filter [s/STATUS]... [i/INSTRUMENT]...`<br> e.g., `filter s/member s/active-alumnus i/Violin`
 **List** | `list`
 **Help** | `help`

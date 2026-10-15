@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Status;
 
 /**
  * Parses input arguments and creates a FilterCommand.
@@ -27,32 +28,38 @@ public class FilterCommandParser implements Parser<FilterCommand> {
      * rejected instead of being silently read as part of an instrument name.
      */
     private static final Prefix[] UNSUPPORTED_PREFIXES = {
-        PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_STATUS, PREFIX_MEMBER_TYPE, PREFIX_ROLE
+        PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_MEMBER_TYPE, PREFIX_ROLE
     };
 
     /**
-     * Parses one or more instrument name arguments and returns a FilterCommand.
+     * Parses status and instrument name criteria and returns a FilterCommand.
      *
      * @throws ParseException if the arguments do not conform to the expected format.
      */
     @Override
     public FilterCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        Prefix[] prefixes = Stream.concat(Stream.of(PREFIX_INSTRUMENT), Stream.of(UNSUPPORTED_PREFIXES))
+        Prefix[] prefixes = Stream.concat(Stream.of(PREFIX_STATUS, PREFIX_INSTRUMENT), Stream.of(UNSUPPORTED_PREFIXES))
                 .toArray(Prefix[]::new);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args.trim(), prefixes);
 
         boolean hasUnsupportedPrefix = Stream.of(UNSUPPORTED_PREFIXES)
                 .anyMatch(prefix -> argMultimap.getValue(prefix).isPresent());
-        if (!argMultimap.getPreamble().isEmpty() || argMultimap.getValue(PREFIX_INSTRUMENT).isEmpty()
+        boolean hasCriteria = argMultimap.getValue(PREFIX_STATUS).isPresent()
+                || argMultimap.getValue(PREFIX_INSTRUMENT).isPresent();
+        if (!argMultimap.getPreamble().isEmpty() || !hasCriteria
                 || hasUnsupportedPrefix) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
         }
 
+        Set<Status> statuses = new HashSet<>();
+        for (String status : argMultimap.getAllValues(PREFIX_STATUS)) {
+            statuses.add(ParserUtil.parseStatus(status));
+        }
         Set<String> instrumentNames = new HashSet<>();
         for (String instrumentName : argMultimap.getAllValues(PREFIX_INSTRUMENT)) {
             instrumentNames.add(ParserUtil.parseInstrumentName(instrumentName));
         }
-        return new FilterCommand(instrumentNames);
+        return new FilterCommand(statuses, instrumentNames);
     }
 }

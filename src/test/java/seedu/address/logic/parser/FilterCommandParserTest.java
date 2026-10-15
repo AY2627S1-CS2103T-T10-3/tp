@@ -10,20 +10,21 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.model.person.Instrument;
+import seedu.address.model.person.Status;
 
 public class FilterCommandParserTest {
     private final FilterCommandParser parser = new FilterCommandParser();
 
     @Test
     public void parse_validInstrument_returnsFilterCommand() {
-        FilterCommand expectedCommand = new FilterCommand("Violin");
+        FilterCommand expectedCommand = new FilterCommand(Set.of(), Set.of("Violin"));
         assertParseSuccess(parser, "i/Violin", expectedCommand);
         assertParseSuccess(parser, "  i/  Violin  ", expectedCommand);
-        assertParseSuccess(parser, "i/Bass Guitar", new FilterCommand("Bass Guitar"));
+        assertParseSuccess(parser, "i/Bass Guitar", new FilterCommand(Set.of(), Set.of("Bass Guitar")));
     }
 
     @Test
-    public void parse_missingInstrumentPrefix_throwsParseException() {
+    public void parse_missingCriteria_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "", expectedMessage);
         assertParseFailure(parser, "   ", expectedMessage);
@@ -39,8 +40,8 @@ public class FilterCommandParserTest {
     @Test
     public void parse_unsupportedPrefix_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, "i/Violin s/member", expectedMessage);
-        assertParseFailure(parser, "s/member i/Violin", expectedMessage);
+        assertParseFailure(parser, "s/member n/Alice", expectedMessage);
+        assertParseFailure(parser, "ty/student s/member", expectedMessage);
         assertParseFailure(parser, "i/Violin n/Alice", expectedMessage);
         assertParseFailure(parser, "i/Violin ty/teacher r/Conductor", expectedMessage);
         assertParseFailure(parser, "i/Violin p/91234567 e/alice@example.com", expectedMessage);
@@ -62,8 +63,56 @@ public class FilterCommandParserTest {
 
     @Test
     public void parse_multipleInstruments_returnsFilterCommand() {
-        FilterCommand expectedCommand = new FilterCommand(Set.of("Violin", "Cello"));
+        FilterCommand expectedCommand = new FilterCommand(Set.of(), Set.of("Violin", "Cello"));
         assertParseSuccess(parser, "i/Violin i/Cello", expectedCommand);
         assertParseSuccess(parser, "i/ Cello i/ Violin i/Violin", expectedCommand);
+    }
+
+    @Test
+    public void parse_validStatus_returnsFilterCommand() {
+        for (Status status : Status.values()) {
+            FilterCommand expectedCommand = new FilterCommand(Set.of(status), Set.of());
+            assertParseSuccess(parser, "s/" + status, expectedCommand);
+        }
+        assertParseSuccess(parser, "  s/  ACTIVE-ALUMNUS  ",
+                new FilterCommand(Set.of(Status.ACTIVE_ALUMNUS), Set.of()));
+    }
+
+    @Test
+    public void parse_multipleStatuses_returnsFilterCommand() {
+        FilterCommand expectedCommand = new FilterCommand(Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS), Set.of());
+        assertParseSuccess(parser, "s/member s/active-alumnus", expectedCommand);
+        assertParseSuccess(parser, "s/ACTIVE-ALUMNUS s/member s/MEMBER", expectedCommand);
+    }
+
+    @Test
+    public void parse_statusesAndInstruments_returnsFilterCommand() {
+        FilterCommand expectedCommand = new FilterCommand(
+                Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS), Set.of("Violin", "Cello"));
+        assertParseSuccess(parser, "s/member i/Violin s/active-alumnus i/Cello", expectedCommand);
+        assertParseSuccess(parser, "i/Cello s/active-alumnus i/Violin s/member", expectedCommand);
+    }
+
+    @Test
+    public void parse_invalidStatus_throwsParseException() {
+        assertParseFailure(parser, "s/", Status.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "s/alumnus", Status.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "s/student", Status.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "s/member active-alumnus", Status.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "s/member s/", Status.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "s/unknown s/member", Status.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "i/Violin s/unknown", Status.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_statusWithInvalidInstrument_throwsParseException() {
+        assertParseFailure(parser, "s/member i/", Instrument.MESSAGE_NAME_CONSTRAINTS);
+        assertParseFailure(parser, "s/member i/Violin:3", Instrument.MESSAGE_NAME_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_statusWithUnexpectedPreamble_throwsParseException() {
+        assertParseFailure(parser, "1 s/member",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
     }
 }

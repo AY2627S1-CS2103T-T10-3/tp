@@ -159,6 +159,14 @@ The `find` command matches any part of a person's name, ignoring case. For examp
 
 Tests in `StringUtilTest` cover substring positions, case differences, invalid inputs and non-matches. `NameContainsKeywordsPredicateTest` verifies name-only matching and OR semantics. `FindCommandTest` checks the resulting persons and feedback count, while `FindCommandParserTest` covers empty arguments and extra whitespace.
 
+### Status and instrument filtering
+
+`FilterCommandParser` accepts repeated `s/STATUS` and `i/INSTRUMENT` arguments and requires at least one criterion. It validates every status through `ParserUtil.parseStatus` and every instrument name through `ParserUtil.parseInstrumentName`. Other member-field prefixes are tokenized and rejected rather than absorbed into instrument names.
+
+`FilterCommand` stores immutable sets of statuses and instrument names. `PersonMatchesFilterPredicate` checks whether the person's status belongs to the selected statuses and whether any recorded instrument matches any requested name through `Instrument.hasName`. Criteria within a field use OR, and the two fields use AND. An omitted field imposes no restriction, so status-only filters also include matching people without instruments. Instrument years are not filter criteria at this stage.
+
+The command replaces the predicate on the full directory's `FilteredList`, reports its match count, and leaves stored records unchanged. `list` restores all records. Parser, predicate, and command tests cover repeated statuses, invalid inputs, combined criteria, people without instruments, empty results, and searches after earlier filters.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation

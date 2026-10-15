@@ -8,6 +8,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -70,7 +71,7 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_filter() throws Exception {
-        assertEquals(new FilterCommand("Violin"),
+        assertEquals(new FilterCommand(Set.of(), Set.of("Violin")),
                 parser.parseCommand(FilterCommand.COMMAND_WORD + " i/Violin"));
     }
 

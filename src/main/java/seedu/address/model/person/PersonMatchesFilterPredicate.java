@@ -6,9 +6,10 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Tests whether a person plays any of the specified instruments, matching whole names and ignoring case.
+ * Tests status and instrument criteria, with OR within each field and AND between fields.
  */
 public class PersonMatchesFilterPredicate implements Predicate<Person> {
+    private final Set<Status> statuses;
     private final Set<String> instrumentNames;
 
     /**
@@ -22,12 +23,24 @@ public class PersonMatchesFilterPredicate implements Predicate<Person> {
      * Creates a predicate matching any of the specified instrument names.
      */
     public PersonMatchesFilterPredicate(Set<String> instrumentNames) {
+        this(Set.of(), instrumentNames);
+    }
+
+    /**
+     * Creates a predicate with OR within each field and AND between fields.
+     * An empty set leaves its field unrestricted.
+     */
+    public PersonMatchesFilterPredicate(Set<Status> statuses, Set<String> instrumentNames) {
+        this.statuses = Set.copyOf(requireNonNull(statuses));
         this.instrumentNames = Set.copyOf(requireNonNull(instrumentNames));
     }
 
     @Override
     public boolean test(Person person) {
-        return instrumentNames.stream().anyMatch(instrumentName -> person.getInstruments().stream()
-                .anyMatch(instrument -> instrument.hasName(instrumentName)));
+        boolean matchesStatus = statuses.isEmpty() || statuses.contains(person.getStatus());
+        boolean matchesInstrument = instrumentNames.isEmpty()
+                || instrumentNames.stream().anyMatch(instrumentName -> person.getInstruments().stream()
+                    .anyMatch(instrument -> instrument.hasName(instrumentName)));
+        return matchesStatus && matchesInstrument;
     }
 }

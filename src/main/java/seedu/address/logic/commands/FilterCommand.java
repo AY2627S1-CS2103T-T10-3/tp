@@ -2,43 +2,44 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
 
+import java.util.Objects;
 import java.util.Set;
 
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.person.PersonMatchesFilterPredicate;
+import seedu.address.model.person.Status;
 
 /**
- * Lists people who play any of the specified instruments, ignoring case.
+ * Lists people matching status and instrument criteria, with OR within each field and AND between fields.
  */
 public class FilterCommand extends Command {
     public static final String COMMAND_WORD = "filter";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Lists people who play any specified instrument (case-insensitive).\n"
-            + "Parameters: " + PREFIX_INSTRUMENT + "INSTRUMENT [" + PREFIX_INSTRUMENT + "MORE_INSTRUMENTS]...\n"
-            + "Example: " + COMMAND_WORD + " " + PREFIX_INSTRUMENT + "Violin " + PREFIX_INSTRUMENT + "Viola";
+            + ": Lists people matching statuses and instruments (OR within a field, AND between fields).\n"
+            + "Parameters: [" + PREFIX_STATUS + "STATUS]... [" + PREFIX_INSTRUMENT + "INSTRUMENT]...\n"
+            + "At least one status or instrument is required.\n"
+            + "Example: " + COMMAND_WORD + " " + PREFIX_STATUS + "member "
+            + PREFIX_STATUS + "active-alumnus " + PREFIX_INSTRUMENT + "Violin";
 
+    private final Set<Status> statuses;
     private final Set<String> instrumentNames;
 
     /**
-     * Creates a filter command matching the specified instrument name.
+     * Creates a filter command with OR within each field and AND between fields.
+     * An empty set leaves its field unrestricted.
      */
-    public FilterCommand(String instrumentName) {
-        this(Set.of(requireNonNull(instrumentName)));
-    }
-
-    /**
-     * Creates a filter command matching any of the specified instrument names.
-     */
-    public FilterCommand(Set<String> instrumentNames) {
+    public FilterCommand(Set<Status> statuses, Set<String> instrumentNames) {
+        this.statuses = Set.copyOf(requireNonNull(statuses));
         this.instrumentNames = Set.copyOf(requireNonNull(instrumentNames));
     }
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredPersonList(new PersonMatchesFilterPredicate(instrumentNames));
+        model.updateFilteredPersonList(new PersonMatchesFilterPredicate(statuses, instrumentNames));
         return new CommandResult(String.format(
                 Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
     }
@@ -53,11 +54,11 @@ public class FilterCommand extends Command {
             return false;
         }
 
-        return instrumentNames.equals(otherCommand.instrumentNames);
+        return statuses.equals(otherCommand.statuses) && instrumentNames.equals(otherCommand.instrumentNames);
     }
 
     @Override
     public int hashCode() {
-        return instrumentNames.hashCode();
+        return Objects.hash(statuses, instrumentNames);
     }
 }
