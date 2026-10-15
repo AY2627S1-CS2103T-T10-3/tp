@@ -80,6 +80,16 @@ public class AddCommandParserTest {
                 .withRole("Section Leader").build();
         assertParseSuccess(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + STATUS_DESC_BOB
                 + MEMBER_TYPE_DESC_BOB + ROLE_DESC_BOB, new AddCommand(teacherWithRole));
+
+        Person teacherWithRoleAndInstruments = new PersonBuilder(BOB)
+                .withMemberType("teacher")
+                .withRole("Section Leader")
+                .withInstruments(VALID_INSTRUMENT_PIANO, VALID_INSTRUMENT_VIOLIN)
+                .build();
+        assertParseSuccess(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + STATUS_DESC_BOB
+                + MEMBER_TYPE_DESC_BOB + ROLE_DESC_BOB
+                + INSTRUMENT_DESC_PIANO + INSTRUMENT_DESC_VIOLIN,
+                new AddCommand(teacherWithRoleAndInstruments));
     }
 
     @Test
@@ -173,6 +183,25 @@ public class AddCommandParserTest {
         // all prefixes missing
         assertParseFailure(parser, VALID_NAME_BOB + VALID_PHONE_BOB + VALID_EMAIL_BOB,
                 expectedMessage);
+    }
+
+    @Test
+    public void parse_compulsoryFieldBlank_failure() {
+        // blank name
+        assertParseFailure(parser, " " + PREFIX_NAME + PHONE_DESC_BOB + EMAIL_DESC_BOB + STATUS_DESC_BOB,
+                Name.MESSAGE_CONSTRAINTS);
+
+        // blank phone
+        assertParseFailure(parser, NAME_DESC_BOB + " " + PREFIX_PHONE + EMAIL_DESC_BOB + STATUS_DESC_BOB,
+                Phone.MESSAGE_CONSTRAINTS);
+
+        // blank email
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " " + PREFIX_EMAIL + STATUS_DESC_BOB,
+                Email.MESSAGE_CONSTRAINTS);
+
+        // blank status
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + " " + PREFIX_STATUS,
+                Status.MESSAGE_CONSTRAINTS);
     }
 
     @Test
