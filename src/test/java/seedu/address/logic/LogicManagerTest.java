@@ -11,6 +11,7 @@ import static seedu.address.logic.commands.CommandTestUtil.STATUS_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.BOB;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
@@ -155,6 +156,20 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_storageSaveFails_doesNotApplyDelete() {
+        model.addPerson(AMY);
+        model.addPerson(BOB);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        setStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION);
+
+        String deleteCommand = "delete 1";
+        String expectedMessage = String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage());
+
+        assertCommandFailure(deleteCommand, CommandException.class, expectedMessage, expectedModel);
+        assertCommandFailure(deleteCommand, CommandException.class, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
     }
@@ -232,13 +247,26 @@ public class LogicManagerTest {
      * @param expectedMessage the message expected inside exception thrown by the Logic component
      */
     private void assertCommandFailureForExceptionFromStorage(IOException e, String expectedMessage) {
+        setStorageThatThrowsOnSave(e);
+
+        // Triggers the saveAddressBook method by executing an add command
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + STATUS_DESC_AMY;
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+    }
+
+    /**
+     * Replaces the current storage with one that throws the given exception whenever an address book is saved.
+     */
+    private void setStorageThatThrowsOnSave(IOException exception) {
         Path prefPath = temporaryFolder.resolve("ExceptionUserPrefs.json");
 
-        // Inject LogicManager with a JsonAddressBookStorage that throws the IOException e when saving
+        // Inject LogicManager with a JsonAddressBookStorage that throws the IOException when saving.
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(prefPath) {
             @Override
             public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-                throw e;
+                throw exception;
             }
         };
 
@@ -247,13 +275,5 @@ public class LogicManagerTest {
         StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
         logic = new LogicManager(model, storage);
-
-        // Triggers the saveAddressBook method by executing an add command
-        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
-                + EMAIL_DESC_AMY + STATUS_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).withInstruments().build();
-        ModelManager expectedModel = new ModelManager();
-        expectedModel.addPerson(expectedPerson);
-        assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
     }
 }
