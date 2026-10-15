@@ -83,6 +83,22 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
+#### Member cards
+
+`PersonListPanel` observes the filtered person list exposed by `Logic`. Its list cells create a `PersonCard` for each displayed person, passing the cell's one-based index. When `find`, `filter`, or `list` changes the displayed results, the list updates the cards and their indices. The existing UI class diagram shows this relationship; the card enhancement adds no new classes or dependencies.
+
+`PersonCard` loads `PersonListCard.fxml` through `UiPart`. The FXML `fx:id` attributes match the controller's `@FXML` fields. The constructor reads the person's public getters to populate the name, contact details, membership status, member type, optional role, and instruments. Type and status use the model's keyword strings. Instrument labels use `Instrument.toDisplayString()` and are sorted by name, ignoring case.
+
+When no role is recorded, the role label has both `visible` and `managed` set to `false`: it is hidden and does not reserve layout space. Name, contact, and role labels allow text wrapping, while flow panes allow the membership details and instrument labels to move onto additional rows as space narrows. These changes affect presentation only; the model and stored records are unchanged.
+
+`PersonCardTest` loads the actual FXML and checks field values, all status/type combinations, role visibility and layout participation, empty instruments, and instrument ordering. It runs on the JavaFX application thread and requires a working graphical session. Enable it with the environment variable `HIVEMIND_UI_TESTS=true`; otherwise JUnit skips this test class so the existing headless CI remains usable. On Linux/macOS, run:
+
+```sh
+HIVEMIND_UI_TESTS=true ./gradlew test --tests seedu.address.ui.PersonCardTest --rerun-tasks
+```
+
+On Windows PowerShell, set `$env:HIVEMIND_UI_TESTS = "true"` and run `./gradlew.bat test --tests seedu.address.ui.PersonCardTest --rerun-tasks`. These tests do not replace visual checks for wrapping and scrolling; use the member-card scenarios in the manual-testing section below.
+
 ### Logic component
 
 **API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
@@ -512,6 +528,21 @@ testers are expected to do more *exploratory* testing.
        Expected: The most recent window size and location are retained.
 
 1. _{ more test cases …​ }_
+
+### Viewing member cards
+
+Use a disposable directory for these checks so the test records do not affect your real data.
+
+1. Add a member with all fields: `add n/Alicia Tan p/90000002 e/alicia@example.com s/member ty/student r/Section Leader i/Violin:1 i/Piano:5`.<br>
+   Expected: The card shows name, phone, email, type, status, role, and instruments. Piano appears before Violin, with `5 yrs` and `1 yr` respectively.
+1. Add a member without optional fields: `add n/Jamie Koh p/90000001 e/jamie@example.com s/member`.<br>
+   Expected: Type is `student`; there is no role line or instrument label, and no blank role row.
+1. Add a teacher/alumnus: `add n/Marcus Lee p/90000003 e/marcus@example.com s/active-alumnus ty/teacher r/Conductor i/Cello:20`.<br>
+   Expected: Type is `teacher`, status is `active-alumnus`, and the role and instrument are visible.
+1. Run `find alicia marcus`, then `filter i/Piano`, then `find zzznomatch`, then `list`.<br>
+   Expected: Each result shows the appropriate members with complete card details and indices starting at `1`; the no-match search shows no cards; `list` restores all members in insertion order.
+1. Add a member with a long name, email and role, and several instruments. Resize the window narrower and scroll through the list.<br>
+   Expected: Text wraps without overlapping other fields, instrument labels flow onto additional rows, and all recorded details remain accessible. Check both full and empty optional fields again after scrolling.
 
 ### Deleting a person
 
