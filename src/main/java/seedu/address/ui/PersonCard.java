@@ -38,7 +38,14 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label email;
     @FXML
+    private Label membershipStatus;
+    @FXML
+    private Label memberType;
+    @FXML
+    private Label role;
+    @FXML
     private FlowPane instruments;
+
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -50,6 +57,17 @@ public class PersonCard extends UiPart<Region> {
         name.setText(person.getName().fullName);
         phone.setText(person.getPhone().value);
         email.setText(person.getEmail().value);
+        membershipStatus.setText(person.getStatus().toString());
+        memberType.setText(person.getMemberType().toString());
+
+        boolean hasRole = person.getRole().isPresent();
+        role.setText(person.getRole()
+                .map(value -> "Role: " + value.value)
+                .orElse(""));
+
+        role.setVisible(hasRole);
+        role.setManaged(hasRole);
+
         person.getInstruments().stream()
                 .sorted(Comparator.comparing(Instrument::getName, String.CASE_INSENSITIVE_ORDER))
                 .forEach(instrument -> instruments.getChildren().add(new Label(instrument.toDisplayString())));
