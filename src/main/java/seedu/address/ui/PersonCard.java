@@ -11,7 +11,8 @@ import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
 
 /**
- * A UI component that displays information of a {@code Person}.
+ * A UI component that displays a person's name, contact details, membership status,
+ * member type, optional role, and instruments with years of experience.
  */
 public class PersonCard extends UiPart<Region> {
 
@@ -46,9 +47,13 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private FlowPane instruments;
 
-
     /**
-     * Creates a {@code PersonCard} with the given {@code Person} and index to display.
+     * Creates a card for the given person at the specified displayed index.
+     * Instruments are sorted by name, ignoring case. If no role is recorded, the role
+     * label is hidden and excluded from the layout so it does not occupy space.
+     *
+     * @param person The person whose details are displayed.
+     * @param displayedIndex The one-based index in the currently displayed person list.
      */
     public PersonCard(Person person, int displayedIndex) {
         super(FXML);
