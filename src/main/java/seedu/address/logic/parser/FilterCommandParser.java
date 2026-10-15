@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Status;
 
 /**
@@ -32,7 +33,7 @@ public class FilterCommandParser implements Parser<FilterCommand> {
     };
 
     /**
-     * Parses status and instrument name criteria and returns a FilterCommand.
+     * Parses status and instrument criteria, including optional minimum years, and returns a FilterCommand.
      *
      * @throws ParseException if the arguments do not conform to the expected format.
      */
@@ -56,10 +57,20 @@ public class FilterCommandParser implements Parser<FilterCommand> {
         for (String status : argMultimap.getAllValues(PREFIX_STATUS)) {
             statuses.add(ParserUtil.parseStatus(status));
         }
-        Set<String> instrumentNames = new HashSet<>();
-        for (String instrumentName : argMultimap.getAllValues(PREFIX_INSTRUMENT)) {
-            instrumentNames.add(ParserUtil.parseInstrumentName(instrumentName));
+        Set<Instrument> instrumentCriteria = new HashSet<>();
+        for (String instrument : argMultimap.getAllValues(PREFIX_INSTRUMENT)) {
+            instrumentCriteria.add(parseInstrumentCriterion(instrument));
         }
-        return new FilterCommand(statuses, instrumentNames);
+        return new FilterCommand(statuses, instrumentCriteria);
+    }
+
+    /**
+     * Parses a name with optional minimum years, defaulting to zero when years are omitted.
+     */
+    private Instrument parseInstrumentCriterion(String instrument) throws ParseException {
+        if (instrument.contains(":")) {
+            return ParserUtil.parseInstrument(instrument);
+        }
+        return new Instrument(ParserUtil.parseInstrumentName(instrument), 0);
     }
 }

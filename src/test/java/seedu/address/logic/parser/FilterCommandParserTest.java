@@ -17,10 +17,11 @@ public class FilterCommandParserTest {
 
     @Test
     public void parse_validInstrument_returnsFilterCommand() {
-        FilterCommand expectedCommand = new FilterCommand(Set.of(), Set.of("Violin"));
+        FilterCommand expectedCommand = new FilterCommand(Set.of(), Set.of(new Instrument("Violin", 0)));
         assertParseSuccess(parser, "i/Violin", expectedCommand);
         assertParseSuccess(parser, "  i/  Violin  ", expectedCommand);
-        assertParseSuccess(parser, "i/Bass Guitar", new FilterCommand(Set.of(), Set.of("Bass Guitar")));
+        assertParseSuccess(parser, "i/Bass Guitar",
+                new FilterCommand(Set.of(), Set.of(new Instrument("Bass Guitar", 0))));
     }
 
     @Test
@@ -56,14 +57,15 @@ public class FilterCommandParserTest {
     @Test
     public void parse_invalidInstrument_throwsParseException() {
         assertParseFailure(parser, "i/", Instrument.MESSAGE_NAME_CONSTRAINTS);
-        assertParseFailure(parser, "i/Violin:3", Instrument.MESSAGE_NAME_CONSTRAINTS);
+        assertParseFailure(parser, "i/:3", Instrument.MESSAGE_NAME_CONSTRAINTS);
         assertParseFailure(parser, "i/Violin i/", Instrument.MESSAGE_NAME_CONSTRAINTS);
-        assertParseFailure(parser, "i/Violin:3 i/Cello", Instrument.MESSAGE_NAME_CONSTRAINTS);
+        assertParseFailure(parser, "i/:3 i/Cello", Instrument.MESSAGE_NAME_CONSTRAINTS);
     }
 
     @Test
     public void parse_multipleInstruments_returnsFilterCommand() {
-        FilterCommand expectedCommand = new FilterCommand(Set.of(), Set.of("Violin", "Cello"));
+        FilterCommand expectedCommand = new FilterCommand(Set.of(),
+                Set.of(new Instrument("Violin", 0), new Instrument("Cello", 0)));
         assertParseSuccess(parser, "i/Violin i/Cello", expectedCommand);
         assertParseSuccess(parser, "i/ Cello i/ Violin i/Violin", expectedCommand);
     }
@@ -88,7 +90,8 @@ public class FilterCommandParserTest {
     @Test
     public void parse_statusesAndInstruments_returnsFilterCommand() {
         FilterCommand expectedCommand = new FilterCommand(
-                Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS), Set.of("Violin", "Cello"));
+                Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS),
+                Set.of(new Instrument("Violin", 0), new Instrument("Cello", 0)));
         assertParseSuccess(parser, "s/member i/Violin s/active-alumnus i/Cello", expectedCommand);
         assertParseSuccess(parser, "i/Cello s/active-alumnus i/Violin s/member", expectedCommand);
     }
@@ -107,12 +110,49 @@ public class FilterCommandParserTest {
     @Test
     public void parse_statusWithInvalidInstrument_throwsParseException() {
         assertParseFailure(parser, "s/member i/", Instrument.MESSAGE_NAME_CONSTRAINTS);
-        assertParseFailure(parser, "s/member i/Violin:3", Instrument.MESSAGE_NAME_CONSTRAINTS);
+        assertParseFailure(parser, "s/member i/:3", Instrument.MESSAGE_NAME_CONSTRAINTS);
     }
 
     @Test
     public void parse_statusWithUnexpectedPreamble_throwsParseException() {
         assertParseFailure(parser, "1 s/member",
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parse_instrumentWithMinimumYears_returnsFilterCommand() {
+        for (int years : new int[] {0, 3, Instrument.MAX_YEARS}) {
+            FilterCommand expectedCommand = new FilterCommand(Set.of(), Set.of(new Instrument("Violin", years)));
+            assertParseSuccess(parser, "i/Violin:" + years, expectedCommand);
+        }
+        assertParseSuccess(parser, "  i/  BASS   guitar : 3  ",
+                new FilterCommand(Set.of(), Set.of(new Instrument("Bass Guitar", 3))));
+        assertParseSuccess(parser, "i/Violin i/VIOLIN:0",
+                new FilterCommand(Set.of(), Set.of(new Instrument("Violin", 0))));
+    }
+
+    @Test
+    public void parse_mixedInstrumentCriteriaAndStatuses_returnsFilterCommand() {
+        FilterCommand expectedCommand = new FilterCommand(Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS),
+                Set.of(new Instrument("Violin", 3), new Instrument("Cello", 0)));
+        assertParseSuccess(parser, "s/member i/Violin:3 s/active-alumnus i/Cello", expectedCommand);
+        assertParseSuccess(parser, "i/Cello s/ACTIVE-ALUMNUS i/violin:3 s/member", expectedCommand);
+    }
+
+    @Test
+    public void parse_repeatedInstrumentWithDifferentMinimumYears_returnsFilterCommand() {
+        FilterCommand expectedCommand = new FilterCommand(Set.of(),
+                Set.of(new Instrument("Violin", 3), new Instrument("Violin", 5)));
+        assertParseSuccess(parser, "i/Violin:3 i/violin:5 i/VIOLIN:3", expectedCommand);
+    }
+
+    @Test
+    public void parse_invalidMinimumYears_throwsParseException() {
+        for (String years : new String[] {"", "-1", "100", "1.5", "3.0", "abc", "+3", "1e1",
+            "999999999999999999999", "3:4"}) {
+            assertParseFailure(parser, "i/Violin:" + years, Instrument.MESSAGE_YEARS_CONSTRAINTS);
+            assertParseFailure(parser, "s/member i/Violin:" + years + " i/Cello",
+                    Instrument.MESSAGE_YEARS_CONSTRAINTS);
+        }
     }
 }

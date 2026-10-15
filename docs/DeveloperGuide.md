@@ -161,11 +161,11 @@ Tests in `StringUtilTest` cover substring positions, case differences, invalid i
 
 ### Status and instrument filtering
 
-`FilterCommandParser` accepts repeated `s/STATUS` and `i/INSTRUMENT` arguments and requires at least one criterion. It validates every status through `ParserUtil.parseStatus` and every instrument name through `ParserUtil.parseInstrumentName`. Other member-field prefixes are tokenized and rejected rather than absorbed into instrument names.
+`FilterCommandParser` accepts repeated `s/STATUS` and `i/NAME[:MIN_YEARS]` arguments and requires at least one criterion. It validates every status through `ParserUtil.parseStatus`. Instrument criteria with years use `ParserUtil.parseInstrument`, which validates names and whole years from 0 to 99. Name-only criteria use `ParserUtil.parseInstrumentName` and default to a minimum of zero. Other member-field prefixes are tokenized and rejected rather than absorbed into instrument names.
 
-`FilterCommand` stores immutable sets of statuses and instrument names. `PersonMatchesFilterPredicate` checks whether the person's status belongs to the selected statuses and whether any recorded instrument matches any requested name through `Instrument.hasName`. Criteria within a field use OR, and the two fields use AND. An omitted field imposes no restriction, so status-only filters also include matching people without instruments. Instrument years are not filter criteria at this stage.
+`FilterCommand` stores immutable sets of statuses and instrument criteria. Criteria reuse `Instrument` values, with their years interpreted as inclusive minimums rather than recorded experience. `PersonMatchesFilterPredicate` checks whether the person's status belongs to the selected statuses and whether any recorded instrument both matches a criterion's name through `Instrument.hasName` and has at least its minimum years. The name and years checks apply to the same recorded instrument. Criteria within a field use OR, including repeated names with different minimums, and the two fields use AND. An omitted field imposes no restriction, so status-only filters also include matching people without instruments.
 
-The command replaces the predicate on the full directory's `FilteredList`, reports its match count, and leaves stored records unchanged. `list` restores all records. Parser, predicate, and command tests cover repeated statuses, invalid inputs, combined criteria, people without instruments, empty results, and searches after earlier filters.
+The command replaces the predicate on the full directory's `FilteredList`, reports its match count, and leaves stored records unchanged. `list` restores all records. Parser, predicate, and command tests cover repeated criteria, invalid inputs, threshold boundaries, matching years on the correct instrument, combined criteria, people without instruments, empty results, and searches after earlier filters.
 
 ### \[Proposed\] Undo/redo feature
 
