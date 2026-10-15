@@ -1,10 +1,15 @@
 package seedu.address.testutil;
 
+import java.util.Optional;
+
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Role;
+import seedu.address.model.person.Status;
 import seedu.address.model.util.SampleDataUtil;
 
 /**
@@ -30,6 +35,9 @@ public class EditPersonDescriptorBuilder {
         descriptor.setName(person.getName());
         descriptor.setPhone(person.getPhone());
         descriptor.setEmail(person.getEmail());
+        descriptor.setStatus(person.getStatus());
+        descriptor.setMemberType(person.getMemberType());
+        descriptor.setRole(person.getRole());
         descriptor.setInstruments(person.getInstruments());
     }
 
@@ -54,6 +62,38 @@ public class EditPersonDescriptorBuilder {
      */
     public EditPersonDescriptorBuilder withEmail(String email) {
         descriptor.setEmail(new Email(email));
+        return this;
+    }
+
+    /**
+     * Sets the {@code Status} of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withStatus(String status) {
+        descriptor.setStatus(Status.fromString(status));
+        return this;
+    }
+
+    /**
+     * Sets the {@code MemberType} of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withMemberType(String memberType) {
+        descriptor.setMemberType(MemberType.fromString(memberType));
+        return this;
+    }
+
+    /**
+     * Sets the {@code Role} of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withRole(String role) {
+        descriptor.setRole(Optional.of(new Role(role)));
+        return this;
+    }
+
+    /**
+     * Sets the {@code EditPersonDescriptor} that we are building to clear the role.
+     */
+    public EditPersonDescriptorBuilder withoutRole() {
+        descriptor.setRole(Optional.empty());
         return this;
     }
 

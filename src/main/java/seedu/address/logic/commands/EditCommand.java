@@ -3,8 +3,11 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
@@ -22,9 +25,12 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Instrument;
+import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Role;
+import seedu.address.model.person.Status;
 
 /**
  * Edits the details of an existing person in the address book.
@@ -40,10 +46,15 @@ public class EditCommand extends Command {
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
+            + "[" + PREFIX_STATUS + "STATUS] "
+            + "[" + PREFIX_MEMBER_TYPE + "STUDENT_OR_TEACHER] "
+            + "[" + PREFIX_ROLE + "ROLE] "
             + "[" + PREFIX_INSTRUMENT + "INSTRUMENT:YEARS]...\n"
+            + "An empty " + PREFIX_ROLE + " clears the role, and an empty " + PREFIX_INSTRUMENT
+            + " clears all instruments.\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
-            + PREFIX_EMAIL + "johndoe@example.com";
+            + PREFIX_STATUS + "active-alumnus";
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
@@ -95,11 +106,14 @@ public class EditCommand extends Command {
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
         Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
+        Status updatedStatus = editPersonDescriptor.getStatus().orElse(personToEdit.getStatus());
+        MemberType updatedMemberType = editPersonDescriptor.getMemberType().orElse(personToEdit.getMemberType());
+        Optional<Role> updatedRole = editPersonDescriptor.getRole().orElse(personToEdit.getRole());
         Set<Instrument> updatedInstruments = editPersonDescriptor.getInstruments()
                 .orElse(personToEdit.getInstruments());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, personToEdit.getStatus(),
-                personToEdit.getMemberType(), personToEdit.getRole(), updatedInstruments);
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedStatus,
+                updatedMemberType, updatedRole, updatedInstruments);
     }
 
     @Override
@@ -133,6 +147,10 @@ public class EditCommand extends Command {
         private Name name;
         private Phone phone;
         private Email email;
+        private Status status;
+        private MemberType memberType;
+        // null when the role is not edited; Optional.empty() when the role is cleared.
+        private Optional<Role> role;
         private Set<Instrument> instruments;
 
         public EditPersonDescriptor() {}
@@ -145,6 +163,9 @@ public class EditCommand extends Command {
             setName(toCopy.name);
             setPhone(toCopy.phone);
             setEmail(toCopy.email);
+            setStatus(toCopy.status);
+            setMemberType(toCopy.memberType);
+            setRole(toCopy.role);
             setInstruments(toCopy.instruments);
         }
 
@@ -152,7 +173,7 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, instruments);
+            return CollectionUtil.isAnyNonNull(name, phone, email, status, memberType, role, instruments);
         }
 
         public void setName(Name name) {
@@ -177,6 +198,38 @@ public class EditCommand extends Command {
 
         public Optional<Email> getEmail() {
             return Optional.ofNullable(email);
+        }
+
+        public void setStatus(Status status) {
+            this.status = status;
+        }
+
+        public Optional<Status> getStatus() {
+            return Optional.ofNullable(status);
+        }
+
+        public void setMemberType(MemberType memberType) {
+            this.memberType = memberType;
+        }
+
+        public Optional<MemberType> getMemberType() {
+            return Optional.ofNullable(memberType);
+        }
+
+        /**
+         * Sets the role to edit to. {@code Optional.empty()} clears the person's role,
+         * while {@code null} leaves the role unedited.
+         */
+        public void setRole(Optional<Role> role) {
+            this.role = role;
+        }
+
+        /**
+         * Returns the edited role, which is itself empty when the role is cleared.
+         * Returns {@code Optional#empty()} if the role is not edited.
+         */
+        public Optional<Optional<Role>> getRole() {
+            return Optional.ofNullable(role);
         }
 
         /**
@@ -210,6 +263,9 @@ public class EditCommand extends Command {
             return Objects.equals(name, otherEditPersonDescriptor.name)
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
+                    && Objects.equals(status, otherEditPersonDescriptor.status)
+                    && Objects.equals(memberType, otherEditPersonDescriptor.memberType)
+                    && Objects.equals(role, otherEditPersonDescriptor.role)
                     && Objects.equals(instruments, otherEditPersonDescriptor.instruments);
         }
 
@@ -219,6 +275,9 @@ public class EditCommand extends Command {
                     .add("name", name)
                     .add("phone", phone)
                     .add("email", email)
+                    .add("status", status)
+                    .add("memberType", memberType)
+                    .add("role", role)
                     .add("instruments", instruments)
                     .toString();
         }

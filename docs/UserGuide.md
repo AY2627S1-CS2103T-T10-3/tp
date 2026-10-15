@@ -116,12 +116,14 @@ Example: after `find alex david`, enter `list` to show everyone again. The resul
 
 Edits an existing person in the address book.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [i/INSTRUMENT:YEARS]…​`
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* Status, member type, and role are preserved when editing a person's name, phone, email, or instruments.
+* `s/STATUS` and `ty/TYPE` accept the same values as in `add`: `member`, `active-alumnus`, or `inactive-alumnus` for status, and `student` or `teacher` for type, ignoring case.
+* `r/ROLE` replaces the person's role. To remove the role, enter `r/` without a role after it.
+* Fields that are not specified are preserved. For example, editing a person's status keeps their contact details, type, role, and instruments.
 * Instruments are preserved when they are not edited.
 * When editing instruments, all of the person's existing instruments are replaced; adding instruments is not cumulative.
 * To remove all of a person's instruments, enter `i/` without an instrument after it.
@@ -130,6 +132,8 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower i/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing instruments.
 *  `edit 3 i/Cello:6 i/Piano:2` Replaces the instruments of the 3rd person with Cello (6 years) and Piano (2 years).
+*  `edit 1 s/active-alumnus r/` Marks the 1st person as an active alumnus and removes their role.
+*  `edit 4 ty/teacher r/Conductor` Changes the 4th person's type to teacher and their role to `Conductor`.
 
 ### Locating persons by name: `find`
 
@@ -243,7 +247,7 @@ Action | Format, Examples
 **Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com s/member r/Section Leader i/Trumpet:3`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [i/INSTRUMENT:YEARS]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
+**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​`<br> e.g., `edit 2 n/James Lee s/active-alumnus`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…`<br> e.g., `find alex david`
 **Filter** | `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]...`<br> e.g., `filter s/member s/active-alumnus i/Violin:3`
 **List** | `list`
