@@ -6,28 +6,28 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Tests whether a person plays any of the specified instruments, matching whole names and ignoring case.
+ * Tests status and instrument criteria, with OR within each field and AND between fields.
  */
 public class PersonMatchesFilterPredicate implements Predicate<Person> {
-    private final Set<String> instrumentNames;
+    private final Set<Status> statuses;
+    private final Set<InstrumentCriterion> instrumentCriteria;
 
     /**
-     * Creates a predicate matching the specified instrument name.
+     * Creates a predicate with OR within each field and AND between fields.
+     * An empty set leaves its field unrestricted.
+     * Each instrument criterion specifies an inclusive minimum for that same instrument.
      */
-    public PersonMatchesFilterPredicate(String instrumentName) {
-        this(Set.of(requireNonNull(instrumentName)));
-    }
-
-    /**
-     * Creates a predicate matching any of the specified instrument names.
-     */
-    public PersonMatchesFilterPredicate(Set<String> instrumentNames) {
-        this.instrumentNames = Set.copyOf(requireNonNull(instrumentNames));
+    public PersonMatchesFilterPredicate(Set<Status> statuses, Set<InstrumentCriterion> instrumentCriteria) {
+        this.statuses = Set.copyOf(requireNonNull(statuses));
+        this.instrumentCriteria = Set.copyOf(requireNonNull(instrumentCriteria));
     }
 
     @Override
     public boolean test(Person person) {
-        return instrumentNames.stream().anyMatch(instrumentName -> person.getInstruments().stream()
-                .anyMatch(instrument -> instrument.hasName(instrumentName)));
+        boolean matchesStatus = statuses.isEmpty() || statuses.contains(person.getStatus());
+        boolean matchesInstrument = instrumentCriteria.isEmpty() || instrumentCriteria.stream()
+                .anyMatch(criterion -> person.getInstruments().stream()
+                        .anyMatch(criterion::matches));
+        return matchesStatus && matchesInstrument;
     }
 }
