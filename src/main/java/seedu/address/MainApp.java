@@ -51,9 +51,10 @@ public class MainApp extends Application {
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
-        storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        StorageManager storageManager = new StorageManager(addressBookStorage, userPrefsStorage);
+        storage = storageManager;
 
-        model = initModelManager(storage, userPrefs);
+        model = initModelManager(storageManager, userPrefs);
 
         logic = new LogicManager(model, storage);
 
@@ -65,7 +66,7 @@ public class MainApp extends Application {
      * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
      * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    private Model initModelManager(StorageManager storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
 
         Optional<ReadOnlyAddressBook> addressBookOptional;
@@ -79,11 +80,27 @@ public class MainApp extends Application {
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
-                    + " Will be starting with an empty AddressBook.");
+                    + " The original file will be backed up and address book saving disabled.");
+            backupUnreadableAddressBook(storage);
             initialData = new AddressBook();
         }
 
         return new ModelManager(initialData, userPrefs);
+    }
+
+    /**
+     * Preserves an unreadable address book before starting with an empty in-memory model.
+     */
+    private void backupUnreadableAddressBook(StorageManager storage) {
+        try {
+            Path backupPath = storage.backupAddressBook();
+            storage.disableAddressBookSaving();
+            logger.warning("Backed up unreadable address book to " + backupPath
+                    + ". Address book changes are disabled until the data file is repaired.");
+        } catch (IOException ioe) {
+            throw new IllegalStateException("Could not back up unreadable address book at "
+                    + storage.getAddressBookFilePath(), ioe);
+        }
     }
 
     /**

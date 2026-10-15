@@ -3,7 +3,9 @@ package seedu.address.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -20,6 +22,7 @@ import seedu.address.model.ReadOnlyAddressBook;
 public class JsonAddressBookStorage {
 
     private static final Logger logger = LogsCenter.getLogger(JsonAddressBookStorage.class);
+    private static final String BACKUP_SUFFIX = ".bak";
 
     private Path filePath;
 
@@ -29,6 +32,18 @@ public class JsonAddressBookStorage {
 
     public Path getAddressBookFilePath() {
         return filePath;
+    }
+
+    /**
+     * Copies the address book file to a backup in the same directory.
+     *
+     * @return the path of the backup file.
+     * @throws IOException if the address book file cannot be backed up.
+     */
+    public Path backupAddressBook() throws IOException {
+        Path backupPath = filePath.resolveSibling(filePath.getFileName() + BACKUP_SUFFIX);
+        Files.copy(filePath, backupPath, StandardCopyOption.REPLACE_EXISTING);
+        return backupPath;
     }
 
     /**
