@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.Instrument;
+import seedu.address.model.person.InstrumentCriterion;
 import seedu.address.model.person.Status;
 
 /**
@@ -57,7 +57,7 @@ public class FilterCommandParser implements Parser<FilterCommand> {
         for (String status : argMultimap.getAllValues(PREFIX_STATUS)) {
             statuses.add(ParserUtil.parseStatus(status));
         }
-        Set<Instrument> instrumentCriteria = new HashSet<>();
+        Set<InstrumentCriterion> instrumentCriteria = new HashSet<>();
         for (String instrument : argMultimap.getAllValues(PREFIX_INSTRUMENT)) {
             instrumentCriteria.add(parseInstrumentCriterion(instrument));
         }
@@ -67,10 +67,26 @@ public class FilterCommandParser implements Parser<FilterCommand> {
     /**
      * Parses a name with optional minimum years, defaulting to zero when years are omitted.
      */
-    private Instrument parseInstrumentCriterion(String instrument) throws ParseException {
-        if (instrument.contains(":")) {
-            return ParserUtil.parseInstrument(instrument);
+    private InstrumentCriterion parseInstrumentCriterion(String instrument) throws ParseException {
+        int separatorIndex = instrument.indexOf(":");
+        if (separatorIndex == -1) {
+            return new InstrumentCriterion(ParserUtil.parseInstrumentName(instrument), 0);
         }
-        return new Instrument(ParserUtil.parseInstrumentName(instrument), 0);
+
+        String name = ParserUtil.parseInstrumentName(instrument.substring(0, separatorIndex));
+        String minimumYearsText = instrument.substring(separatorIndex + 1).trim();
+        if (!minimumYearsText.matches("\\d+")) {
+            throw new ParseException(InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS);
+        }
+        int minimumYears;
+        try {
+            minimumYears = Integer.parseInt(minimumYearsText);
+        } catch (NumberFormatException e) {
+            throw new ParseException(InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS, e);
+        }
+        if (!InstrumentCriterion.isValidMinimumYears(minimumYears)) {
+            throw new ParseException(InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS);
+        }
+        return new InstrumentCriterion(name, minimumYears);
     }
 }

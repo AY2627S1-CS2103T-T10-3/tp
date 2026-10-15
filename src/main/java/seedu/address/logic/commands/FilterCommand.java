@@ -9,7 +9,7 @@ import java.util.Set;
 
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
-import seedu.address.model.person.Instrument;
+import seedu.address.model.person.InstrumentCriterion;
 import seedu.address.model.person.PersonMatchesFilterPredicate;
 import seedu.address.model.person.Status;
 
@@ -27,14 +27,14 @@ public class FilterCommand extends Command {
             + PREFIX_STATUS + "active-alumnus " + PREFIX_INSTRUMENT + "Violin:3";
 
     private final Set<Status> statuses;
-    private final Set<Instrument> instrumentCriteria;
+    private final Set<InstrumentCriterion> instrumentCriteria;
 
     /**
      * Creates a filter command with OR within each field and AND between fields.
      * An empty set leaves its field unrestricted.
-     * Each instrument criterion's years represent the minimum experience required for that instrument.
+     * Each instrument criterion specifies the minimum experience required for that instrument.
      */
-    public FilterCommand(Set<Status> statuses, Set<Instrument> instrumentCriteria) {
+    public FilterCommand(Set<Status> statuses, Set<InstrumentCriterion> instrumentCriteria) {
         this.statuses = Set.copyOf(requireNonNull(statuses));
         this.instrumentCriteria = Set.copyOf(requireNonNull(instrumentCriteria));
     }

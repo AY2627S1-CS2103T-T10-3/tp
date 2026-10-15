@@ -146,6 +146,7 @@ Shows people matching the specified status and instrument criteria and reports t
 * Statuses are combined with OR: `filter s/member s/active-alumnus` matches current members or active alumni.
 * Introduce each instrument name with `i/`. `i/Violin` matches anyone who plays violin, regardless of experience.
 * Optionally specify minimum years: `i/Violin:3` matches people with **at least 3 years** on violin, including exactly 3. The minimum must be a whole number from 0 to 99; blank, negative, decimal, and out-of-range values are rejected.
+* Invalid minimum years, such as `filter i/Violin:abc`, report: `Minimum years should be a whole number from 0 to 99`.
 * The years must belong to the matching instrument: experience on piano cannot satisfy a violin threshold.
 * Instruments are combined with OR: `filter i/Violin i/Viola` matches people who play either instrument or both.
 * Each repeated instrument criterion is an alternative, even for the same name: `filter i/Violin:3 i/Violin:5` matches violin players with at least 3 years. A name-only criterion such as `i/Violin` accepts any years for that instrument.

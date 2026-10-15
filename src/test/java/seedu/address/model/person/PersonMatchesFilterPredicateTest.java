@@ -14,7 +14,7 @@ public class PersonMatchesFilterPredicateTest {
     @Test
     public void test_multipleInstruments_matchesEitherInstrument() {
         PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
-                Set.of(new Instrument("Violin", 0), new Instrument("Cello", 0)));
+                Set.of(), Set.of(new InstrumentCriterion("Violin", 0), new InstrumentCriterion("Cello", 0)));
         assertTrue(predicate.test(new PersonBuilder().withInstruments("VIOLIN:3").build()));
         assertTrue(predicate.test(new PersonBuilder().withInstruments("Cello:1").build()));
         assertTrue(predicate.test(new PersonBuilder().withInstruments("Violin:2", "Cello:4").build()));
@@ -24,18 +24,20 @@ public class PersonMatchesFilterPredicateTest {
 
     @Test
     public void test_matchingInstrument_returnsTrue() {
-        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(new Instrument("violin", 0));
+        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
+                Set.of(), Set.of(new InstrumentCriterion("violin", 0)));
         assertTrue(predicate.test(new PersonBuilder().withInstruments("Violin:0").build()));
         assertTrue(predicate.test(new PersonBuilder().withInstruments("Cello:2", "VIOLIN:7").build()));
 
         // extra whitespace inside the name is ignored
-        predicate = new PersonMatchesFilterPredicate(new Instrument("bass   guitar", 0));
+        predicate = new PersonMatchesFilterPredicate(Set.of(), Set.of(new InstrumentCriterion("bass   guitar", 0)));
         assertTrue(predicate.test(new PersonBuilder().withInstruments("Bass Guitar:3").build()));
     }
 
     @Test
     public void test_nonMatchingInstrument_returnsFalse() {
-        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(new Instrument("Guitar", 0));
+        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
+                Set.of(), Set.of(new InstrumentCriterion("Guitar", 0)));
         assertFalse(predicate.test(new PersonBuilder().withInstruments("Piano:4").build()));
         assertFalse(predicate.test(new PersonBuilder().withInstruments("Bass Guitar:4").build()));
         assertFalse(predicate.test(new PersonBuilder().withInstruments().build()));
@@ -65,7 +67,7 @@ public class PersonMatchesFilterPredicateTest {
     public void test_statusesAndInstruments_requiresBothGroupsWithOrWithinEachGroup() {
         PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
                 Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS),
-                Set.of(new Instrument("Violin", 0), new Instrument("Cello", 0)));
+                Set.of(new InstrumentCriterion("Violin", 0), new InstrumentCriterion("Cello", 0)));
         for (String status : new String[] {"member", "active-alumnus"}) {
             assertTrue(predicate.test(new PersonBuilder().withStatus(status).withInstruments("VIOLIN:0").build()));
             assertTrue(predicate.test(new PersonBuilder().withStatus(status).withInstruments("Cello:4").build()));
@@ -78,7 +80,8 @@ public class PersonMatchesFilterPredicateTest {
 
     @Test
     public void test_minimumYears_matchesThresholdAndHigherOnSameInstrument() {
-        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(new Instrument("Guitar", 3));
+        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
+                Set.of(), Set.of(new InstrumentCriterion("Guitar", 3)));
         assertFalse(predicate.test(new PersonBuilder().withInstruments("Guitar:2").build()));
         assertTrue(predicate.test(new PersonBuilder().withInstruments("GUITAR:3").build()));
         assertTrue(predicate.test(new PersonBuilder().withInstruments("Guitar:4").build()));
@@ -90,7 +93,7 @@ public class PersonMatchesFilterPredicateTest {
     @Test
     public void test_maximumYears_matchesOnlyMaximumExperience() {
         PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
-                new Instrument("Violin", Instrument.MAX_YEARS));
+                Set.of(), Set.of(new InstrumentCriterion("Violin", Instrument.MAX_YEARS)));
         assertFalse(predicate.test(new PersonBuilder().withInstruments("Violin:98").build()));
         assertTrue(predicate.test(new PersonBuilder().withInstruments("Violin:99").build()));
     }
@@ -99,7 +102,7 @@ public class PersonMatchesFilterPredicateTest {
     public void test_minimumYearsWithStatuses_preservesOrWithinGroupsAndAndBetweenGroups() {
         PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
                 Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS),
-                Set.of(new Instrument("Violin", 3), new Instrument("Cello", 5)));
+                Set.of(new InstrumentCriterion("Violin", 3), new InstrumentCriterion("Cello", 5)));
         for (String status : new String[] {"member", "active-alumnus"}) {
             assertTrue(predicate.test(new PersonBuilder().withStatus(status).withInstruments("Violin:3").build()));
             assertTrue(predicate.test(new PersonBuilder().withStatus(status).withInstruments("Cello:5").build()));
@@ -114,7 +117,7 @@ public class PersonMatchesFilterPredicateTest {
     @Test
     public void test_repeatedInstrumentWithDifferentMinimumYears_matchesEitherThreshold() {
         PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
-                Set.of(new Instrument("Violin", 3), new Instrument("Violin", 5)));
+                Set.of(), Set.of(new InstrumentCriterion("Violin", 3), new InstrumentCriterion("Violin", 5)));
         assertTrue(predicate.test(new PersonBuilder().withInstruments("Violin:4").build()));
         assertFalse(predicate.test(new PersonBuilder().withInstruments("Violin:2").build()));
     }
@@ -122,7 +125,7 @@ public class PersonMatchesFilterPredicateTest {
     @Test
     public void test_mixedInstrumentCriteria_matchesInstrumentWithoutMinimumYears() {
         PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
-                Set.of(new Instrument("Violin", 3), new Instrument("Cello", 0)));
+                Set.of(), Set.of(new InstrumentCriterion("Violin", 3), new InstrumentCriterion("Cello", 0)));
         assertTrue(predicate.test(new PersonBuilder().withInstruments("Cello:0").build()));
         assertFalse(predicate.test(new PersonBuilder().withInstruments("Violin:2").build()));
     }

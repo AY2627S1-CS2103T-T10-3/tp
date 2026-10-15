@@ -10,28 +10,14 @@ import java.util.function.Predicate;
  */
 public class PersonMatchesFilterPredicate implements Predicate<Person> {
     private final Set<Status> statuses;
-    private final Set<Instrument> instrumentCriteria;
-
-    /**
-     * Creates a predicate matching an instrument name and its minimum years.
-     */
-    public PersonMatchesFilterPredicate(Instrument instrumentCriterion) {
-        this(Set.of(requireNonNull(instrumentCriterion)));
-    }
-
-    /**
-     * Creates a predicate matching any of the specified instrument criteria.
-     */
-    public PersonMatchesFilterPredicate(Set<Instrument> instrumentCriteria) {
-        this(Set.of(), instrumentCriteria);
-    }
+    private final Set<InstrumentCriterion> instrumentCriteria;
 
     /**
      * Creates a predicate with OR within each field and AND between fields.
      * An empty set leaves its field unrestricted.
-     * Each instrument criterion's years represent an inclusive minimum for that same instrument.
+     * Each instrument criterion specifies an inclusive minimum for that same instrument.
      */
-    public PersonMatchesFilterPredicate(Set<Status> statuses, Set<Instrument> instrumentCriteria) {
+    public PersonMatchesFilterPredicate(Set<Status> statuses, Set<InstrumentCriterion> instrumentCriteria) {
         this.statuses = Set.copyOf(requireNonNull(statuses));
         this.instrumentCriteria = Set.copyOf(requireNonNull(instrumentCriteria));
     }
@@ -39,10 +25,9 @@ public class PersonMatchesFilterPredicate implements Predicate<Person> {
     @Override
     public boolean test(Person person) {
         boolean matchesStatus = statuses.isEmpty() || statuses.contains(person.getStatus());
-        boolean matchesInstrument = instrumentCriteria.isEmpty()
-                || instrumentCriteria.stream().anyMatch(criterion -> person.getInstruments().stream()
-                    .anyMatch(instrument -> instrument.hasName(criterion.getName())
-                            && instrument.getYears() >= criterion.getYears()));
+        boolean matchesInstrument = instrumentCriteria.isEmpty() || instrumentCriteria.stream()
+                .anyMatch(criterion -> person.getInstruments().stream()
+                        .anyMatch(criterion::matches));
         return matchesStatus && matchesInstrument;
     }
 }
