@@ -16,6 +16,8 @@ import java.util.stream.Stream;
 
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.InstrumentCriterion;
+import seedu.address.model.person.Status;
 
 /**
  * Parses input arguments and creates a FilterCommand.
@@ -27,32 +29,64 @@ public class FilterCommandParser implements Parser<FilterCommand> {
      * rejected instead of being silently read as part of an instrument name.
      */
     private static final Prefix[] UNSUPPORTED_PREFIXES = {
-        PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_STATUS, PREFIX_MEMBER_TYPE, PREFIX_ROLE
+        PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_MEMBER_TYPE, PREFIX_ROLE
     };
 
     /**
-     * Parses one or more instrument name arguments and returns a FilterCommand.
+     * Parses status and instrument criteria, including optional minimum years, and returns a FilterCommand.
      *
      * @throws ParseException if the arguments do not conform to the expected format.
      */
     @Override
     public FilterCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        Prefix[] prefixes = Stream.concat(Stream.of(PREFIX_INSTRUMENT), Stream.of(UNSUPPORTED_PREFIXES))
+        Prefix[] prefixes = Stream.concat(Stream.of(PREFIX_STATUS, PREFIX_INSTRUMENT), Stream.of(UNSUPPORTED_PREFIXES))
                 .toArray(Prefix[]::new);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args.trim(), prefixes);
 
         boolean hasUnsupportedPrefix = Stream.of(UNSUPPORTED_PREFIXES)
                 .anyMatch(prefix -> argMultimap.getValue(prefix).isPresent());
-        if (!argMultimap.getPreamble().isEmpty() || argMultimap.getValue(PREFIX_INSTRUMENT).isEmpty()
+        boolean hasCriteria = argMultimap.getValue(PREFIX_STATUS).isPresent()
+                || argMultimap.getValue(PREFIX_INSTRUMENT).isPresent();
+        if (!argMultimap.getPreamble().isEmpty() || !hasCriteria
                 || hasUnsupportedPrefix) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
         }
 
-        Set<String> instrumentNames = new HashSet<>();
-        for (String instrumentName : argMultimap.getAllValues(PREFIX_INSTRUMENT)) {
-            instrumentNames.add(ParserUtil.parseInstrumentName(instrumentName));
+        Set<Status> statuses = new HashSet<>();
+        for (String status : argMultimap.getAllValues(PREFIX_STATUS)) {
+            statuses.add(ParserUtil.parseStatus(status));
         }
-        return new FilterCommand(instrumentNames);
+        Set<InstrumentCriterion> instrumentCriteria = new HashSet<>();
+        for (String instrument : argMultimap.getAllValues(PREFIX_INSTRUMENT)) {
+            instrumentCriteria.add(parseInstrumentCriterion(instrument));
+        }
+        return new FilterCommand(statuses, instrumentCriteria);
+    }
+
+    /**
+     * Parses a name with optional minimum years, defaulting to zero when years are omitted.
+     */
+    private InstrumentCriterion parseInstrumentCriterion(String instrument) throws ParseException {
+        int separatorIndex = instrument.indexOf(":");
+        if (separatorIndex == -1) {
+            return new InstrumentCriterion(ParserUtil.parseInstrumentName(instrument), 0);
+        }
+
+        String name = ParserUtil.parseInstrumentName(instrument.substring(0, separatorIndex));
+        String minimumYearsText = instrument.substring(separatorIndex + 1).trim();
+        if (!minimumYearsText.matches("\\d+")) {
+            throw new ParseException(InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS);
+        }
+        int minimumYears;
+        try {
+            minimumYears = Integer.parseInt(minimumYearsText);
+        } catch (NumberFormatException e) {
+            throw new ParseException(InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS, e);
+        }
+        if (!InstrumentCriterion.isValidMinimumYears(minimumYears)) {
+            throw new ParseException(InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS);
+        }
+        return new InstrumentCriterion(name, minimumYears);
     }
 }

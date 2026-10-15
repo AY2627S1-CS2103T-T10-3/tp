@@ -159,6 +159,14 @@ The `find` command matches any part of a person's name, ignoring case. For examp
 
 Tests in `StringUtilTest` cover substring positions, case differences, invalid inputs and non-matches. `NameContainsKeywordsPredicateTest` verifies name-only matching and OR semantics. `FindCommandTest` checks the resulting persons and feedback count, while `FindCommandParserTest` covers empty arguments and extra whitespace.
 
+### Status and instrument filtering
+
+`FilterCommandParser` accepts repeated `s/STATUS` and `i/NAME[:MIN_YEARS]` arguments and requires at least one criterion. It validates every status through `ParserUtil.parseStatus`. Its `parseInstrumentCriterion` helper validates names through `ParserUtil.parseInstrumentName` and optional whole minimum years from 0 to 99. Name-only criteria default to a minimum of zero. Invalid minimum years use `InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS`. Other member-field prefixes are tokenized and rejected rather than absorbed into instrument names.
+
+`FilterCommand` stores immutable sets of statuses and `InstrumentCriterion` values. Each criterion has a normalized `name` and an explicit `minimumYears`. Its `matches(Instrument)` method checks the whole name through `Instrument.hasName` and an inclusive experience threshold on the same recorded instrument. `Instrument` continues to represent actual years played in member records and storage. `PersonMatchesFilterPredicate` checks the selected statuses and delegates instrument matching to each criterion. Criteria within a field use OR, including repeated names with different minimums, and the two fields use AND. An omitted field imposes no restriction, so status-only filters also include matching people without instruments.
+
+The command replaces the predicate on the full directory's `FilteredList`, reports its match count, and leaves stored records unchanged. `list` restores all records. Parser, predicate, and command tests cover repeated criteria, invalid inputs, threshold boundaries, matching years on the correct instrument, combined criteria, people without instruments, empty results, and searches after earlier filters.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
