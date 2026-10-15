@@ -50,6 +50,25 @@ public class EditPersonDescriptorTest {
         // different instruments -> returns false
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withInstruments(VALID_INSTRUMENT_PIANO).build();
         assertFalse(DESC_AMY.equals(editedAmy));
+
+        // different status -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withStatus("active-alumnus").build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
+        // different member type -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withMemberType("teacher").build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
+        // different role -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withRole("Conductor").build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
+        // role cleared versus role not edited -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withoutRole().build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
+        // copy keeps a cleared role -> returns true
+        assertTrue(editedAmy.equals(new EditPersonDescriptor(editedAmy)));
     }
 
     @Test
@@ -58,7 +77,10 @@ public class EditPersonDescriptorTest {
         String expected = EditPersonDescriptor.class.getCanonicalName() + "{name="
                 + editPersonDescriptor.getName().orElse(null) + ", phone="
                 + editPersonDescriptor.getPhone().orElse(null) + ", email="
-                + editPersonDescriptor.getEmail().orElse(null) + ", instruments="
+                + editPersonDescriptor.getEmail().orElse(null) + ", status="
+                + editPersonDescriptor.getStatus().orElse(null) + ", memberType="
+                + editPersonDescriptor.getMemberType().orElse(null) + ", role="
+                + editPersonDescriptor.getRole().orElse(null) + ", instruments="
                 + editPersonDescriptor.getInstruments().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }

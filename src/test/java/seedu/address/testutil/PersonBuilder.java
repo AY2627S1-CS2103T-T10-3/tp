@@ -114,6 +114,14 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Removes the person's role.
+     */
+    public PersonBuilder withoutRole() {
+        this.role = Optional.empty();
+        return this;
+    }
+
     public Person build() {
         return new Person(name, phone, email, status, memberType, role, instruments);
     }

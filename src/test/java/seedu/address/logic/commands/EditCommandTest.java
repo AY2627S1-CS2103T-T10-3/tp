@@ -13,6 +13,7 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
+import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.DANIEL;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
@@ -105,6 +106,49 @@ public class EditCommandTest {
         Index danielIndex = Index.fromOneBased(4);
         Person editedPerson = new PersonBuilder(DANIEL).withPhone("99999999").build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone("99999999").build();
+        EditCommand editCommand = new EditCommand(danielIndex, descriptor);
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(DANIEL, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_statusEdited_updatesStatusAndPreservesOtherFields() {
+        Person editedPerson = new PersonBuilder(ALICE).withStatus("active-alumnus").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withStatus("active-alumnus").build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_membershipFieldsEdited_updatesStatusTypeAndRole() {
+        Index danielIndex = Index.fromOneBased(4);
+        Person editedPerson = new PersonBuilder(DANIEL).withStatus("inactive-alumnus").withMemberType("student")
+                .withRole("Alumni Advisor").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withStatus("inactive-alumnus")
+                .withMemberType("student").withRole("Alumni Advisor").build();
+        EditCommand editCommand = new EditCommand(danielIndex, descriptor);
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(DANIEL, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_roleCleared_removesRoleAndPreservesOtherFields() {
+        Index danielIndex = Index.fromOneBased(4);
+        Person editedPerson = new PersonBuilder(DANIEL).withoutRole().build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withoutRole().build();
         EditCommand editCommand = new EditCommand(danielIndex, descriptor);
 
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));

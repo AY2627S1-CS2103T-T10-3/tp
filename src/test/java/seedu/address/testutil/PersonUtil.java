@@ -14,6 +14,7 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.Role;
 
 /**
  * A utility class for Person.
@@ -52,6 +53,11 @@ public class PersonUtil {
         descriptor.getName().ifPresent(name -> sb.append(PREFIX_NAME).append(name.fullName).append(" "));
         descriptor.getPhone().ifPresent(phone -> sb.append(PREFIX_PHONE).append(phone.value).append(" "));
         descriptor.getEmail().ifPresent(email -> sb.append(PREFIX_EMAIL).append(email.value).append(" "));
+        descriptor.getStatus().ifPresent(status -> sb.append(PREFIX_STATUS).append(status).append(" "));
+        descriptor.getMemberType().ifPresent(memberType ->
+                sb.append(PREFIX_MEMBER_TYPE).append(memberType).append(" "));
+        descriptor.getRole().ifPresent(role -> sb.append(PREFIX_ROLE)
+                .append(role.map(Role::toString).orElse("")).append(" "));
         if (descriptor.getInstruments().isPresent()) {
             Set<Instrument> instruments = descriptor.getInstruments().get();
             if (instruments.isEmpty()) {
