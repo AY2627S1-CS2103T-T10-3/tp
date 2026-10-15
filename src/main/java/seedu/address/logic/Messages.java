@@ -1,10 +1,12 @@
 package seedu.address.logic;
 
+import java.util.Comparator;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import seedu.address.logic.parser.Prefix;
+import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
 
 /**
@@ -46,8 +48,11 @@ public class Messages {
                 .append("; Member type: ")
                 .append(person.getMemberType());
         person.getRole().ifPresent(role -> builder.append("; Role: ").append(role));
-        builder.append("; Tags: ");
-        person.getTags().forEach(builder::append);
+        builder.append("; Instruments: ")
+                .append(person.getInstruments().stream()
+                        .sorted(Comparator.comparing(Instrument::getName, String.CASE_INSENSITIVE_ORDER))
+                        .map(Instrument::toString)
+                        .collect(Collectors.joining(", ")));
         return builder.toString();
     }
 

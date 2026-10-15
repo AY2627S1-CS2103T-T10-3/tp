@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 public class InstrumentTest {
@@ -100,6 +102,30 @@ public class InstrumentTest {
     @Test
     public void hashCode_equalInstruments_haveEqualHashCode() {
         assertEquals(new Instrument("Trumpet", 3).hashCode(), new Instrument("trumpet", 3).hashCode());
+    }
+
+    @Test
+    public void hasDuplicateNames() {
+        // null -> throws
+        assertThrows(NullPointerException.class, () -> Instrument.hasDuplicateNames(null));
+
+        // no repeated names -> returns false
+        assertFalse(Instrument.hasDuplicateNames(List.of()));
+        assertFalse(Instrument.hasDuplicateNames(List.of(new Instrument("Trumpet", 3),
+                new Instrument("Trombone", 3))));
+
+        // same name with different case, spacing or years -> returns true
+        assertTrue(Instrument.hasDuplicateNames(List.of(new Instrument("French Horn", 3),
+                new Instrument("french  horn", 5))));
+        assertTrue(Instrument.hasDuplicateNames(List.of(new Instrument("Trumpet", 3),
+                new Instrument("Trumpet", 3))));
+    }
+
+    @Test
+    public void toDisplayString_returnsNameAndYearsPlayed() {
+        assertEquals("French Horn (3 yrs)", new Instrument("French Horn", 3).toDisplayString());
+        assertEquals("Flute (1 yr)", new Instrument("Flute", 1).toDisplayString());
+        assertEquals("Cello (0 yrs)", new Instrument("Cello", 0).toDisplayString());
     }
 
     @Test

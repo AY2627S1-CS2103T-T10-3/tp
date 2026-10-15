@@ -3,8 +3,11 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Represents an instrument a person plays, with the number of years they have played it.
@@ -20,6 +23,12 @@ public class Instrument {
 
     public static final String MESSAGE_YEARS_CONSTRAINTS =
             "Years played should be a whole number from 0 to " + MAX_YEARS;
+
+    public static final String MESSAGE_FORMAT_CONSTRAINTS =
+            "Instruments should be in the format NAME:YEARS, e.g. Piano:5";
+
+    public static final String MESSAGE_DUPLICATE_NAMES =
+            "Each instrument should only be listed once per person";
 
     private final String name;
     private final int years;
@@ -70,6 +79,20 @@ public class Instrument {
         return toKey(name).equals(toKey(normalizeName(otherName)));
     }
 
+    /**
+     * Returns true if two of the given instruments share a name, ignoring case and extra whitespace.
+     */
+    public static boolean hasDuplicateNames(Collection<Instrument> instruments) {
+        requireNonNull(instruments);
+        Set<String> seenKeys = new HashSet<>();
+        for (Instrument instrument : instruments) {
+            if (!seenKeys.add(toKey(instrument.name))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static String normalizeName(String name) {
         return name.trim().replaceAll("\\s+", " ");
     }
@@ -95,6 +118,14 @@ public class Instrument {
     @Override
     public int hashCode() {
         return Objects.hash(toKey(name), years);
+    }
+
+    /**
+     * Formats the instrument for display as its name followed by the years played,
+     * e.g. {@code Violin (5 yrs)} or {@code Flute (1 yr)}.
+     */
+    public String toDisplayString() {
+        return name + " (" + years + (years == 1 ? " yr)" : " yrs)");
     }
 
     /**

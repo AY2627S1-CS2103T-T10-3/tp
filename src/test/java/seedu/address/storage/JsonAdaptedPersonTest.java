@@ -8,6 +8,7 @@ import static seedu.address.testutil.TypicalPersons.DANIEL;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Instrument;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
@@ -25,15 +27,14 @@ public class JsonAdaptedPersonTest {
     private static final String INVALID_NAME = "R@chel";
     private static final String INVALID_PHONE = "+651234";
     private static final String INVALID_EMAIL = "example.com";
-    private static final String INVALID_TAG = "#friend";
 
     private static final String VALID_NAME = BENSON.getName().toString();
     private static final String VALID_PHONE = BENSON.getPhone().toString();
     private static final String VALID_EMAIL = BENSON.getEmail().toString();
     private static final String VALID_STATUS = BENSON.getStatus().toString();
     private static final String VALID_MEMBER_TYPE = BENSON.getMemberType().toString();
-    private static final List<JsonAdaptedTag> VALID_TAGS = BENSON.getTags().stream()
-            .map(JsonAdaptedTag::new)
+    private static final List<JsonAdaptedInstrument> VALID_INSTRUMENTS = BENSON.getInstruments().stream()
+            .map(JsonAdaptedInstrument::new)
             .collect(Collectors.toList());
 
     @Test
@@ -45,14 +46,14 @@ public class JsonAdaptedPersonTest {
     @Test
     public void toModelType_invalidName_throwsIllegalValueException() {
         JsonAdaptedPerson person =
-                adaptedPerson(INVALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_TAGS);
+                adaptedPerson(INVALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_INSTRUMENTS);
         String expectedMessage = Name.MESSAGE_CONSTRAINTS;
         assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
     }
 
     @Test
     public void toModelType_nullName_throwsIllegalValueException() {
-        JsonAdaptedPerson person = adaptedPerson(null, VALID_PHONE, VALID_EMAIL, VALID_TAGS);
+        JsonAdaptedPerson person = adaptedPerson(null, VALID_PHONE, VALID_EMAIL, VALID_INSTRUMENTS);
         String expectedMessage = String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName());
         assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
     }
@@ -60,14 +61,14 @@ public class JsonAdaptedPersonTest {
     @Test
     public void toModelType_invalidPhone_throwsIllegalValueException() {
         JsonAdaptedPerson person =
-                adaptedPerson(VALID_NAME, INVALID_PHONE, VALID_EMAIL, VALID_TAGS);
+                adaptedPerson(VALID_NAME, INVALID_PHONE, VALID_EMAIL, VALID_INSTRUMENTS);
         String expectedMessage = Phone.MESSAGE_CONSTRAINTS;
         assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
     }
 
     @Test
     public void toModelType_nullPhone_throwsIllegalValueException() {
-        JsonAdaptedPerson person = adaptedPerson(VALID_NAME, null, VALID_EMAIL, VALID_TAGS);
+        JsonAdaptedPerson person = adaptedPerson(VALID_NAME, null, VALID_EMAIL, VALID_INSTRUMENTS);
         String expectedMessage = String.format(MISSING_FIELD_MESSAGE_FORMAT, Phone.class.getSimpleName());
         assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
     }
@@ -75,31 +76,67 @@ public class JsonAdaptedPersonTest {
     @Test
     public void toModelType_invalidEmail_throwsIllegalValueException() {
         JsonAdaptedPerson person =
-                adaptedPerson(VALID_NAME, VALID_PHONE, INVALID_EMAIL, VALID_TAGS);
+                adaptedPerson(VALID_NAME, VALID_PHONE, INVALID_EMAIL, VALID_INSTRUMENTS);
         String expectedMessage = Email.MESSAGE_CONSTRAINTS;
         assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
     }
 
     @Test
     public void toModelType_nullEmail_throwsIllegalValueException() {
-        JsonAdaptedPerson person = adaptedPerson(VALID_NAME, VALID_PHONE, null, VALID_TAGS);
+        JsonAdaptedPerson person = adaptedPerson(VALID_NAME, VALID_PHONE, null, VALID_INSTRUMENTS);
         String expectedMessage = String.format(MISSING_FIELD_MESSAGE_FORMAT, Email.class.getSimpleName());
         assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
     }
 
     @Test
-    public void toModelType_invalidTags_throwsIllegalValueException() {
-        List<JsonAdaptedTag> invalidTags = new ArrayList<>(VALID_TAGS);
-        invalidTags.add(new JsonAdaptedTag(INVALID_TAG));
+    public void toModelType_invalidInstruments_throwsIllegalValueException() {
+        List<JsonAdaptedInstrument> invalidInstruments = new ArrayList<>(VALID_INSTRUMENTS);
+        invalidInstruments.add(new JsonAdaptedInstrument("Flute", 100));
         JsonAdaptedPerson person =
-                adaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, invalidTags);
-        assertThrows(IllegalValueException.class, person::toModelType);
+                adaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, invalidInstruments);
+        assertThrows(IllegalValueException.class, Instrument.MESSAGE_YEARS_CONSTRAINTS, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_duplicateInstrumentNames_throwsIllegalValueException() {
+        List<JsonAdaptedInstrument> duplicateInstruments = List.of(
+                new JsonAdaptedInstrument("Violin", 4), new JsonAdaptedInstrument("violin", 2));
+        JsonAdaptedPerson person =
+                adaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, duplicateInstruments);
+        assertThrows(IllegalValueException.class, Instrument.MESSAGE_DUPLICATE_NAMES, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_repeatedIdenticalInstrument_throwsIllegalValueException() {
+        // same name and years, in the same or a different case, is still a repeated instrument
+        for (String repeatedName : List.of("Violin", "violin")) {
+            List<JsonAdaptedInstrument> repeatedInstruments = List.of(
+                    new JsonAdaptedInstrument("Violin", 4), new JsonAdaptedInstrument(repeatedName, 4));
+            JsonAdaptedPerson person =
+                    adaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, repeatedInstruments);
+            assertThrows(IllegalValueException.class, Instrument.MESSAGE_DUPLICATE_NAMES, person::toModelType);
+        }
+    }
+
+    @Test
+    public void toModelType_nullInstruments_returnsPersonWithoutInstruments() throws Exception {
+        JsonAdaptedPerson person = adaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, null);
+        assertEquals(Set.of(), person.toModelType().getInstruments());
+    }
+
+    @Test
+    public void toModelType_legacyTagsField_ignoresTags() throws Exception {
+        String json = "{\"name\": \"" + VALID_NAME + "\", \"phone\": \"" + VALID_PHONE + "\", "
+                + "\"email\": \"" + VALID_EMAIL + "\", \"status\": \"" + VALID_STATUS + "\", "
+                + "\"memberType\": \"" + VALID_MEMBER_TYPE + "\", \"tags\": [\"friends\"]}";
+        JsonAdaptedPerson person = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+        assertEquals(Set.of(), person.toModelType().getInstruments());
     }
 
     @Test
     public void toModelType_nullStatus_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
-                null, VALID_MEMBER_TYPE, null, VALID_TAGS);
+                null, VALID_MEMBER_TYPE, null, VALID_INSTRUMENTS);
         String expectedMessage = String.format(MISSING_FIELD_MESSAGE_FORMAT, Status.class.getSimpleName());
         assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
     }
@@ -107,14 +144,14 @@ public class JsonAdaptedPersonTest {
     @Test
     public void toModelType_invalidStatus_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
-                "alumnus", VALID_MEMBER_TYPE, null, VALID_TAGS);
+                "alumnus", VALID_MEMBER_TYPE, null, VALID_INSTRUMENTS);
         assertThrows(IllegalValueException.class, Status.MESSAGE_CONSTRAINTS, person::toModelType);
     }
 
     @Test
     public void toModelType_nullMemberType_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
-                VALID_STATUS, null, null, VALID_TAGS);
+                VALID_STATUS, null, null, VALID_INSTRUMENTS);
         String expectedMessage = String.format(MISSING_FIELD_MESSAGE_FORMAT, MemberType.class.getSimpleName());
         assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
     }
@@ -122,21 +159,21 @@ public class JsonAdaptedPersonTest {
     @Test
     public void toModelType_invalidMemberType_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
-                VALID_STATUS, "alumnus", null, VALID_TAGS);
+                VALID_STATUS, "alumnus", null, VALID_INSTRUMENTS);
         assertThrows(IllegalValueException.class, MemberType.MESSAGE_CONSTRAINTS, person::toModelType);
     }
 
     @Test
     public void toModelType_blankRole_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
-                VALID_STATUS, VALID_MEMBER_TYPE, "  ", VALID_TAGS);
+                VALID_STATUS, VALID_MEMBER_TYPE, "  ", VALID_INSTRUMENTS);
         assertThrows(IllegalValueException.class, Role.MESSAGE_CONSTRAINTS, person::toModelType);
     }
 
     @Test
     public void toModelType_validRole_returnsPersonWithRole() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
-                VALID_STATUS, VALID_MEMBER_TYPE, "Section Leader", VALID_TAGS);
+                VALID_STATUS, VALID_MEMBER_TYPE, "Section Leader", VALID_INSTRUMENTS);
         assertEquals(new Role("Section Leader"), person.toModelType().getRole().orElseThrow());
     }
 
@@ -155,8 +192,8 @@ public class JsonAdaptedPersonTest {
     }
 
     private static JsonAdaptedPerson adaptedPerson(String name, String phone, String email,
-            List<JsonAdaptedTag> tags) {
-        return new JsonAdaptedPerson(name, phone, email, VALID_STATUS, VALID_MEMBER_TYPE, null, tags);
+            List<JsonAdaptedInstrument> instruments) {
+        return new JsonAdaptedPerson(name, phone, email, VALID_STATUS, VALID_MEMBER_TYPE, null, instruments);
     }
 
 }

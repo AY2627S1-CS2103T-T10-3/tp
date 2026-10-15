@@ -50,10 +50,10 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
-  For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
+  For example, `n/NAME [r/ROLE]` can be used as `n/John Doe r/Section Leader` or as `n/John Doe`.
 
 * Items followed by `…`​ can appear zero or more times.<br>
-  For example, `[t/TAG]…​` may be omitted, or written as `t/friend` or `t/friend t/family`.
+  For example, `[i/INSTRUMENT:YEARS]…​` may be omitted, or written as `i/Violin:5` or `i/Violin:5 i/Piano:2`.
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
@@ -77,19 +77,21 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [t/TAG]…​`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​`
 
 * `s/STATUS` is required: use `member`, `active-alumnus`, or `inactive-alumnus`. Status is case-insensitive.
 * `ty/TYPE` is optional: use `student` or `teacher`. It defaults to `student` when omitted.
 * `r/ROLE` is optional free text, such as `Section Leader`. It cannot be blank.
+* `i/INSTRUMENT:YEARS` records an instrument the person plays and how many whole years they have played it, from `0` to `99`. For example, `i/Violin:5` or `i/Bass Guitar:1`.
+* Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case, so `Violin` and `violin` count as the same instrument.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A person can have any number of tags, including zero.
+A person can have any number of instruments, including zero.
 </div>
 
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com s/member`
-* `add n/Betsy Crowe p/1234567 e/betsy@example.com s/active-alumnus ty/teacher r/Conductor t/friend`
+* `add n/Betsy Crowe p/1234567 e/betsy@example.com s/active-alumnus ty/teacher r/Conductor i/Violin:12 i/Piano:4`
 
 ### Listing all persons: `list`
 
@@ -101,18 +103,20 @@ Format: `list`
 
 Edits an existing person in the address book.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]…​`
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [i/INSTRUMENT:YEARS]…​`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* Status, member type, and role are preserved when editing a person's name, phone, email, or tags.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+* Status, member type, and role are preserved when editing a person's name, phone, email, or instruments.
+* Instruments are preserved when they are not edited.
+* When editing instruments, all of the person's existing instruments are replaced; adding instruments is not cumulative.
+* To remove all of a person's instruments, enter `i/` without an instrument after it.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+*  `edit 2 n/Betsy Crower i/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing instruments.
+*  `edit 3 i/Cello:6 i/Piano:2` Replaces the instruments of the 3rd person with Cello (6 years) and Piano (2 years).
 
 ### Locating persons by name: `find`
 
@@ -131,21 +135,22 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
-### Filtering persons by tag: `filter`
+### Filtering persons by instrument: `filter`
 
-Format: `filter t/TAG [t/TAG]...`
+Format: `filter i/INSTRUMENT [i/INSTRUMENT]...`
 
-Shows people with any of the specified tags and reports the number of matches.
+Shows people who play any of the specified instruments and reports the number of matches.
 
-* Accepts one or more alphanumeric tags, each introduced by `t/`.
-* Tags are combined with OR: `filter t/friend t/colleague` matches people with either tag or both.
-* Matches complete tag names, ignoring case: `friend` matches `FRIEND`, but not `friends`.
-* Spaces after `t/` are allowed: `filter t/ friend` is equivalent to `filter t/friend`.
+* Accepts one or more instrument names, each introduced by `i/`. Years played are not used when filtering.
+* Instruments are combined with OR: `filter i/Violin i/Viola` matches people who play either instrument or both.
+* Matches complete instrument names, ignoring case: `guitar` matches `Guitar`, but not `Bass Guitar`.
+* Spaces after `i/` are allowed: `filter i/ Violin` is equivalent to `filter i/Violin`.
+* Only `i/` is accepted for now; other prefixes such as `s/` or `n/` are rejected with the command format.
 * Searches the full directory, including after a previous `find` or `filter`.
 * If no person matches, the displayed list is empty and the result reports zero matches.
 * Stored records are unchanged. Use `list` to display everyone again.
 
-Example: `filter t/friends`
+Example: `filter i/Violin`
 
 ### Deleting a person: `delete`
 
@@ -210,11 +215,11 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com s/member r/Section Leader`
+**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com s/member r/Section Leader i/Trumpet:3`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
+**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [i/INSTRUMENT:YEARS]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
-**Filter** | `filter t/TAG [t/TAG]...`<br> e.g., `filter t/friend t/colleague`
+**Filter** | `filter i/INSTRUMENT [i/INSTRUMENT]...`<br> e.g., `filter i/Violin i/Viola`
 **List** | `list`
 **Help** | `help`

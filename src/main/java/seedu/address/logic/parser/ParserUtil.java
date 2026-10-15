@@ -2,20 +2,22 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Instrument;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Role;
 import seedu.address.model.person.Status;
-import seedu.address.model.tag.Tag;
 
 /**
  * Contains utility methods used for parsing strings in the various *Parser classes.
@@ -23,6 +25,8 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+
+    private static final String INSTRUMENT_YEARS_SEPARATOR = ":";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -83,30 +87,65 @@ public class ParserUtil {
     }
 
     /**
-     * Parses a {@code String tag} into a {@code Tag}.
-     * Leading and trailing whitespaces will be trimmed.
+     * Parses a {@code String instrument} in the form {@code NAME:YEARS} into an {@code Instrument}.
+     * Whitespace around the name and the years is ignored.
      *
-     * @throws ParseException if the given {@code tag} is invalid.
+     * @throws ParseException if the given {@code instrument} is not in the expected form,
+     *     or its name or years are invalid.
      */
-    public static Tag parseTag(String tag) throws ParseException {
-        requireNonNull(tag);
-        String trimmedTag = tag.trim();
-        if (!Tag.isValidTagName(trimmedTag)) {
-            throw new ParseException(Tag.MESSAGE_CONSTRAINTS);
+    public static Instrument parseInstrument(String instrument) throws ParseException {
+        requireNonNull(instrument);
+        int separatorIndex = instrument.indexOf(INSTRUMENT_YEARS_SEPARATOR);
+        if (separatorIndex == -1) {
+            throw new ParseException(Instrument.MESSAGE_FORMAT_CONSTRAINTS);
         }
-        return new Tag(trimmedTag);
+
+        String name = parseInstrumentName(instrument.substring(0, separatorIndex));
+        String trimmedYears = instrument.substring(separatorIndex + 1).trim();
+        if (!trimmedYears.matches("\\d+")) {
+            throw new ParseException(Instrument.MESSAGE_YEARS_CONSTRAINTS);
+        }
+        int years;
+        try {
+            years = Integer.parseInt(trimmedYears);
+        } catch (NumberFormatException e) {
+            throw new ParseException(Instrument.MESSAGE_YEARS_CONSTRAINTS, e);
+        }
+        if (!Instrument.isValidYears(years)) {
+            throw new ParseException(Instrument.MESSAGE_YEARS_CONSTRAINTS);
+        }
+        return new Instrument(name, years);
     }
 
     /**
-     * Parses {@code Collection<String> tags} into a {@code Set<Tag>}.
+     * Parses {@code Collection<String> instruments} into a {@code Set<Instrument>}.
+     *
+     * @throws ParseException if any instrument is invalid, or two instruments share a name.
      */
-    public static Set<Tag> parseTags(Collection<String> tags) throws ParseException {
-        requireNonNull(tags);
-        final Set<Tag> tagSet = new HashSet<>();
-        for (String tagName : tags) {
-            tagSet.add(parseTag(tagName));
+    public static Set<Instrument> parseInstruments(Collection<String> instruments) throws ParseException {
+        requireNonNull(instruments);
+        final List<Instrument> instrumentList = new ArrayList<>();
+        for (String instrument : instruments) {
+            instrumentList.add(parseInstrument(instrument));
         }
-        return tagSet;
+        if (Instrument.hasDuplicateNames(instrumentList)) {
+            throw new ParseException(Instrument.MESSAGE_DUPLICATE_NAMES);
+        }
+        return new HashSet<>(instrumentList);
+    }
+
+    /**
+     * Parses an instrument name without years, trimming surrounding whitespace.
+     *
+     * @throws ParseException if the name is blank or contains the years separator.
+     */
+    public static String parseInstrumentName(String name) throws ParseException {
+        requireNonNull(name);
+        String trimmedName = name.trim();
+        if (!Instrument.isValidName(trimmedName)) {
+            throw new ParseException(Instrument.MESSAGE_NAME_CONSTRAINTS);
+        }
+        return trimmedName;
     }
 
     /**

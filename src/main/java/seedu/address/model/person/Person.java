@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
@@ -9,7 +10,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.model.tag.Tag;
 
 /**
  * Represents a Person in the address book.
@@ -26,21 +26,22 @@ public class Person {
     private final Status status;
     private final MemberType memberType;
     private final Optional<Role> role;
-    private final Set<Tag> tags = new HashSet<>();
+    private final Set<Instrument> instruments = new HashSet<>();
 
     /**
-     * Every field must be present and not null.
+     * Every field must be present and not null, and no two instruments may share a name.
      */
     public Person(Name name, Phone phone, Email email, Status status, MemberType memberType,
-            Optional<Role> role, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, status, memberType, role, tags);
+            Optional<Role> role, Set<Instrument> instruments) {
+        requireAllNonNull(name, phone, email, status, memberType, role, instruments);
+        checkArgument(!Instrument.hasDuplicateNames(instruments), Instrument.MESSAGE_DUPLICATE_NAMES);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.status = status;
         this.memberType = memberType;
         this.role = role;
-        this.tags.addAll(tags);
+        this.instruments.addAll(instruments);
     }
 
     public Name getName() {
@@ -71,11 +72,11 @@ public class Person {
     }
 
     /**
-     * Returns an immutable tag set, which throws {@code UnsupportedOperationException}
+     * Returns an immutable instrument set, which throws {@code UnsupportedOperationException}
      * if modification is attempted.
      */
-    public Set<Tag> getTags() {
-        return Collections.unmodifiableSet(tags);
+    public Set<Instrument> getInstruments() {
+        return Collections.unmodifiableSet(instruments);
     }
 
     /**
@@ -112,13 +113,13 @@ public class Person {
                 && status.equals(otherPerson.status)
                 && memberType.equals(otherPerson.memberType)
                 && role.equals(otherPerson.role)
-                && tags.equals(otherPerson.tags);
+                && instruments.equals(otherPerson.instruments);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, status, memberType, role, tags);
+        return Objects.hash(name, phone, email, status, memberType, role, instruments);
     }
 
     @Override
@@ -130,7 +131,7 @@ public class Person {
                 .add("status", status)
                 .add("memberType", memberType)
                 .add("role", role)
-                .add("tags", tags)
+                .add("instruments", instruments)
                 .toString();
     }
 

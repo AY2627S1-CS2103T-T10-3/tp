@@ -24,32 +24,31 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
-import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
 /**
- * Tests tag filtering and preservation of directory records.
+ * Tests instrument filtering and preservation of directory records.
  */
 public class FilterCommandTest {
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
-    public void execute_matchingTag_showsMatchingPeople() {
+    public void execute_matchingInstrument_showsMatchingPeople() {
         Model expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         expectedModel.updateFilteredPersonList(person -> List.of(ALICE, BENSON, DANIEL).contains(person));
 
-        assertCommandSuccess(new FilterCommand(new Tag("FRIENDS")), model,
+        assertCommandSuccess(new FilterCommand("VIOLIN"), model,
                 String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3), expectedModel);
         assertEquals(List.of(ALICE, BENSON, DANIEL), model.getFilteredPersonList());
         assertEquals(getTypicalAddressBook(), model.getAddressBook());
     }
 
     @Test
-    public void execute_noMatchingTag_showsEmptyList() {
+    public void execute_noMatchingInstrument_showsEmptyList() {
         Model expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         expectedModel.updateFilteredPersonList(person -> false);
 
-        assertCommandSuccess(new FilterCommand(new Tag("unknown")), model,
+        assertCommandSuccess(new FilterCommand("Harp"), model,
                 String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0), expectedModel);
         assertEquals(List.of(), model.getFilteredPersonList());
     }
@@ -57,7 +56,7 @@ public class FilterCommandTest {
     @Test
     public void execute_previouslyFiltered_searchesWholeDirectory() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
-        new FilterCommand(new Tag("owesMoney")).execute(model);
+        new FilterCommand("Cello").execute(model);
 
         assertEquals(List.of(BENSON), model.getFilteredPersonList());
         assertEquals(getTypicalAddressBook(), model.getAddressBook());
@@ -65,52 +64,52 @@ public class FilterCommandTest {
 
     @Test
     public void execute_listAfterFilter_showsEveryone() {
-        new FilterCommand(new Tag("owesMoney")).execute(model);
+        new FilterCommand("Cello").execute(model);
         new ListCommand().execute(model);
 
         assertEquals(getTypicalAddressBook().getPersonList(), model.getFilteredPersonList());
     }
 
     @Test
-    public void execute_spaceAfterPrefix_matchesWholeTag() throws Exception {
-        Person friend = new PersonBuilder().withName("Alice").withTags("friend").build();
-        Person friends = new PersonBuilder().withName("Bob").withTags("friends").build();
+    public void execute_spaceAfterPrefix_matchesWholeInstrumentName() throws Exception {
+        Person guitarist = new PersonBuilder().withName("Alice").withInstruments("Guitar:3").build();
+        Person bassist = new PersonBuilder().withName("Bob").withInstruments("Bass Guitar:2").build();
         AddressBook addressBook = new AddressBook();
-        addressBook.addPerson(friend);
-        addressBook.addPerson(friends);
+        addressBook.addPerson(guitarist);
+        addressBook.addPerson(bassist);
         Model customModel = new ModelManager(addressBook, new UserPrefs());
 
-        CommandResult result = new AddressBookParser().parseCommand("filter t/ friend").execute(customModel);
+        CommandResult result = new AddressBookParser().parseCommand("filter i/ guitar").execute(customModel);
 
-        assertEquals(List.of(friend), customModel.getFilteredPersonList());
+        assertEquals(List.of(guitarist), customModel.getFilteredPersonList());
         assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
         assertEquals(addressBook, customModel.getAddressBook());
     }
 
     @Test
-    public void execute_multipleTags_showsPeopleWithEitherTag() throws Exception {
-        Person friend = new PersonBuilder().withName("Alice").withTags("friend").build();
-        Person colleague = new PersonBuilder().withName("Bob").withTags("colleague").build();
-        Person both = new PersonBuilder().withName("Carol").withTags("friend", "colleague").build();
-        Person unrelated = new PersonBuilder().withName("Dan").withTags("family").build();
+    public void execute_multipleInstruments_showsPeoplePlayingEitherInstrument() throws Exception {
+        Person violinist = new PersonBuilder().withName("Alice").withInstruments("Violin:3").build();
+        Person violist = new PersonBuilder().withName("Bob").withInstruments("Viola:1").build();
+        Person both = new PersonBuilder().withName("Carol").withInstruments("Violin:2", "Viola:4").build();
+        Person unrelated = new PersonBuilder().withName("Dan").withInstruments("Drums:5").build();
         AddressBook addressBook = new AddressBook();
-        for (Person person : List.of(friend, colleague, both, unrelated)) {
+        for (Person person : List.of(violinist, violist, both, unrelated)) {
             addressBook.addPerson(person);
         }
         Model customModel = new ModelManager(addressBook, new UserPrefs());
 
         CommandResult result = new AddressBookParser().parseCommand(
-                "filter t/ FRIEND t/colleague").execute(customModel);
+                "filter i/ VIOLIN i/viola").execute(customModel);
 
-        assertEquals(List.of(friend, colleague, both), customModel.getFilteredPersonList());
+        assertEquals(List.of(violinist, violist, both), customModel.getFilteredPersonList());
         assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3), result.getFeedbackToUser());
         assertEquals(addressBook, customModel.getAddressBook());
     }
 
     @Test
-    public void hashCode_equalTagSets_supportsHashSetLookup() {
-        FilterCommand command = new FilterCommand(Set.of(new Tag("friend"), new Tag("colleague")));
-        FilterCommand equivalentCommand = new FilterCommand(Set.of(new Tag("colleague"), new Tag("friend")));
+    public void hashCode_equalInstrumentSets_supportsHashSetLookup() {
+        FilterCommand command = new FilterCommand(Set.of("Violin", "Viola"));
+        FilterCommand equivalentCommand = new FilterCommand(Set.of("Viola", "Violin"));
         Set<FilterCommand> commands = new HashSet<>();
         commands.add(command);
 
@@ -121,12 +120,12 @@ public class FilterCommandTest {
 
     @Test
     public void equals() {
-        FilterCommand command = new FilterCommand(new Tag("friends"));
+        FilterCommand command = new FilterCommand("Violin");
 
         assertEquals(command, command);
-        assertEquals(command, new FilterCommand(new Tag("friends")));
-        assertNotEquals(command, new FilterCommand(new Tag("owesMoney")));
+        assertEquals(command, new FilterCommand("Violin"));
+        assertNotEquals(command, new FilterCommand("Cello"));
         assertNotEquals(command, null);
-        assertNotEquals(command, "friends");
+        assertNotEquals(command, "Violin");
     }
 }

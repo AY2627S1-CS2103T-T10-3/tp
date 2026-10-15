@@ -8,12 +8,12 @@ import java.util.stream.Collectors;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Instrument;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Status;
-import seedu.address.model.tag.Tag;
 
 /**
  * Contains utility methods for populating {@code AddressBook} with sample data.
@@ -23,22 +23,22 @@ public class SampleDataUtil {
         return new Person[] {
             new Person(new Name("Alex Yeoh"), new Phone("87438807"), new Email("alexyeoh@example.com"),
                 Status.MEMBER, MemberType.STUDENT, Optional.empty(),
-                getTagSet("friends")),
+                getInstrumentSet("Violin:6", "Piano:3")),
             new Person(new Name("Bernice Yu"), new Phone("99272758"), new Email("berniceyu@example.com"),
                 Status.MEMBER, MemberType.STUDENT, Optional.empty(),
-                getTagSet("colleagues", "friends")),
+                getInstrumentSet("Cello:4")),
             new Person(new Name("Charlotte Oliveiro"), new Phone("93210283"), new Email("charlotte@example.com"),
                 Status.MEMBER, MemberType.STUDENT, Optional.empty(),
-                getTagSet("neighbours")),
+                getInstrumentSet("Flute:2")),
             new Person(new Name("David Li"), new Phone("91031282"), new Email("lidavid@example.com"),
                 Status.MEMBER, MemberType.STUDENT, Optional.empty(),
-                getTagSet("family")),
+                getInstrumentSet("Guitar:5", "Bass Guitar:1")),
             new Person(new Name("Irfan Ibrahim"), new Phone("92492021"), new Email("irfan@example.com"),
                 Status.MEMBER, MemberType.STUDENT, Optional.empty(),
-                getTagSet("classmates")),
+                getInstrumentSet()),
             new Person(new Name("Roy Balakrishnan"), new Phone("92624417"), new Email("royb@example.com"),
                 Status.MEMBER, MemberType.STUDENT, Optional.empty(),
-                getTagSet("colleagues"))
+                getInstrumentSet("Drums:7"))
         };
     }
 
@@ -51,11 +51,12 @@ public class SampleDataUtil {
     }
 
     /**
-     * Returns a tag set containing the list of strings given.
+     * Returns an instrument set containing the given {@code NAME:YEARS} strings.
      */
-    public static Set<Tag> getTagSet(String... strings) {
+    public static Set<Instrument> getInstrumentSet(String... strings) {
         return Arrays.stream(strings)
-                .map(Tag::new)
+                .map(string -> string.split(":"))
+                .map(parts -> new Instrument(parts[0], Integer.parseInt(parts[1])))
                 .collect(Collectors.toSet());
     }
 

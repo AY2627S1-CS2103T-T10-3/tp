@@ -2,13 +2,20 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
 
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.tag.Tag;
 
 /**
  * Parses input arguments and creates a FilterCommand.
@@ -16,20 +23,36 @@ import seedu.address.model.tag.Tag;
 public class FilterCommandParser implements Parser<FilterCommand> {
 
     /**
-     * Parses one or more tag arguments and returns a FilterCommand.
+     * Prefixes of other fields that {@code filter} does not support yet. They are tokenized only so that they are
+     * rejected instead of being silently read as part of an instrument name.
+     */
+    private static final Prefix[] UNSUPPORTED_PREFIXES = {
+        PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_STATUS, PREFIX_MEMBER_TYPE, PREFIX_ROLE
+    };
+
+    /**
+     * Parses one or more instrument name arguments and returns a FilterCommand.
      *
      * @throws ParseException if the arguments do not conform to the expected format.
      */
     @Override
     public FilterCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args.trim(), PREFIX_TAG);
+        Prefix[] prefixes = Stream.concat(Stream.of(PREFIX_INSTRUMENT), Stream.of(UNSUPPORTED_PREFIXES))
+                .toArray(Prefix[]::new);
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args.trim(), prefixes);
 
-        if (!argMultimap.getPreamble().isEmpty() || argMultimap.getValue(PREFIX_TAG).isEmpty()) {
+        boolean hasUnsupportedPrefix = Stream.of(UNSUPPORTED_PREFIXES)
+                .anyMatch(prefix -> argMultimap.getValue(prefix).isPresent());
+        if (!argMultimap.getPreamble().isEmpty() || argMultimap.getValue(PREFIX_INSTRUMENT).isEmpty()
+                || hasUnsupportedPrefix) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
         }
 
-        Set<Tag> tags = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
-        return new FilterCommand(tags);
+        Set<String> instrumentNames = new HashSet<>();
+        for (String instrumentName : argMultimap.getAllValues(PREFIX_INSTRUMENT)) {
+            instrumentNames.add(ParserUtil.parseInstrumentName(instrumentName));
+        }
+        return new FilterCommand(instrumentNames);
     }
 }
