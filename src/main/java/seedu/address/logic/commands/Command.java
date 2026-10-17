@@ -17,4 +17,11 @@ public abstract class Command {
      */
     public abstract CommandResult execute(Model model) throws CommandException;
 
+    /**
+     * Returns whether this command requires the address book to be saved.
+     * Commands that do not modify stored records should override this to return false.
+     */
+    public boolean requiresSave() {
+        return true;
+    }
 }
