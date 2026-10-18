@@ -128,6 +128,21 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_addCommand_savesPersonToFile() throws Exception {
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + STATUS_DESC_AMY;
+        Person expectedPerson = new PersonBuilder(AMY).withInstruments().build();
+
+        logic.execute(addCommand);
+
+        Path addressBookPath = temporaryFolder.resolve("addressBook.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(addressBookPath);
+        ReadOnlyAddressBook savedAddressBook = storage.readAddressBook().orElseThrow();
+
+        assertEquals(List.of(expectedPerson), savedAddressBook.getPersonList());
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
