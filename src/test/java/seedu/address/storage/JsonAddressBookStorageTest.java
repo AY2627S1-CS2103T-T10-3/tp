@@ -120,6 +120,19 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void backupAddressBook_backupNameIsDirectory_skipsDirectory() throws Exception {
+        Path filePath = testFolder.resolve("addressbook.json");
+        Files.writeString(filePath, "invalid data");
+        Files.createDirectory(testFolder.resolve("addressbook.json.bak-01"));
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        Path backupPath = storage.backupAddressBook();
+
+        assertEquals(testFolder.resolve("addressbook.json.bak-02"), backupPath);
+        assertEquals("invalid data", Files.readString(backupPath));
+    }
+
+    @Test
     public void readAndSaveAddressBook_allInOrder_success() throws Exception {
         Path filePath = testFolder.resolve("TempAddressBook.json");
         AddressBook original = getTypicalAddressBook();
