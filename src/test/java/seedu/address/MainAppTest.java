@@ -40,9 +40,29 @@ public class MainAppTest {
         Model model = app.initializeModelManager(storageManager);
 
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
-        assertEquals(invalidJson, Files.readString(addressBookPath.resolveSibling("addressbook.json.bak")));
+        assertEquals(invalidJson, Files.readString(addressBookPath.resolveSibling("addressbook.json.bak-01")));
         assertThrows(IOException.class, () -> storageManager.saveAddressBook(new AddressBook()));
         assertEquals(invalidJson, Files.readString(addressBookPath));
+    }
+
+    @Test
+    public void initModelManager_secondFailedLoad_preservesFirstBackup() throws Exception {
+        Path addressBookPath = temporaryFolder.resolve("addressbook.json");
+        Path firstBackup = temporaryFolder.resolve("addressbook.json.bak-01");
+        Path secondBackup = temporaryFolder.resolve("addressbook.json.bak-02");
+        TestMainApp app = new TestMainApp();
+
+        // First failed startup
+        Files.writeString(addressBookPath, "first invalid data");
+        app.initializeModelManager(createStorageManager(addressBookPath));
+
+        // The user attempts a repair, but the file is still invalid.
+        Files.writeString(addressBookPath, "second invalid data");
+        app.initializeModelManager(createStorageManager(addressBookPath));
+
+        assertEquals("first invalid data", Files.readString(firstBackup));
+        assertEquals("second invalid data", Files.readString(secondBackup));
+        assertEquals("second invalid data", Files.readString(addressBookPath));
     }
 
     @Test
