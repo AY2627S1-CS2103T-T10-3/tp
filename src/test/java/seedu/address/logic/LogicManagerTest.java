@@ -170,6 +170,22 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_ioException_restoresFilteredListAfterEdit() throws Exception {
+        String expectedMessage = String.format(
+                LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage());
+
+        assertFailedEditRestoresFilteredList(DUMMY_IO_EXCEPTION, expectedMessage);
+    }
+
+    @Test
+    public void execute_accessDeniedException_restoresFilteredListAfterEdit() throws Exception {
+        String expectedMessage = String.format(
+                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage());
+
+        assertFailedEditRestoresFilteredList(DUMMY_AD_EXCEPTION, expectedMessage);
+    }
+
+    @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
     }
@@ -254,6 +270,26 @@ public class LogicManagerTest {
                 + EMAIL_DESC_AMY + STATUS_DESC_AMY;
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+    }
+
+    /**
+     * Verifies that a failed edit restores the address book and the filtered list.
+     *
+     * @param exception the exception thrown when saving the address book
+     * @param expectedMessage the expected error message
+     */
+    private void assertFailedEditRestoresFilteredList(IOException exception, String expectedMessage)
+            throws Exception {
+        model.addPerson(AMY);
+        model.addPerson(BOB);
+
+        logic.execute("find Bob");
+        setStorageThatThrowsOnSave(exception);
+
+        assertThrows(CommandException.class, expectedMessage, () -> logic.execute("edit 1 p/99999999"));
+
+        assertEquals(List.of(BOB), logic.getFilteredPersonList());
+        assertEquals(List.of(AMY, BOB), model.getAddressBook().getPersonList());
     }
 
     /**
