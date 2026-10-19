@@ -75,7 +75,7 @@ Format: `help`
 
 ### Adding a person: `add`
 
-Adds a person to the address book.
+Adds a person to HiveMind.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​`
 
@@ -114,7 +114,7 @@ Example: after `find alex david`, enter `list` to show everyone again. The resul
 
 ### Editing a person: `edit`
 
-Edits an existing person in the address book.
+Edits an existing person in HiveMind.
 
 Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​`
 
@@ -183,7 +183,7 @@ Example: `filter s/member i/Violin:3`
 
 ### Deleting a person: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified person from HiveMind.
 
 Format: `delete INDEX`
 
@@ -192,12 +192,12 @@ Format: `delete INDEX`
 * The index **must be a positive integer** 1, 2, 3, …​
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
+* `list` followed by `delete 2` deletes the 2nd person in the member list.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Clears all entries from HiveMind.
 
 Format: `clear`
 
@@ -209,15 +209,15 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+HiveMind automatically saves data after every command. You do not need to save manually.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+HiveMind data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+If your changes make the data file invalid, HiveMind starts with an empty member list at the next run. The invalid file remains on disk until you run a command (HiveMind saves after every command). Still, we recommend backing up the file before editing it.<br>
+Furthermore, certain edits can cause HiveMind to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
 ### Archiving data files `[coming in v2.0]`
@@ -229,7 +229,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous HiveMind home folder.
 
 --------------------------------------------------------------------------------------------------------------------
 
