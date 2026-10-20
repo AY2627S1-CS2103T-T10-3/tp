@@ -96,7 +96,7 @@ Examples:
 
 ### Listing all persons: `list`
 
-Shows all members and alumni in the directory, in insertion order. Use this command after `find` or `filter` to return to the full list.
+Shows all members and alumni in the directory, in insertion order. Use this command after `find` or `filter` to return to the full list. It also clears any ordering selected with `sort`.
 
 Format: `list`
 
@@ -108,7 +108,7 @@ Each member card displays:
 * A `Role:` line when a role is recorded. No role line is shown when it is absent.
 * Recorded instruments and their years of experience, sorted alphabetically by instrument name, ignoring case. For example, `Piano (5 yrs)` and `Violin (1 yr)`. No instrument labels appear when none are recorded.
 
-The same card details are shown in `find` and `filter` results. Displayed indices start at `1` and refer to the current list, so a member's index may change after a search or filter. Use the current displayed index for commands such as `edit` and `delete`.
+The same card details are shown in `find` and `filter` results. Displayed indices start at `1` and refer to the current list, so a member's index may change after a search, filter or sort. Use the current displayed index for commands such as `edit` and `delete`.
 
 Example: after `find alex david`, enter `list` to show everyone again. The result message is `Listed all persons.`
 
@@ -149,7 +149,11 @@ Format: `sort name` or `sort status`
 * Use the updated displayed indices for `edit` and `delete`.
 * `list` restores the full directory in insertion order. Restarting also resets the ordering; the sorting preference is not saved.
 
-Example: run `find alex david`, then `sort status` to group the matching members by membership status. The success message is `Sorted displayed members by status.`
+Examples:
+
+* `sort name` sorts the current results by name. The success message is `Sorted displayed members by name.`
+* Run `find alex david`, then `sort status` to group the matching members by membership status. The success message is `Sorted displayed members by status.`
+* Run `sort name`, then `sort status` to switch ordering. Members with the same status return to their original directory order; the previous name ordering is not used as a secondary sort.
 
 ### Locating persons by name: `find`
 
