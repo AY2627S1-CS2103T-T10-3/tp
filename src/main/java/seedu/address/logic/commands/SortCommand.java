@@ -38,7 +38,7 @@ public class SortCommand extends Command {
                     person -> person.getName().fullName,
                     String.CASE_INSENSITIVE_ORDER);
             // Status declaration order is member, active alumnus, inactive alumnus.
-            case "status" -> Comparator.comparing(Pegit arson::getStatus)
+            case "status" -> Comparator.comparing(Person::getStatus)
                     .thenComparingInt(person -> model.getAddressBook().getPersonList().indexOf(person));
             default -> throw new IllegalArgumentException(
                     "Unsupported sort attribute: " + attribute);
