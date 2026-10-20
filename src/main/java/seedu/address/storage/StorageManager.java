@@ -19,6 +19,7 @@ public class StorageManager implements Storage {
     private static final Logger logger = LogsCenter.getLogger(StorageManager.class);
     private JsonAddressBookStorage addressBookStorage;
     private JsonUserPrefsStorage userPrefsStorage;
+    private boolean isAddressBookSavingEnabled = true;
 
     /**
      * Creates a {@code StorageManager} with the given address book and user prefs storage.
@@ -59,8 +60,27 @@ public class StorageManager implements Storage {
         return addressBookStorage.readAddressBook();
     }
 
+    /**
+     * Backs up the current address book file before recovery from a failed load.
+     *
+     * @return the path of the backup file.
+     */
+    public Path backupAddressBook() throws IOException {
+        return addressBookStorage.backupAddressBook();
+    }
+
+    /**
+     * Prevents a recovered empty model from overwriting an address book that failed to load.
+     */
+    public void disableAddressBookSaving() {
+        isAddressBookSavingEnabled = false;
+    }
+
     @Override
     public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+        if (!isAddressBookSavingEnabled) {
+            throw new IOException("Address book saving is disabled after a failed data load.");
+        }
         logger.fine("Attempting to write to data file: " + addressBookStorage.getAddressBookFilePath());
         addressBookStorage.saveAddressBook(addressBook);
     }

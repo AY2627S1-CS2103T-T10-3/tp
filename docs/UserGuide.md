@@ -216,7 +216,7 @@ HiveMind automatically saves data after every command. You do not need to save m
 HiveMind data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, HiveMind starts with an empty member list at the next run. The invalid file remains on disk until you run a command (HiveMind saves after every command). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, HiveMind starts with an empty directory at the next run, creates a backup alongside it with a `.bak` suffix, and prevents directory changes from being saved. Repair or restore the original data file before restarting the app.<br>
 Furthermore, certain edits can cause HiveMind to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 

@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
@@ -9,10 +10,12 @@ import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.STATUS_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,6 +74,75 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_helpWhenSavingDisabled_returnsHelpResult() throws Exception {
+        setUpLogicWithSavingDisabled();
+
+        CommandResult result = logic.execute("help");
+
+        assertTrue(result.isShowHelp());
+    }
+
+    @Test
+    public void execute_exitWhenSavingDisabled_returnsExitResult() throws Exception {
+        setUpLogicWithSavingDisabled();
+
+        CommandResult result = logic.execute("exit");
+
+        assertTrue(result.isExit());
+    }
+
+    @Test
+    public void execute_listWhenSavingDisabled_showsAllPersons() throws Exception {
+        model.addPerson(AMY);
+        model.updateFilteredPersonList(person -> false);
+        setUpLogicWithSavingDisabled();
+
+        CommandResult result = logic.execute("list");
+
+        assertEquals(ListCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
+        assertEquals(List.of(AMY), logic.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_findWhenSavingDisabled_showsMatchingPersons() throws Exception {
+        model.addPerson(AMY);
+        model.addPerson(BENSON);
+        setUpLogicWithSavingDisabled();
+
+        CommandResult result = logic.execute("find Amy");
+
+        assertEquals(String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
+        assertEquals(List.of(AMY), logic.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_filterWhenSavingDisabled_showsMatchingPersons() throws Exception {
+        model.addPerson(AMY);
+        model.addPerson(BENSON);
+        setUpLogicWithSavingDisabled();
+
+        CommandResult result = logic.execute("filter s/member");
+
+        assertEquals(String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
+        assertEquals(List.of(AMY), logic.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_addCommand_savesPersonToFile() throws Exception {
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + STATUS_DESC_AMY;
+        Person expectedPerson = new PersonBuilder(AMY).withInstruments().build();
+
+        logic.execute(addCommand);
+
+        Path addressBookPath = temporaryFolder.resolve("addressBook.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(addressBookPath);
+        ReadOnlyAddressBook savedAddressBook = storage.readAddressBook().orElseThrow();
+
+        assertEquals(List.of(expectedPerson), savedAddressBook.getPersonList());
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
@@ -85,6 +157,19 @@ public class LogicManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
+    }
+
+    /**
+     * Sets up logic with address book saving disabled.
+     */
+    private void setUpLogicWithSavingDisabled() {
+        JsonAddressBookStorage addressBookStorage =
+                new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        JsonUserPrefsStorage userPrefsStorage =
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
+        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        storage.disableAddressBookSaving();
+        logic = new LogicManager(model, storage);
     }
 
     /**
