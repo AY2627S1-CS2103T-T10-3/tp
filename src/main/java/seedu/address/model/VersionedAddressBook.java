@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An {@code AddressBook} that keeps a history of its committed states so that changes can be undone.
+ * An {@code AddressBook} that keeps a history of its committed states so that changes can be undone and redone.
  */
 public class VersionedAddressBook extends AddressBook {
 
@@ -64,6 +64,28 @@ public class VersionedAddressBook extends AddressBook {
     }
 
     /**
+     * Returns true if there is an undone change that {@link #redo()} can restore.
+     * Redo is not possible while the data has uncommitted changes, as it would discard them.
+     */
+    public boolean canRedo() {
+        return currentStatePointer < addressBookStateList.size() - 1 && !hasUncommittedChanges();
+    }
+
+    /**
+     * Restores the most recently undone change.
+     *
+     * @throws NoRedoableStateException if there is no undone change to restore.
+     */
+    public void redo() {
+        if (!canRedo()) {
+            throw new NoRedoableStateException();
+        }
+        currentStatePointer++;
+        resetData(addressBookStateList.get(currentStatePointer));
+        assert currentStatePointer < addressBookStateList.size();
+    }
+
+    /**
      * Returns true if the data differs from the current state in the history.
      */
     private boolean hasUncommittedChanges() {
@@ -76,6 +98,15 @@ public class VersionedAddressBook extends AddressBook {
     public static class NoUndoableStateException extends RuntimeException {
         public NoUndoableStateException() {
             super("Current state pointer at start of addressBookState list, unable to undo.");
+        }
+    }
+
+    /**
+     * Thrown when a redo is attempted but there is no undone change to restore.
+     */
+    public static class NoRedoableStateException extends RuntimeException {
+        public NoRedoableStateException() {
+            super("Current state pointer at end of addressBookState list, unable to redo.");
         }
     }
 }

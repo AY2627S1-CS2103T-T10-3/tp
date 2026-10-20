@@ -129,4 +129,77 @@ public class VersionedAddressBookTest {
         // same data but different undo history -> equal
         assertTrue(vab1.equals(new VersionedAddressBook(vab1)));
     }
+
+    @Test
+    public void canRedo_initialState_false() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        assertFalse(vab.canRedo());
+    }
+
+    @Test
+    public void redo_afterUndo_restoresUndoneState() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        vab.addPerson(ALICE);
+        vab.commit();
+        vab.undo();
+        assertTrue(vab.canRedo());
+        vab.redo();
+        assertEquals(bookOf(ALICE), vab);
+        assertFalse(vab.canRedo());
+    }
+
+    @Test
+    public void redo_multipleTimes_restoresStatesInOrder() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        vab.addPerson(ALICE);
+        vab.commit();
+        vab.addPerson(BENSON);
+        vab.commit();
+        vab.undo();
+        vab.undo();
+        vab.redo();
+        assertEquals(bookOf(ALICE), vab);
+        vab.redo();
+        assertEquals(bookOf(ALICE, BENSON), vab);
+        assertFalse(vab.canRedo());
+    }
+
+    @Test
+    public void redo_afterNewCommit_notPossible() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        vab.addPerson(ALICE);
+        vab.commit();
+        vab.undo();
+        vab.addPerson(BENSON);
+        vab.commit();
+        assertFalse(vab.canRedo());
+    }
+
+    @Test
+    public void redo_withUncommittedChanges_notPossible() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        vab.addPerson(ALICE);
+        vab.commit();
+        vab.undo();
+        vab.addPerson(BENSON);
+        assertFalse(vab.canRedo());
+    }
+
+    @Test
+    public void redo_nothingToRedo_throwsNoRedoableStateException() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        assertThrows(VersionedAddressBook.NoRedoableStateException.class, vab::redo);
+    }
+
+    @Test
+    public void undoThenRedo_canUndoAgain() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        vab.addPerson(ALICE);
+        vab.commit();
+        vab.undo();
+        vab.redo();
+        assertTrue(vab.canUndo());
+        vab.undo();
+        assertEquals(bookOf(), vab);
+    }
 }
