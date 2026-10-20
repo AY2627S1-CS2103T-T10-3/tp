@@ -69,6 +69,7 @@ public class VersionedAddressBookTest {
         assertTrue(vab.canUndo());
         vab.undo();
         assertEquals(bookOf(ALICE), vab);
+        assertFalse(vab.canRedo());
         assertTrue(vab.canUndo());
         vab.undo();
         assertEquals(bookOf(), vab);
