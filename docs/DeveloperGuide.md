@@ -175,6 +175,16 @@ The `find` command matches any part of a person's name, ignoring case. For examp
 
 Tests in `StringUtilTest` cover substring positions, case differences, invalid inputs and non-matches. `NameContainsKeywordsPredicateTest` verifies name-only matching and OR semantics. `FindCommandTest` checks the resulting persons and feedback count, while `FindCommandParserTest` covers empty arguments and extra whitespace.
 
+### Sorting displayed members
+
+`SortCommandParser` accepts exactly one attribute, `name` or `status`, ignoring case and surrounding whitespace. `SortCommand` selects a `Comparator<Person>` and passes it to `Model.updateSortedPersonList`. Name sorting compares full names using `String.CASE_INSENSITIVE_ORDER`. Status sorting uses the `Status` enum's declaration order: `MEMBER`, `ACTIVE_ALUMNUS`, then `INACTIVE_ALUMNUS`. Changing that declaration order would change the user-visible sorting contract.
+
+`ModelManager` wraps its `FilteredList<Person>` in a `SortedList<Person>`. `getFilteredPersonList` exposes this sorted view to the UI and index-based commands, keeping displayed indices consistent with edit and delete. The status comparator breaks ties using each person's position in the underlying directory, so switching from name sorting still restores directory order within each status. Stored records are not reordered, and `SortCommand.requiresSave` returns false.
+
+Find/filter update the predicate without clearing the comparator. Add/edit retain sorting while restoring the full directory. `ListCommand` resets the predicate and clears the comparator to restore insertion order. A new model starts without a comparator, so sorting is session-only.
+
+Sorting tests cover case-insensitive names, membership order, ties, switching ordering, filter/search transitions, empty results, list reset, edit/delete indices and unchanged stored order. Parser tests cover case and whitespace, missing attributes, unsupported attributes and extra arguments.
+
 ### Status and instrument filtering
 
 `FilterCommandParser` accepts repeated `s/STATUS` and `i/NAME[:MIN_YEARS]` arguments and requires at least one criterion. It validates every status through `ParserUtil.parseStatus`. Its `parseInstrumentCriterion` helper validates names through `ParserUtil.parseInstrumentName` and optional whole minimum years from 0 to 99. Name-only criteria default to a minimum of zero. Invalid minimum years use `InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS`. Other member-field prefixes are tokenized and rejected rather than absorbed into instrument names.

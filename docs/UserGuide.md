@@ -135,6 +135,22 @@ Examples:
 *  `edit 1 s/active-alumnus r/` Marks the 1st person as an active alumnus and removes their role.
 *  `edit 4 ty/teacher r/Conductor` Changes the 4th person's type to teacher and their role to `Conductor`.
 
+### Sorting displayed members: `sort`
+
+Orders the currently displayed members without changing which members are shown or the order saved in the data file.
+
+Format: `sort name` or `sort status`
+
+* `sort name` orders names alphabetically, ignoring case.
+* `sort status` groups members in this order: member, active alumnus, inactive alumnus. Within each status, members retain their original directory order.
+* The attribute (`name` or `status`) is case-insensitive. Exactly one attribute is required; unsupported attributes or extra arguments show the usage message.
+* Sorting works on the full directory and on `find` or `filter` results, including empty results.
+* Subsequent `find` and `filter` commands retain the selected ordering. Adding or editing a member also retains the ordering, while showing the full directory.
+* Use the updated displayed indices for `edit` and `delete`.
+* `list` restores the full directory in insertion order. Restarting also resets the ordering; the sorting preference is not saved.
+
+Example: run `find alex david`, then `sort status` to group the matching members by membership status. The success message is `Sorted displayed members by status.`
+
 ### Locating persons by name: `find`
 
 Finds persons whose names contain any of the given keywords, including partial words.
@@ -251,4 +267,5 @@ Action | Format, Examples
 **Find** | `find KEYWORD [MORE_KEYWORDS]…`<br> e.g., `find alex david`
 **Filter** | `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]...`<br> e.g., `filter s/member s/active-alumnus i/Violin:3`
 **List** | `list`
+**Sort** | `sort name` or `sort status`
 **Help** | `help`

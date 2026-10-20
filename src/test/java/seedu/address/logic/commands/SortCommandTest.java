@@ -30,7 +30,8 @@ public class SortCommandTest {
     @Test
     public void execute_fullList_sortsIgnoringCaseWithoutChangingStoredOrder() throws Exception {
         Command command = new AddressBookParser().parseCommand("sort NAME");
-        assertEquals(SortCommand.MESSAGE_SUCCESS, command.execute(model).getFeedbackToUser());
+        assertEquals(String.format(SortCommand.MESSAGE_SUCCESS, "name"),
+                command.execute(model).getFeedbackToUser());
         assertEquals(List.of(alice, bob, zoe), model.getFilteredPersonList());
         assertEquals(List.of(zoe, alice, bob), model.getAddressBook().getPersonList());
         assertFalse(command.requiresSave());

@@ -13,12 +13,13 @@ import seedu.address.model.person.Person;
 public class SortCommand extends Command {
     public static final String COMMAND_WORD = "sort";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Sorts the displayed members by name in ascending alphabetical order, "
-            + "ignoring case.\n"
-            + "Parameters: name\n"
+            + ": Sorts the displayed members by name or status.\n"
+            + "Name order: alphabetical, ignoring case.\n"
+            + "Status order: member, active alumnus, inactive alumnus.\n"
+            + "Parameters: name | status\n"
             + "Example: " + COMMAND_WORD + " name";
 
-    public static final String MESSAGE_SUCCESS = "Sorted displayed members by name.";
+    public static final String MESSAGE_SUCCESS = "Sorted displayed members by %s.";
 
     private final String attribute;
 
@@ -36,12 +37,15 @@ public class SortCommand extends Command {
             case "name" -> Comparator.comparing(
                     person -> person.getName().fullName,
                     String.CASE_INSENSITIVE_ORDER);
+            // Status declaration order is member, active alumnus, inactive alumnus.
+            case "status" -> Comparator.comparing(Person::getStatus)
+                    .thenComparingInt(person -> model.getAddressBook().getPersonList().indexOf(person));
             default -> throw new IllegalArgumentException(
                     "Unsupported sort attribute: " + attribute);
         };
 
         model.updateSortedPersonList(comparator);
-        return new CommandResult(MESSAGE_SUCCESS);
+        return new CommandResult(String.format(MESSAGE_SUCCESS, attribute));
     }
 
     @Override

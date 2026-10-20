@@ -22,7 +22,7 @@ public class SortCommandParser implements Parser<SortCommand> {
         String attribute = args.trim().toLowerCase(Locale.ROOT);
 
         return switch (attribute) {
-            case "name" -> new SortCommand("name");
+            case "name", "status" -> new SortCommand(attribute);
             default -> throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE));
         };
