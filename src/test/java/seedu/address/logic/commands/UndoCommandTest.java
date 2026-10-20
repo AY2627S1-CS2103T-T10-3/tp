@@ -16,26 +16,27 @@ public class UndoCommandTest {
     @Test
     public void execute_noChange_failure() {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
-        // Note: TypicalAddressBook is not versioned by default in standard setup,
-        // but assuming Model implementation handles canUndoAddressBook()
-        // For this test to work as requested, we assume model is a ModelManager
-        // wrapping a VersionedAddressBook that hasn't had commit() called yet.
         assertCommandFailure(new UndoCommand(), model, UndoCommand.MESSAGE_FAILURE);
     }
 
     @Test
-    public void execute_afterChange_success() {
+    public void execute_afterCommittedChange_success() {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
-        // We need to simulate a commit to make canUndo true
-        // Since ModelManager.commitAddressBook() is provided:
         model.addPerson(new PersonBuilder().withName("Zed").build());
         model.commitAddressBook();
 
         Model expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
-        // The expected model should be the state before the "Zed" addition
-        // In a real scenario, we'd capture the model state before the addPerson
+        assertCommandSuccess(new UndoCommand(), model, UndoCommand.MESSAGE_SUCCESS, expectedModel);
+    }
 
-        // For the purpose of this test logic:
+    @Test
+    public void execute_afterFilteredList_showsAllPersons() {
+        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        model.addPerson(new PersonBuilder().withName("Zed").build());
+        model.commitAddressBook();
+        model.updateFilteredPersonList(person -> false);
+
+        Model expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         assertCommandSuccess(new UndoCommand(), model, UndoCommand.MESSAGE_SUCCESS, expectedModel);
     }
 }

@@ -60,6 +60,8 @@ public class LogicManager implements Logic {
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
 
+        // Only changes that were saved successfully become undoable states
+        model.commitAddressBook();
         return commandResult;
     }
 

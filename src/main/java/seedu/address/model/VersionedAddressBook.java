@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An implementation of {@link AddressBook} that supports undo operations by maintaining
- * a history of previous states.
+ * An {@code AddressBook} that keeps a history of its committed states so that changes can be undone.
  */
 public class VersionedAddressBook extends AddressBook {
 
@@ -25,37 +24,51 @@ public class VersionedAddressBook extends AddressBook {
     }
 
     /**
-     * Commits the current state to the history. If the pointer is not at the end of the list,
-     * all states after the current pointer are discarded before adding the new state.
+     * Records the current data as a new state, discarding any states after the current one.
+     * Does nothing if the data is unchanged since the current state, so commands that do not
+     * modify data do not create empty undo steps.
      */
     public void commit() {
+        if (!hasUncommittedChanges()) {
+            return;
+        }
         addressBookStateList.subList(currentStatePointer + 1, addressBookStateList.size()).clear();
         addressBookStateList.add(new AddressBook(this));
         currentStatePointer++;
-        assert currentStatePointer >= 0 && currentStatePointer < addressBookStateList.size();
+        assert currentStatePointer == addressBookStateList.size() - 1;
     }
 
     /**
-     * Returns {@code true} if there are states available to undo.
-     *
-     * @return {@code true} if {@code currentStatePointer > 0}
+     * Returns true if there is a change that {@link #undo()} can revert.
      */
     public boolean canUndo() {
-        return currentStatePointer > 0;
+        return currentStatePointer > 0 || hasUncommittedChanges();
     }
 
     /**
-     * Undoes the most recent change by reverting to the previous state in the history.
+     * Reverts the most recent change.
+     * If the data has uncommitted changes (e.g. a change whose save failed),
+     * the data is restored to the current state. Otherwise, it is restored to the previous state.
      *
-     * @throws NoUndoableStateException if there is no state to undo to
+     * @throws NoUndoableStateException if there is no change to revert.
      */
     public void undo() {
         if (!canUndo()) {
             throw new NoUndoableStateException();
         }
-        currentStatePointer--;
+        if (!hasUncommittedChanges()) {
+            currentStatePointer--;
+        }
         resetData(addressBookStateList.get(currentStatePointer));
         assert currentStatePointer >= 0 && currentStatePointer < addressBookStateList.size();
+        assert !hasUncommittedChanges();
+    }
+
+    /**
+     * Returns true if the data differs from the current state in the history.
+     */
+    private boolean hasUncommittedChanges() {
+        return !equals(addressBookStateList.get(currentStatePointer));
     }
 
     /**

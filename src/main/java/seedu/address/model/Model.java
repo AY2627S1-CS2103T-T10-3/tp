@@ -70,17 +70,19 @@ public interface Model {
     void updateFilteredPersonList(Predicate<Person> predicate);
 
     /**
-     * Returns true if there is a previous address book state to restore.
+     * Returns true if there is a change that {@link #undoAddressBook()} can revert.
      */
     boolean canUndoAddressBook();
 
     /**
-     * Restores the address book to its state before the most recent committed change.
+     * Reverts the most recent change to the address book.
+     * If there are uncommitted changes, they are reverted first.
      */
     void undoAddressBook();
 
     /**
-     * Saves the current address book state so that it can be restored by an undo.
+     * Records the current address book state so that the change leading to it can be undone.
+     * Does nothing if the address book is unchanged since the last recorded state.
      */
     void commitAddressBook();
 }

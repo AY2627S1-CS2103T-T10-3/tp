@@ -5,34 +5,93 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.model.person.Person;
-import seedu.address.testutil.PersonBuilder;
 
 public class VersionedAddressBookTest {
 
-    @Test
-    public void constructor_newVersionedAddressBook_canUndoIsFalse() {
-        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
-        assertFalse(vab.canUndo());
-        assertEquals(new AddressBook(), vab);
+    private static AddressBook bookOf(Person... persons) {
+        AddressBook book = new AddressBook();
+        for (Person p : persons) {
+            book.addPerson(p);
+        }
+        return book;
     }
 
     @Test
-    public void commit_thenAddAlice_canUndoTrue() {
+    public void constructor_initialState_cannotUndo() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        assertFalse(vab.canUndo());
+        assertEquals(bookOf(), vab);
+    }
+
+    @Test
+    public void commit_noChange_cannotUndo() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        vab.commit();
+        assertFalse(vab.canUndo());
+    }
+
+    @Test
+    public void undo_afterCommittedChange_restoresPreviousState() {
         VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
         vab.addPerson(ALICE);
         vab.commit();
         assertTrue(vab.canUndo());
         vab.undo();
-        assertEquals(0, vab.getPersonList().size());
+        assertEquals(bookOf(), vab);
         assertFalse(vab.canUndo());
     }
 
     @Test
-    public void undo_withNothingToUndo_throwsNoUndoableStateException() {
+    public void undo_multipleTimes_restoresStatesInOrder() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        vab.addPerson(ALICE);
+        vab.commit();
+        vab.addPerson(BENSON);
+        vab.commit();
+        vab.undo();
+        assertEquals(bookOf(ALICE), vab);
+        vab.undo();
+        assertEquals(bookOf(), vab);
+        assertFalse(vab.canUndo());
+    }
+
+    @Test
+    public void undo_uncommittedChange_revertsToCurrentState() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        vab.addPerson(ALICE);
+        vab.commit();
+        vab.addPerson(BENSON);
+        assertTrue(vab.canUndo());
+        vab.undo();
+        assertEquals(bookOf(ALICE), vab);
+        assertTrue(vab.canUndo());
+        vab.undo();
+        assertEquals(bookOf(), vab);
+    }
+
+    @Test
+    public void undo_afterRolledBackUndo_revertsAgain() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        vab.addPerson(ALICE);
+        vab.commit();
+        vab.addPerson(BENSON);
+        vab.commit();
+        vab.undo();
+        vab.resetData(bookOf(ALICE, BENSON));
+        vab.undo();
+        assertEquals(bookOf(ALICE), vab);
+        vab.undo();
+        assertEquals(bookOf(), vab);
+        assertFalse(vab.canUndo());
+    }
+
+    @Test
+    public void undo_nothingToUndo_throwsNoUndoableStateException() {
         VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
         assertThrows(VersionedAddressBook.NoUndoableStateException.class, vab::undo);
     }
@@ -43,13 +102,10 @@ public class VersionedAddressBookTest {
         vab.addPerson(ALICE);
         vab.commit();
         vab.undo();
-
-        Person zed = new PersonBuilder().withName("Zed").build();
-        vab.addPerson(zed);
+        vab.addPerson(BENSON);
         vab.commit();
         vab.undo();
-
-        assertEquals(0, vab.getPersonList().size());
+        assertEquals(bookOf(), vab);
         assertFalse(vab.canUndo());
     }
 
