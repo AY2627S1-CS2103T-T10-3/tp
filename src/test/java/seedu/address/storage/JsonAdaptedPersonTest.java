@@ -144,6 +144,15 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_nullGroup_throwsIllegalValueException() {
+        List<String> groups = new ArrayList<>();
+        groups.add(null);
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_STATUS, VALID_MEMBER_TYPE, null, VALID_INSTRUMENTS, groups);
+        assertThrows(IllegalValueException.class, Group.MESSAGE_CONSTRAINTS, person::toModelType);
+    }
+
+    @Test
     public void jsonRoundTrip_preservesGroups() throws Exception {
         Person groupedPerson = new PersonBuilder(BENSON)
                 .withGroups("Chamber Orchestra", "Training").build();

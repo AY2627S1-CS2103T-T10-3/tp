@@ -23,8 +23,11 @@ public class GroupTest {
     public void equals_sameNameIgnoringCaseAndWhitespace_returnsTrue() {
         Group group = new Group("Chamber Orchestra");
         Group equivalent = new Group(" chamber   orchestra ");
+        assertTrue(group.equals(group));
         assertTrue(group.equals(equivalent));
         assertEquals(group.hashCode(), equivalent.hashCode());
         assertFalse(group.equals(new Group("Training")));
+        assertFalse(group.equals(null));
+        assertFalse(group.equals("Chamber Orchestra"));
     }
 }
