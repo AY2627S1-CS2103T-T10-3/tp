@@ -122,13 +122,15 @@ How the `Logic` component works:
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
+The parser class diagram below uses `add` to show how HiveMind parses member details:
 
-<img src="images/ParserClasses.png" width="600"/>
+<img src="images/ParserClasses.png" width="850"/>
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* `AddressBookParser` creates an `AddCommandParser` for `add`. The parser tokenizes prefixes into an `ArgumentMultimap` and checks that `n/`, `p/`, `e/`, and `s/` are present.
+* `ParserUtil` validates the status, member type, optional role, and instruments. When `ty/` is omitted, `AddCommandParser` uses `student`; when `r/` is omitted, the person's role is empty.
+* `AddCommandParser` creates a `Person` from the parsed values, then an `AddCommand` containing that person. `AddressBookParser` returns it as a `Command` to `LogicManager`.
+* Other command parsers follow the same `Parser` interface, although their accepted prefixes and validation rules differ.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)

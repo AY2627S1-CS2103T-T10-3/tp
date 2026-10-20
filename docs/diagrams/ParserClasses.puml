@@ -5,12 +5,12 @@ skinparam arrowColor LOGIC_COLOR_T4
 skinparam classBackgroundColor LOGIC_COLOR
 
 Class "{abstract}\nCommand" as Command
-Class XYZCommand
+Class AddCommand
 
-package "Parser classes"{
+package "Parser classes" {
 Class "<<interface>>\nParser" as Parser
 Class AddressBookParser
-Class XYZCommandParser
+Class AddCommandParser
 Class CliSyntax
 Class ParserUtil
 Class ArgumentMultimap
@@ -18,21 +18,40 @@ Class ArgumentTokenizer
 Class Prefix
 }
 
+package "Model objects" {
+Class Person MODEL_COLOR
+Class "<<enumeration>>\nStatus" as Status MODEL_COLOR
+Class "<<enumeration>>\nMemberType" as MemberType MODEL_COLOR
+Class Role MODEL_COLOR
+Class Instrument MODEL_COLOR
+}
+
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> AddressBookParser
 
-AddressBookParser .down.> XYZCommandParser: <<create>>
+AddressBookParser .down.> AddCommandParser : <<create>>
 
-XYZCommandParser ..> XYZCommand : <<create>>
+AddCommandParser ..> AddCommand : <<create>>
+AddCommandParser ..> Person : <<create>>
 AddressBookParser ..> Command : <<use>>
-XYZCommandParser .up.|> Parser
-XYZCommandParser ..> ArgumentMultimap
-XYZCommandParser ..> ArgumentTokenizer
+AddCommandParser .up.|> Parser
+AddCommandParser ..> ArgumentMultimap
+AddCommandParser ..> ArgumentTokenizer
 ArgumentTokenizer .left.> ArgumentMultimap
-XYZCommandParser ..> CliSyntax
+AddCommandParser ..> CliSyntax
 CliSyntax ..> Prefix
-XYZCommandParser ..> ParserUtil
+AddCommandParser ..> ParserUtil
 ParserUtil .down.> Prefix
 ArgumentTokenizer .down.> Prefix
-XYZCommand -up-|> Command
+ParserUtil ..> Status : parseStatus()
+ParserUtil ..> MemberType : parseMemberType()
+ParserUtil ..> Role : parseRole()
+ParserUtil ..> Instrument : parseInstruments()
+AddCommand -up-|> Command
+AddCommand --> Person : toAdd
+
+note right of AddCommandParser
+  n/, p/, e/, and s/ are required.
+  ty/ defaults to student; r/ and i/ are optional.
+end note
 @enduml
