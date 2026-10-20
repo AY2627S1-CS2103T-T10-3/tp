@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -24,6 +25,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
@@ -49,9 +51,10 @@ public class EditCommand extends Command {
             + "[" + PREFIX_STATUS + "STATUS] "
             + "[" + PREFIX_MEMBER_TYPE + "STUDENT_OR_TEACHER] "
             + "[" + PREFIX_ROLE + "ROLE] "
-            + "[" + PREFIX_INSTRUMENT + "INSTRUMENT:YEARS]...\n"
+            + "[" + PREFIX_INSTRUMENT + "INSTRUMENT:YEARS]... "
+            + "[" + PREFIX_GROUP + "GROUP]...\n"
             + "An empty " + PREFIX_ROLE + " clears the role, and an empty " + PREFIX_INSTRUMENT
-            + " clears all instruments.\n"
+            + " clears all instruments. An empty " + PREFIX_GROUP + " clears all groups.\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
             + PREFIX_STATUS + "active-alumnus";
@@ -111,9 +114,10 @@ public class EditCommand extends Command {
         Optional<Role> updatedRole = editPersonDescriptor.getRole().orElse(personToEdit.getRole());
         Set<Instrument> updatedInstruments = editPersonDescriptor.getInstruments()
                 .orElse(personToEdit.getInstruments());
+        Set<Group> updatedGroups = editPersonDescriptor.getGroups().orElse(personToEdit.getGroups());
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedStatus,
-                updatedMemberType, updatedRole, updatedInstruments, personToEdit.getGroups());
+                updatedMemberType, updatedRole, updatedInstruments, updatedGroups);
     }
 
     @Override
@@ -152,6 +156,7 @@ public class EditCommand extends Command {
         // null when the role is not edited; Optional.empty() when the role is cleared.
         private Optional<Role> role;
         private Set<Instrument> instruments;
+        private Set<Group> groups;
 
         public EditPersonDescriptor() {}
 
@@ -167,13 +172,14 @@ public class EditCommand extends Command {
             setMemberType(toCopy.memberType);
             setRole(toCopy.role);
             setInstruments(toCopy.instruments);
+            setGroups(toCopy.groups);
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, status, memberType, role, instruments);
+            return CollectionUtil.isAnyNonNull(name, phone, email, status, memberType, role, instruments, groups);
         }
 
         public void setName(Name name) {
@@ -249,6 +255,20 @@ public class EditCommand extends Command {
             return (instruments != null) ? Optional.of(Collections.unmodifiableSet(instruments)) : Optional.empty();
         }
 
+        /**
+         * Sets the replacement groups. An empty set clears all existing groups.
+         */
+        public void setGroups(Set<Group> groups) {
+            this.groups = (groups != null) ? new HashSet<>(groups) : null;
+        }
+
+        /**
+         * Returns the replacement groups, or empty when groups are not being edited.
+         */
+        public Optional<Set<Group>> getGroups() {
+            return (groups != null) ? Optional.of(Collections.unmodifiableSet(groups)) : Optional.empty();
+        }
+
         @Override
         public boolean equals(Object other) {
             if (other == this) {
@@ -266,7 +286,8 @@ public class EditCommand extends Command {
                     && Objects.equals(status, otherEditPersonDescriptor.status)
                     && Objects.equals(memberType, otherEditPersonDescriptor.memberType)
                     && Objects.equals(role, otherEditPersonDescriptor.role)
-                    && Objects.equals(instruments, otherEditPersonDescriptor.instruments);
+                    && Objects.equals(instruments, otherEditPersonDescriptor.instruments)
+                    && Objects.equals(groups, otherEditPersonDescriptor.groups);
         }
 
         @Override
@@ -279,6 +300,7 @@ public class EditCommand extends Command {
                     .add("memberType", memberType)
                     .add("role", role)
                     .add("instruments", instruments)
+                    .add("groups", groups)
                     .toString();
         }
     }

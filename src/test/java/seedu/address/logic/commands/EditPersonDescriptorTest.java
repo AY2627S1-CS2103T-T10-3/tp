@@ -51,6 +51,10 @@ public class EditPersonDescriptorTest {
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withInstruments(VALID_INSTRUMENT_PIANO).build();
         assertFalse(DESC_AMY.equals(editedAmy));
 
+        // different participation groups -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withGroups("Chamber Orchestra").build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
         // different status -> returns false
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withStatus("active-alumnus").build();
         assertFalse(DESC_AMY.equals(editedAmy));
@@ -81,7 +85,8 @@ public class EditPersonDescriptorTest {
                 + editPersonDescriptor.getStatus().orElse(null) + ", memberType="
                 + editPersonDescriptor.getMemberType().orElse(null) + ", role="
                 + editPersonDescriptor.getRole().orElse(null) + ", instruments="
-                + editPersonDescriptor.getInstruments().orElse(null) + "}";
+                + editPersonDescriptor.getInstruments().orElse(null) + ", groups="
+                + editPersonDescriptor.getGroups().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }
 }

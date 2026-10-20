@@ -1,9 +1,12 @@
 package seedu.address.testutil;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
@@ -39,6 +42,7 @@ public class EditPersonDescriptorBuilder {
         descriptor.setMemberType(person.getMemberType());
         descriptor.setRole(person.getRole());
         descriptor.setInstruments(person.getInstruments());
+        descriptor.setGroups(person.getGroups());
     }
 
     /**
@@ -103,6 +107,18 @@ public class EditPersonDescriptorBuilder {
      */
     public EditPersonDescriptorBuilder withInstruments(String... instruments) {
         descriptor.setInstruments(SampleDataUtil.getInstrumentSet(instruments));
+        return this;
+    }
+
+    /**
+     * Sets the replacement participation groups; no names means clear all groups.
+     */
+    public EditPersonDescriptorBuilder withGroups(String... groupNames) {
+        Set<Group> groups = new HashSet<>();
+        for (String groupName : groupNames) {
+            groups.add(new Group(groupName));
+        }
+        descriptor.setGroups(groups);
         return this;
     }
 
