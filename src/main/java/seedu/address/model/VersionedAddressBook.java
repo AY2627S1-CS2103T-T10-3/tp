@@ -61,7 +61,6 @@ public class VersionedAddressBook extends AddressBook {
         }
         resetData(addressBookStateList.get(currentStatePointer));
         assert currentStatePointer >= 0 && currentStatePointer < addressBookStateList.size();
-        assert !hasUncommittedChanges();
     }
 
     /**
