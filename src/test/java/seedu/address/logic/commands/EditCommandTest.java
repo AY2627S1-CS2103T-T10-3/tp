@@ -116,6 +116,21 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_contactEdited_preservesGroups() {
+        Person personWithGroups = new PersonBuilder(ALICE).withGroups("Chamber Orchestra").build();
+        model.setPerson(ALICE, personWithGroups);
+        Person editedPerson = new PersonBuilder(personWithGroups).withPhone("99999999").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone("99999999").build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(personWithGroups, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_statusEdited_updatesStatusAndPreservesOtherFields() {
         Person editedPerson = new PersonBuilder(ALICE).withStatus("active-alumnus").build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withStatus("active-alumnus").build();

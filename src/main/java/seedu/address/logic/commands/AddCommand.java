@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -31,6 +32,7 @@ public class AddCommand extends Command {
             + "[" + PREFIX_MEMBER_TYPE + "STUDENT_OR_TEACHER] "
             + "[" + PREFIX_ROLE + "ROLE] "
             + "[" + PREFIX_INSTRUMENT + "INSTRUMENT:YEARS]...\n"
+            + "[" + PREFIX_GROUP + "GROUP]...\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "John Doe "
             + PREFIX_PHONE + "98765432 "
@@ -38,7 +40,8 @@ public class AddCommand extends Command {
             + PREFIX_STATUS + "member "
             + PREFIX_ROLE + "Section Leader "
             + PREFIX_INSTRUMENT + "Violin:5 "
-            + PREFIX_INSTRUMENT + "Piano:2";
+            + PREFIX_INSTRUMENT + "Piano:2 "
+            + PREFIX_GROUP + "Chamber Orchestra";
 
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";

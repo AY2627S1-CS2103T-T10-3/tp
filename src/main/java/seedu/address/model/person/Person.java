@@ -27,13 +27,22 @@ public class Person {
     private final MemberType memberType;
     private final Optional<Role> role;
     private final Set<Instrument> instruments = new HashSet<>();
+    private final Set<Group> groups = new HashSet<>();
 
     /**
      * Every field must be present and not null, and no two instruments may share a name.
      */
     public Person(Name name, Phone phone, Email email, Status status, MemberType memberType,
             Optional<Role> role, Set<Instrument> instruments) {
-        requireAllNonNull(name, phone, email, status, memberType, role, instruments);
+        this(name, phone, email, status, memberType, role, instruments, Set.of());
+    }
+
+    /**
+     * Every field must be present and not null, and no two instruments may share a name.
+     */
+    public Person(Name name, Phone phone, Email email, Status status, MemberType memberType,
+            Optional<Role> role, Set<Instrument> instruments, Set<Group> groups) {
+        requireAllNonNull(name, phone, email, status, memberType, role, instruments, groups);
         checkArgument(!Instrument.hasDuplicateNames(instruments), Instrument.MESSAGE_DUPLICATE_NAMES);
         this.name = name;
         this.phone = phone;
@@ -42,6 +51,7 @@ public class Person {
         this.memberType = memberType;
         this.role = role;
         this.instruments.addAll(instruments);
+        this.groups.addAll(groups);
     }
 
     public Name getName() {
@@ -80,6 +90,13 @@ public class Person {
     }
 
     /**
+     * Returns an immutable view of the person's participation groups.
+     */
+    public Set<Group> getGroups() {
+        return Collections.unmodifiableSet(groups);
+    }
+
+    /**
      * Returns true if both persons have the same name.
      * This defines a weaker notion of equality between two persons.
      */
@@ -113,13 +130,14 @@ public class Person {
                 && status.equals(otherPerson.status)
                 && memberType.equals(otherPerson.memberType)
                 && role.equals(otherPerson.role)
-                && instruments.equals(otherPerson.instruments);
+                && instruments.equals(otherPerson.instruments)
+                && groups.equals(otherPerson.groups);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, status, memberType, role, instruments);
+        return Objects.hash(name, phone, email, status, memberType, role, instruments, groups);
     }
 
     @Override
@@ -132,6 +150,7 @@ public class Person {
                 .add("memberType", memberType)
                 .add("role", role)
                 .add("instruments", instruments)
+                .add("groups", groups)
                 .toString();
     }
 

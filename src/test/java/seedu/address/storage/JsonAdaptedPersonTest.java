@@ -16,12 +16,15 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Role;
 import seedu.address.model.person.Status;
+import seedu.address.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
     private static final String INVALID_NAME = "R@chel";
@@ -122,6 +125,31 @@ public class JsonAdaptedPersonTest {
     public void toModelType_nullInstruments_returnsPersonWithoutInstruments() throws Exception {
         JsonAdaptedPerson person = adaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, null);
         assertEquals(Set.of(), person.toModelType().getInstruments());
+    }
+
+    @Test
+    public void toModelType_missingGroups_returnsPersonWithoutGroups() throws Exception {
+        String json = "{\"name\":\"" + VALID_NAME + "\",\"phone\":\"" + VALID_PHONE
+                + "\",\"email\":\"" + VALID_EMAIL + "\",\"status\":\"" + VALID_STATUS
+                + "\",\"memberType\":\"" + VALID_MEMBER_TYPE + "\"}";
+        JsonAdaptedPerson person = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+        assertEquals(Set.of(), person.toModelType().getGroups());
+    }
+
+    @Test
+    public void toModelType_blankGroup_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_STATUS, VALID_MEMBER_TYPE, null, VALID_INSTRUMENTS, List.of(" "));
+        assertThrows(IllegalValueException.class, Group.MESSAGE_CONSTRAINTS, person::toModelType);
+    }
+
+    @Test
+    public void jsonRoundTrip_preservesGroups() throws Exception {
+        Person groupedPerson = new PersonBuilder(BENSON)
+                .withGroups("Chamber Orchestra", "Training").build();
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(groupedPerson));
+        JsonAdaptedPerson restored = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+        assertEquals(groupedPerson, restored.toModelType());
     }
 
     @Test
