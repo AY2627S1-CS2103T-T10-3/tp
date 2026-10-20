@@ -1,0 +1,80 @@
+package seedu.address.logic.commands;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
+import seedu.address.logic.parser.AddressBookParser;
+import seedu.address.model.AddressBook;
+import seedu.address.model.ModelManager;
+import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
+import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
+
+/**
+ * Tests sorting together with filtering, list reset and index-based commands.
+ */
+public class SortCommandTest {
+    private final Person zoe = new PersonBuilder().withName("Zoe").build();
+    private final Person alice = new PersonBuilder().withName("alice").build();
+    private final Person bob = new PersonBuilder().withName("Bob").build();
+    private final AddressBook addressBook = new AddressBookBuilder()
+            .withPerson(zoe).withPerson(alice).withPerson(bob).build();
+    private final ModelManager model = new ModelManager(addressBook, new UserPrefs());
+
+    @Test
+    public void execute_fullList_sortsIgnoringCaseWithoutChangingStoredOrder() throws Exception {
+        Command command = new AddressBookParser().parseCommand("sort NAME");
+        assertEquals(SortCommand.MESSAGE_SUCCESS, command.execute(model).getFeedbackToUser());
+        assertEquals(List.of(alice, bob, zoe), model.getFilteredPersonList());
+        assertEquals(List.of(zoe, alice, bob), model.getAddressBook().getPersonList());
+        assertFalse(command.requiresSave());
+        assertFalse(model.equals(new ModelManager(addressBook, new UserPrefs())));
+    }
+
+    @Test
+    public void execute_filteredList_preservesFilterAndSortingAcrossFind() throws Exception {
+        AddressBookParser parser = new AddressBookParser();
+        parser.parseCommand("find zoe bob").execute(model);
+        new SortCommand("name").execute(model);
+        assertEquals(List.of(bob, zoe), model.getFilteredPersonList());
+
+        parser.parseCommand("find zoe alice").execute(model);
+        assertEquals(List.of(alice, zoe), model.getFilteredPersonList());
+
+        new ListCommand().execute(model);
+        assertEquals(List.of(zoe, alice, bob), model.getFilteredPersonList());
+        assertEquals(new ModelManager(addressBook, new UserPrefs()), model);
+    }
+
+    @Test
+    public void execute_emptyResults_remainsEmpty() throws Exception {
+        new AddressBookParser().parseCommand("find missing").execute(model);
+        new SortCommand("name").execute(model);
+        assertEquals(List.of(), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_deleteAfterSort_deletesFirstDisplayedPerson() throws Exception {
+        new SortCommand("name").execute(model);
+        new DeleteCommand(INDEX_FIRST_PERSON).execute(model);
+        assertEquals(List.of(bob, zoe), model.getFilteredPersonList());
+        assertEquals(List.of(zoe, bob), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_editAfterSort_editsFirstDisplayedPersonAndUpdatesOrder() throws Exception {
+        new SortCommand("name").execute(model);
+        EditCommand.EditPersonDescriptor descriptor = new EditCommand.EditPersonDescriptor();
+        Person editedAlice = new PersonBuilder(alice).withName("Zelda").build();
+        descriptor.setName(editedAlice.getName());
+        new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(model);
+        assertEquals(List.of(bob, editedAlice, zoe), model.getFilteredPersonList());
+        assertEquals(List.of(zoe, editedAlice, bob), model.getAddressBook().getPersonList());
+    }
+}
