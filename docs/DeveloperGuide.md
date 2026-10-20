@@ -171,6 +171,12 @@ The `find` command matches any part of a person's name, ignoring case. For examp
 
 `FindCommandParser` rejects empty arguments and splits valid arguments into keywords. It constructs a `FindCommand` containing a `NameContainsKeywordsPredicate`. When executed, the command passes the predicate to `ModelManager.updateFilteredPersonList`, which updates the predicate of the JavaFX `FilteredList`. The UI observes this list and displays the matching persons with indices starting at 1; the underlying address book remains unchanged.
 
+The following sequence diagram traces a successful `find ali` command. The participant `m:Model` is implemented by `ModelManager`. Setting the predicate evaluates the full directory, replacing any previous search or filter. The command uses the resulting list size for its feedback message and does not require a save.
+
+![Sequence diagram for find ali, showing keyword parsing, predicate creation, filtering, and the result count](images/FindSequenceDiagram.png)
+
+[Open the sequence diagram at full size](images/FindSequenceDiagram.png). The diagram focuses on parsing and execution; UI list-change notifications are omitted.
+
 `NameContainsKeywordsPredicate` uses `StringUtil.containsSubstringIgnoreCase` for each keyword. The helper trims the keyword, rejects null, empty or multiple-word inputs, and normalises both strings with `Locale.ROOT` before checking for a substring. The original `containsWordIgnoreCase` helper retains its whole-word behaviour for other callers.
 
 Tests in `StringUtilTest` cover substring positions, case differences, invalid inputs and non-matches. `NameContainsKeywordsPredicateTest` verifies name-only matching and OR semantics. `FindCommandTest` checks the resulting persons and feedback count, while `FindCommandParserTest` covers empty arguments and extra whitespace.
