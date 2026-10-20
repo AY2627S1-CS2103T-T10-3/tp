@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -60,6 +61,75 @@ public class JsonAddressBookStorageTest {
     @Test
     public void readAddressBook_invalidAndValidPersonAddressBook_throwDataLoadingException() {
         assertThrows(DataLoadingException.class, () -> readAddressBook("invalidAndValidPersonAddressBook.json"));
+    }
+
+    @Test
+    public void backupAddressBook_noExistingBackup_createsFirstBackup() throws Exception {
+        Path filePath = testFolder.resolve("addressbook.json");
+        String invalidData = "invalid data";
+        Files.writeString(filePath, invalidData);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        Path backupPath = storage.backupAddressBook();
+
+        assertEquals(testFolder.resolve("addressbook.json.bak-01"), backupPath);
+        assertEquals(invalidData, Files.readString(backupPath));
+        assertEquals(invalidData, Files.readString(filePath));
+    }
+
+    @Test
+    public void backupAddressBook_unchangedFile_reusesBackup() throws Exception {
+        Path filePath = testFolder.resolve("addressbook.json");
+        Files.writeString(filePath, "invalid data");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        Path firstBackup = storage.backupAddressBook();
+        Path secondBackup = storage.backupAddressBook();
+
+        assertEquals(firstBackup, secondBackup);
+        assertFalse(Files.exists(testFolder.resolve("addressbook.json.bak-02")));
+    }
+
+    @Test
+    public void backupAddressBook_changedFile_preservesEarlierBackup() throws Exception {
+        Path filePath = testFolder.resolve("addressbook.json");
+        Files.writeString(filePath, "first invalid data");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        Path firstBackup = storage.backupAddressBook();
+
+        Files.writeString(filePath, "second invalid data");
+        Path secondBackup = storage.backupAddressBook();
+
+        assertEquals(testFolder.resolve("addressbook.json.bak-02"), secondBackup);
+        assertEquals("first invalid data", Files.readString(firstBackup));
+        assertEquals("second invalid data", Files.readString(secondBackup));
+    }
+
+    @Test
+    public void backupAddressBook_numberingGap_usesFirstAvailableNumber() throws Exception {
+        Path filePath = testFolder.resolve("addressbook.json");
+        Files.writeString(filePath, "current invalid data");
+        Files.writeString(testFolder.resolve("addressbook.json.bak-01"), "older data");
+        Files.writeString(testFolder.resolve("addressbook.json.bak-03"), "older data");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        Path backupPath = storage.backupAddressBook();
+
+        assertEquals(testFolder.resolve("addressbook.json.bak-02"), backupPath);
+        assertEquals("current invalid data", Files.readString(backupPath));
+    }
+
+    @Test
+    public void backupAddressBook_backupNameIsDirectory_skipsDirectory() throws Exception {
+        Path filePath = testFolder.resolve("addressbook.json");
+        Files.writeString(filePath, "invalid data");
+        Files.createDirectory(testFolder.resolve("addressbook.json.bak-01"));
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        Path backupPath = storage.backupAddressBook();
+
+        assertEquals(testFolder.resolve("addressbook.json.bak-02"), backupPath);
+        assertEquals("invalid data", Files.readString(backupPath));
     }
 
     @Test

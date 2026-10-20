@@ -3,9 +3,15 @@ package seedu.address.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
@@ -29,6 +35,74 @@ public class JsonAddressBookStorage {
 
     public Path getAddressBookFilePath() {
         return filePath;
+    }
+
+    /**
+     * Copies the address book file to a backup in the same directory.
+     * Existing backups are not overwritten.
+     *
+     * @return the path of the backup file.
+     * @throws IOException if the address book file cannot be backed up.
+     */
+    public Path backupAddressBook() throws IOException {
+        Optional<Path> newestBackup = findMostRecentlyCreatedBackup();
+
+        // Reuse an identical backup to avoid duplicates on repeated failed startups.
+        if (newestBackup.isPresent() && Files.mismatch(filePath, newestBackup.get()) == -1) {
+            return newestBackup.get();
+        }
+
+        int backupNumber = 1;
+
+        while (true) {
+            String suffix = String.format(".bak-%02d", backupNumber);
+            Path backupPath = filePath.resolveSibling(filePath.getFileName() + suffix);
+
+            if (Files.exists(backupPath)) {
+                backupNumber++;
+                continue;
+            }
+
+            try {
+                Files.copy(filePath, backupPath);
+                return backupPath;
+            } catch (FileAlreadyExistsException e) {
+                backupNumber++;
+            }
+        }
+    }
+
+    /**
+     * Returns the numbered backup with the latest creation time, if one exists.
+     */
+    private Optional<Path> findMostRecentlyCreatedBackup() throws IOException {
+        Path directory = filePath.toAbsolutePath().getParent();
+        String backupNamePattern =
+                Pattern.quote(filePath.getFileName().toString()) + "\\.bak-[0-9]+";
+
+        Path newestBackup = null;
+        FileTime newestCreationTime = null;
+
+        try (DirectoryStream<Path> files = Files.newDirectoryStream(directory)) {
+            for (Path candidate : files) {
+                if (!candidate.getFileName().toString().matches(backupNamePattern)) {
+                    continue;
+                }
+
+                BasicFileAttributes attributes = Files.readAttributes(candidate, BasicFileAttributes.class);
+                if (!attributes.isRegularFile()) {
+                    continue;
+                }
+
+                FileTime creationTime = attributes.creationTime();
+                if (newestBackup == null || creationTime.compareTo(newestCreationTime) > 0) {
+                    newestBackup = candidate;
+                    newestCreationTime = creationTime;
+                }
+            }
+        }
+
+        return Optional.ofNullable(newestBackup);
     }
 
     /**
