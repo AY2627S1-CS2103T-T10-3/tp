@@ -24,6 +24,7 @@ Class "<<enumeration>>\nStatus" as Status MODEL_COLOR
 Class "<<enumeration>>\nMemberType" as MemberType MODEL_COLOR
 Class Role MODEL_COLOR
 Class Instrument MODEL_COLOR
+Class Group MODEL_COLOR
 }
 
 Class HiddenOutside #FFFFFF
@@ -47,11 +48,12 @@ ParserUtil ..> Status : parseStatus()
 ParserUtil ..> MemberType : parseMemberType()
 ParserUtil ..> Role : parseRole()
 ParserUtil ..> Instrument : parseInstruments()
+ParserUtil ..> Group : parseGroups()
 AddCommand -up-|> Command
 AddCommand --> Person : toAdd
 
 note right of AddCommandParser
   n/, p/, e/, and s/ are required.
-  ty/ defaults to student; r/ and i/ are optional.
+  ty/ defaults to student; r/, i/, and g/ are optional.
 end note
 @enduml

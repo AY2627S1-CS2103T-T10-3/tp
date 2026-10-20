@@ -128,7 +128,7 @@ The parser class diagram below uses `add` to show how HiveMind parses member det
 
 How the parsing works:
 * `AddressBookParser` creates an `AddCommandParser` for `add`. The parser tokenizes prefixes into an `ArgumentMultimap` and checks that `n/`, `p/`, `e/`, and `s/` are present.
-* `ParserUtil` validates the status, member type, optional role, and instruments. When `ty/` is omitted, `AddCommandParser` uses `student`; when `r/` is omitted, the person's role is empty.
+* `ParserUtil` validates the status, member type, optional role, instruments, and participation groups. When `ty/` is omitted, `AddCommandParser` uses `student`; when `r/` is omitted, the person's role is empty. Repeated `g/` prefixes add groups to the person's group set.
 * `AddCommandParser` creates a `Person` from the parsed values, then an `AddCommand` containing that person. `AddressBookParser` returns it as a `Command` to `LogicManager`.
 * Other command parsers follow the same `Parser` interface, although their accepted prefixes and validation rules differ.
 
