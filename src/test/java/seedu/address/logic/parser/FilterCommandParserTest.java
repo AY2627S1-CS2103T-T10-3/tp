@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.InstrumentCriterion;
+import seedu.address.model.person.MemberType;
+import seedu.address.model.person.Role;
 import seedu.address.model.person.Status;
 
 public class FilterCommandParserTest {
@@ -18,11 +20,12 @@ public class FilterCommandParserTest {
 
     @Test
     public void parse_validInstrument_returnsFilterCommand() {
-        FilterCommand expectedCommand = new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Violin", 0)));
+        FilterCommand expectedCommand = new FilterCommand(Set.of(),
+                Set.of(new InstrumentCriterion("Violin", 0)), Set.of(), Set.of());
         assertParseSuccess(parser, "i/Violin", expectedCommand);
         assertParseSuccess(parser, "  i/  Violin  ", expectedCommand);
         assertParseSuccess(parser, "i/Bass Guitar",
-                new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Bass Guitar", 0))));
+                new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Bass Guitar", 0)), Set.of(), Set.of()));
     }
 
     @Test
@@ -43,9 +46,9 @@ public class FilterCommandParserTest {
     public void parse_unsupportedPrefix_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "s/member n/Alice", expectedMessage);
-        assertParseFailure(parser, "ty/student s/member", expectedMessage);
+        assertParseFailure(parser, "ty/student s/member n/Alice", expectedMessage);
         assertParseFailure(parser, "i/Violin n/Alice", expectedMessage);
-        assertParseFailure(parser, "i/Violin ty/teacher r/Conductor", expectedMessage);
+        assertParseFailure(parser, "i/Violin ty/teacher r/Conductor n/Alice", expectedMessage);
         assertParseFailure(parser, "i/Violin p/91234567 e/alice@example.com", expectedMessage);
     }
 
@@ -66,7 +69,7 @@ public class FilterCommandParserTest {
     @Test
     public void parse_multipleInstruments_returnsFilterCommand() {
         FilterCommand expectedCommand = new FilterCommand(Set.of(),
-                Set.of(new InstrumentCriterion("Violin", 0), new InstrumentCriterion("Cello", 0)));
+                Set.of(new InstrumentCriterion("Violin", 0), new InstrumentCriterion("Cello", 0)), Set.of(), Set.of());
         assertParseSuccess(parser, "i/Violin i/Cello", expectedCommand);
         assertParseSuccess(parser, "i/ Cello i/ Violin i/Violin", expectedCommand);
     }
@@ -74,16 +77,17 @@ public class FilterCommandParserTest {
     @Test
     public void parse_validStatus_returnsFilterCommand() {
         for (Status status : Status.values()) {
-            FilterCommand expectedCommand = new FilterCommand(Set.of(status), Set.of());
+            FilterCommand expectedCommand = new FilterCommand(Set.of(status), Set.of(), Set.of(), Set.of());
             assertParseSuccess(parser, "s/" + status, expectedCommand);
         }
         assertParseSuccess(parser, "  s/  ACTIVE-ALUMNUS  ",
-                new FilterCommand(Set.of(Status.ACTIVE_ALUMNUS), Set.of()));
+                new FilterCommand(Set.of(Status.ACTIVE_ALUMNUS), Set.of(), Set.of(), Set.of()));
     }
 
     @Test
     public void parse_multipleStatuses_returnsFilterCommand() {
-        FilterCommand expectedCommand = new FilterCommand(Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS), Set.of());
+        FilterCommand expectedCommand = new FilterCommand(
+                Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS), Set.of(), Set.of(), Set.of());
         assertParseSuccess(parser, "s/member s/active-alumnus", expectedCommand);
         assertParseSuccess(parser, "s/ACTIVE-ALUMNUS s/member s/MEMBER", expectedCommand);
     }
@@ -92,7 +96,7 @@ public class FilterCommandParserTest {
     public void parse_statusesAndInstruments_returnsFilterCommand() {
         FilterCommand expectedCommand = new FilterCommand(
                 Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS),
-                Set.of(new InstrumentCriterion("Violin", 0), new InstrumentCriterion("Cello", 0)));
+                Set.of(new InstrumentCriterion("Violin", 0), new InstrumentCriterion("Cello", 0)), Set.of(), Set.of());
         assertParseSuccess(parser, "s/member i/Violin s/active-alumnus i/Cello", expectedCommand);
         assertParseSuccess(parser, "i/Cello s/active-alumnus i/Violin s/member", expectedCommand);
     }
@@ -124,19 +128,19 @@ public class FilterCommandParserTest {
     public void parse_instrumentWithMinimumYears_returnsFilterCommand() {
         for (int years : new int[] {0, 3, Instrument.MAX_YEARS}) {
             FilterCommand expectedCommand = new FilterCommand(Set.of(),
-                    Set.of(new InstrumentCriterion("Violin", years)));
+                    Set.of(new InstrumentCriterion("Violin", years)), Set.of(), Set.of());
             assertParseSuccess(parser, "i/Violin:" + years, expectedCommand);
         }
         assertParseSuccess(parser, "  i/  BASS   guitar : 3  ",
-                new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Bass Guitar", 3))));
+                new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Bass Guitar", 3)), Set.of(), Set.of()));
         assertParseSuccess(parser, "i/Violin i/VIOLIN:0",
-                new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Violin", 0))));
+                new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Violin", 0)), Set.of(), Set.of()));
     }
 
     @Test
     public void parse_mixedInstrumentCriteriaAndStatuses_returnsFilterCommand() {
         FilterCommand expectedCommand = new FilterCommand(Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS),
-                Set.of(new InstrumentCriterion("Violin", 3), new InstrumentCriterion("Cello", 0)));
+                Set.of(new InstrumentCriterion("Violin", 3), new InstrumentCriterion("Cello", 0)), Set.of(), Set.of());
         assertParseSuccess(parser, "s/member i/Violin:3 s/active-alumnus i/Cello", expectedCommand);
         assertParseSuccess(parser, "i/Cello s/ACTIVE-ALUMNUS i/violin:3 s/member", expectedCommand);
     }
@@ -144,7 +148,7 @@ public class FilterCommandParserTest {
     @Test
     public void parse_repeatedInstrumentWithDifferentMinimumYears_returnsFilterCommand() {
         FilterCommand expectedCommand = new FilterCommand(Set.of(),
-                Set.of(new InstrumentCriterion("Violin", 3), new InstrumentCriterion("Violin", 5)));
+                Set.of(new InstrumentCriterion("Violin", 3), new InstrumentCriterion("Violin", 5)), Set.of(), Set.of());
         assertParseSuccess(parser, "i/Violin:3 i/violin:5 i/VIOLIN:3", expectedCommand);
     }
 
@@ -156,5 +160,41 @@ public class FilterCommandParserTest {
             assertParseFailure(parser, "s/member i/Violin:" + years + " i/Cello",
                     InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS);
         }
+    }
+
+    @Test
+    public void parse_memberTypes_returnsFilterCommand() {
+        assertParseSuccess(parser, "ty/ TEACHER ",
+                new FilterCommand(Set.of(), Set.of(), Set.of(MemberType.TEACHER), Set.of()));
+        assertParseSuccess(parser, "ty/student ty/teacher ty/STUDENT",
+                new FilterCommand(Set.of(), Set.of(), Set.of(MemberType.STUDENT, MemberType.TEACHER), Set.of()));
+    }
+
+    @Test
+    public void parse_roles_returnsFilterCommand() {
+        assertParseSuccess(parser, "r/ Section Leader ",
+                new FilterCommand(Set.of(), Set.of(), Set.of(), Set.of(new Role("Section Leader"))));
+        assertParseSuccess(parser, "r/Conductor r/Section Leader r/Conductor",
+                new FilterCommand(Set.of(), Set.of(), Set.of(),
+                        Set.of(new Role("Conductor"), new Role("Section Leader"))));
+    }
+
+    @Test
+    public void parse_allFields_returnsFilterCommand() {
+        FilterCommand expected = new FilterCommand(Set.of(Status.MEMBER),
+                Set.of(new InstrumentCriterion("Violin", 3)), Set.of(MemberType.TEACHER),
+                Set.of(new Role("Conductor")));
+        assertParseSuccess(parser, "ty/teacher r/Conductor s/member i/Violin:3", expected);
+        assertParseSuccess(parser, "i/Violin:3 s/member r/Conductor ty/teacher", expected);
+    }
+
+    @Test
+    public void parse_invalidMemberTypeOrRole_throwsParseException() {
+        for (String value : new String[] {"", "member", "teacher ty/"}) {
+            assertParseFailure(parser, "ty/" + value, MemberType.MESSAGE_CONSTRAINTS);
+        }
+        assertParseFailure(parser, "r/ ", Role.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "r/Conductor r/", Role.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "ty/teacher r/", Role.MESSAGE_CONSTRAINTS);
     }
 }
