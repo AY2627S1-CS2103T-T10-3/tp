@@ -86,7 +86,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRU
 * `i/INSTRUMENT:YEARS` records an instrument the person plays and how many whole years they have played it, from `0` to `99`. For example, `i/Violin:5` or `i/Bass Guitar:1`.
 * Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case, so `Violin` and `violin` count as the same instrument.
 * `g/GROUP` records a participation group, such as `g/Chamber Orchestra`. It may be repeated for multiple groups. Blank group names are rejected; names are compared ignoring case and extra whitespace, so repeated names are stored only once.
-* Recorded groups appear in the command's success message. The member card will show them in a later update.
+* Recorded groups appear in the command's success message and on the member card.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of instruments, including zero.
@@ -110,6 +110,7 @@ Each member card displays:
 * Phone number and email address.
 * A `Role:` line when a role is recorded. No role line is shown when it is absent.
 * Recorded instruments and their years of experience, sorted alphabetically by instrument name, ignoring case. For example, `Piano (5 yrs)` and `Violin (1 yr)`. No instrument labels appear when none are recorded.
+* A `Groups:` line listing participation groups alphabetically when any are recorded. No groups line is shown when none are recorded.
 
 The same card details are shown in `find` and `filter` results. Displayed indices start at `1` and refer to the current list, so a member's index may change after a search or filter. Use the current displayed index for commands such as `edit` and `delete`.
 
@@ -119,17 +120,18 @@ Example: after `find alex david`, enter `list` to show everyone again. The resul
 
 Edits an existing person in HiveMind.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​`
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
 * `s/STATUS` and `ty/TYPE` accept the same values as in `add`: `member`, `active-alumnus`, or `inactive-alumnus` for status, and `student` or `teacher` for type, ignoring case.
 * `r/ROLE` replaces the person's role. To remove the role, enter `r/` without a role after it.
-* Fields that are not specified are preserved. For example, editing a person's status keeps their contact details, type, role, and instruments.
+* Fields that are not specified are preserved. For example, editing a person's status keeps their contact details, type, role, instruments, and groups.
 * Instruments are preserved when they are not edited.
 * When editing instruments, all of the person's existing instruments are replaced; adding instruments is not cumulative.
 * To remove all of a person's instruments, enter `i/` without an instrument after it.
+* When editing groups, all existing groups are replaced by the supplied `g/GROUP` values. To remove all groups, enter `g/` alone. Mixing an empty `g/` with named groups is invalid.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
@@ -137,6 +139,8 @@ Examples:
 *  `edit 3 i/Cello:6 i/Piano:2` Replaces the instruments of the 3rd person with Cello (6 years) and Piano (2 years).
 *  `edit 1 s/active-alumnus r/` Marks the 1st person as an active alumnus and removes their role.
 *  `edit 4 ty/teacher r/Conductor` Changes the 4th person's type to teacher and their role to `Conductor`.
+*  `edit 2 g/Chamber Orchestra g/Training` Replaces the 2nd person's groups.
+*  `edit 2 g/` Removes all groups from the 2nd person.
 
 ### Locating persons by name: `find`
 
@@ -250,7 +254,7 @@ Action | Format, Examples
 **Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com s/member g/Chamber Orchestra`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​`<br> e.g., `edit 2 n/James Lee s/active-alumnus`
+**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`<br> e.g., `edit 2 n/James Lee g/Chamber Orchestra`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…`<br> e.g., `find alex david`
 **Filter** | `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]...`<br> e.g., `filter s/member s/active-alumnus i/Violin:3`
 **List** | `list`
