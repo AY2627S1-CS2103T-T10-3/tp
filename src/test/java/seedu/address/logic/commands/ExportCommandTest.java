@@ -2,9 +2,12 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -13,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -47,6 +51,18 @@ public class ExportCommandTest {
                 "\"Alice Pauline\",\"94351253\",\"alice@example.com\","
                         + "\"member\",\"student\",\"\",\"Violin:3\""),
                 Files.readString(outputPath));
+    }
+
+    @Test
+    public void execute_exportDirectoryIsFile_throwsCommandException() throws Exception {
+        Path exportDirectory = testFolder.resolve("not-a-directory");
+        Files.createFile(exportDirectory);
+
+        CommandException exception = assertThrows(CommandException.class, () ->
+            new ExportCommand(exportDirectory).execute(model));
+
+        assertTrue(exception.getMessage().startsWith("Could not export current results:"));
+        assertTrue(exception.getCause() instanceof IOException);
     }
 
     @Test
