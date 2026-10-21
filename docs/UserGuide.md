@@ -163,13 +163,17 @@ Examples using the built-in sample records:
 
 ![Results for find alex david, showing Alex Yeoh and David Li with their complete member cards](images/findAlexDavidResult.png)
 
-### Filtering persons by status and instrument: `filter`
+### Filtering persons by status, instrument, type, and role: `filter`
 
-Format: `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]...`
+Format: `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]... [ty/TYPE]... [r/ROLE]...`
 
-Shows people matching the specified status and instrument criteria and reports the number of matches.
+Shows people matching the specified criteria and reports the number of matches.
 
-* At least one status or instrument criterion is required. Status-only, instrument-only, and combined filters are supported.
+* At least one criterion is required. Each field is optional; an omitted field imposes no restriction.
+* Introduce each member type with `ty/`: use `student` or `teacher`, ignoring case and surrounding whitespace. Repeated types use OR.
+* Introduce each role with `r/`, for example `r/Section Leader`. Matches the complete role, ignoring case and surrounding whitespace; `r/Leader` does not match `Section Leader`. Repeated roles use OR.
+* Blank or invalid types and blank roles are rejected. People without a role do not match an explicit role criterion.
+* Different fields use AND: `filter ty/teacher r/Conductor s/member i/Violin:3` matches member teachers who are conductors and have at least three years on violin.
 * Introduce each status with `s/`: use `member`, `active-alumnus`, or `inactive-alumnus`, ignoring case and surrounding whitespace.
 * Statuses are combined with OR: `filter s/member s/active-alumnus` matches current members or active alumni.
 * Introduce each instrument name with `i/`. `i/Violin` matches anyone who plays violin, regardless of experience.
@@ -181,7 +185,7 @@ Shows people matching the specified status and instrument criteria and reports t
 * Status and instrument groups are combined with AND: `filter s/member s/active-alumnus i/Violin:3 i/Viola:5` matches people who are members or active alumni and have at least 3 years on violin or at least 5 years on viola.
 * Matches complete instrument names, ignoring case: `guitar` matches `Guitar`, but not `Bass Guitar`.
 * Spaces after `i/` and around `:` are allowed: `filter i/ Violin : 3` is equivalent to `filter i/Violin:3`.
-* Only `s/` and `i/` are supported. Other member-field prefixes such as `n/`, `ty/`, or `r/` are rejected with the command format.
+* Supported prefixes are `s/`, `i/`, `ty/`, and `r/`. Other member-field prefixes such as `n/`, `p/`, or `e/` are rejected with the command format.
 * Searches the full directory, including after a previous `find` or `filter`.
 * If no person matches, the displayed list is empty and the result reports zero matches.
 * Stored records are unchanged. Use `list` to display everyone again.
@@ -256,6 +260,6 @@ Action | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`<br> e.g., `edit 2 n/James Lee g/Chamber Orchestra`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…`<br> e.g., `find alex david`
-**Filter** | `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]...`<br> e.g., `filter s/member s/active-alumnus i/Violin:3`
+**Filter** | `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]... [ty/TYPE]... [r/ROLE]...`<br> e.g., `filter ty/teacher r/Conductor i/Violin:3`
 **List** | `list`
 **Help** | `help`
