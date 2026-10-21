@@ -20,7 +20,7 @@ public class ExportCommand extends Command {
     public static final String MESSAGE_EXPORT_SUCCESS = "Exported %d people to %s.";
     public static final String MESSAGE_EXPORT_FAILURE = "Could not export current results: %s";
 
-    private static final Path OUTPUT_PATH = Path.of("exports", "current-results.csv");
+    private static final Path EXPORT_DIRECTORY = Path.of("exports");
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
@@ -29,7 +29,7 @@ public class ExportCommand extends Command {
         List<Person> currentResults = model.getFilteredPersonList();
 
         try {
-            Path outputPath = CsvExporter.export(currentResults, OUTPUT_PATH);
+            Path outputPath = CsvExporter.export(currentResults, EXPORT_DIRECTORY);
 
             return new CommandResult(
                 String.format(MESSAGE_EXPORT_SUCCESS, currentResults.size(), outputPath));

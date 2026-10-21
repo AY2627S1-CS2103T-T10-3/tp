@@ -15,10 +15,10 @@ public class CsvExporterTest {
     public Path testFolder;
 
     @Test
-    public void export_onePerson_writesHeaderAndPerson() throws Exception {
-        Path outputPath = testFolder.resolve("members.csv");
-
-        Path returnedPath = CsvExporter.export(List.of(DANIEL), outputPath);
+    public void export_noExistingExport_createsFirstExport() throws Exception {
+        Path outputPath = testFolder.resolve("current-results-01.csv");
+        Path exportDirectory = testFolder;
+        Path returnedPath = CsvExporter.export(List.of(DANIEL), exportDirectory);
 
         assertEquals(outputPath, returnedPath);
         assertEquals(String.join(System.lineSeparator(),
@@ -26,5 +26,32 @@ public class CsvExporterTest {
                 "\"Daniel Meier\",\"87652533\",\"cornelia@example.com\","
                         + "\"member\",\"teacher\",\"Conductor\",\"Violin:20\""),
                 Files.readString(outputPath));
+    }
+
+    @Test
+    public void export_existingExport_preservesEarlierExport() throws Exception {
+        Path firstExport = testFolder.resolve("current-results-01.csv");
+        Files.writeString(firstExport, "existing export");
+
+        Path returnedPath = CsvExporter.export(List.of(DANIEL), testFolder);
+        Path secondExport = testFolder.resolve("current-results-02.csv");
+
+        assertEquals(secondExport, returnedPath);
+        assertEquals("existing export", Files.readString(firstExport));
+    }
+
+    @Test
+    public void export_numberingGap_usesFirstAvailableNumber() throws Exception {
+        Path firstExport = testFolder.resolve("current-results-01.csv");
+        Path thirdExport = testFolder.resolve("current-results-03.csv");
+        Files.writeString(firstExport, "first export");
+        Files.writeString(thirdExport, "third export");
+
+        Path returnedPath = CsvExporter.export(List.of(DANIEL), testFolder);
+        Path secondExport = testFolder.resolve("current-results-02.csv");
+
+        assertEquals(secondExport, returnedPath);
+        assertEquals("first export", Files.readString(firstExport));
+        assertEquals("third export", Files.readString(thirdExport));
     }
 }

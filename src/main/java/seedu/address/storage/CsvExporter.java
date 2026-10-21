@@ -3,6 +3,7 @@ package seedu.address.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
@@ -14,24 +15,24 @@ import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
 
 /**
- * A class that writes supplied member information to CSV files.
+ * A class that writes supplied member information to a CSV file.
  */
-
 public class CsvExporter {
     public static final String HEADER = "name,phone,email,status,memberType,role,instruments";
 
     /**
-     * Exports the given people to a CSV file at the specified path.
+     * Exports the given people to a new CSV file in the specified directory.
      *
      * @param people the people to export.
-     * @param outputPath the path of the CSV file to create or replace.
+     * @param exportDirectory the directory in which to create the CSV file.
      * @return the path of the written CSV file.
      * @throws IOException if the file cannot be written.
      */
-    public static Path export(List<Person> people, Path outputPath) throws IOException {
+    public static Path export(List<Person> people, Path exportDirectory) throws IOException {
         requireNonNull(people);
-        requireNonNull(outputPath);
+        requireNonNull(exportDirectory);
 
+        Path outputPath = getNextAvailablePath(exportDirectory);
         String csvContent = buildCsvContent(people);
 
         FileUtil.createIfMissing(outputPath);
@@ -71,5 +72,20 @@ public class CsvExporter {
 
     private static String escape(String value) {
         return "\"" + value.replace("\"", "\"\"") + "\"";
+    }
+
+    private static Path getNextAvailablePath(Path exportDirectory) {
+        int exportNumber = 1;
+
+        while (true) {
+            Path outputPath = exportDirectory.resolve(
+                    String.format("current-results-%02d.csv", exportNumber));
+
+            if (!Files.exists(outputPath)) {
+                return outputPath;
+            }
+
+            exportNumber++;
+        }
     }
 }
