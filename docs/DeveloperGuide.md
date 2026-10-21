@@ -209,7 +209,7 @@ Step 3. The user executes `add n/David …​` to add a new person. `LogicManage
 
 ![UndoRedoState2](images/UndoRedoState2.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** No state is committed if the command fails or the save fails.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** No state is committed if the command fails or the save fails. If the save fails, `LogicManager` also restores the address book, the filtered list and the `currentStatePointer` to how they were before the command, so a failed `undo` leaves the history unchanged.
 
 </div>
 
@@ -217,7 +217,7 @@ Step 4. The user now decides that adding the person was a mistake, and decides t
 
 ![UndoRedoState3](images/UndoRedoState3.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial address book state, and there are no uncommitted changes, then there is nothing to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will show "There is no change to undo." to the user.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial address book state, then there is nothing to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will show "There is no change to undo." to the user.
 
 </div>
 
@@ -233,11 +233,7 @@ Similarly, how an undo operation goes through the `Model` component is shown bel
 
 ![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the data differs from the state at `currentStatePointer` (e.g. a change whose save failed), `undo()` restores that state without moving the pointer, reverting the unsaved change first. Otherwise, it moves the pointer one step left and restores that state.
-
-</div>
-
-Step 5. The user then decides to execute the command `list`. `LogicManager` still calls `Model#commitAddressBook()`, but since the data is unchanged, no new state is recorded in the `addressBookStateList`.
+Step 5. The user then decides to execute the command `list`. `list` does not change data, so `LogicManager` returns its result without saving or calling `Model#commitAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
 
 ![UndoRedoState4](images/UndoRedoState4.png)
 
