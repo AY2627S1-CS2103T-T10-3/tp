@@ -138,6 +138,22 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public int getAddressBookHistoryPosition() {
+        return addressBook.getCurrentStatePointer();
+    }
+
+    @Override
+    public void restoreAddressBookHistoryPosition(int position) {
+        addressBook.setCurrentStatePointer(position);
+    }
+
+    @Override
+    public Predicate<Person> getFilteredPersonListPredicate() {
+        Predicate<? super Person> predicate = filteredPersons.getPredicate();
+        return predicate == null ? PREDICATE_SHOW_ALL_PERSONS : predicate::test;
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (other == this) {
             return true;

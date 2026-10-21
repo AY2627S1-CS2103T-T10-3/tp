@@ -42,13 +42,11 @@ public class VersionedAddressBook extends AddressBook {
      * Returns true if there is a change that {@link #undo()} can revert.
      */
     public boolean canUndo() {
-        return currentStatePointer > 0 || hasUncommittedChanges();
+        return currentStatePointer > 0;
     }
 
     /**
-     * Reverts the most recent change.
-     * If the data has uncommitted changes (e.g. a change whose save failed),
-     * the data is restored to the current state. Otherwise, it is restored to the previous state.
+     * Restores the data to the previous state in the history.
      *
      * @throws NoUndoableStateException if there is no change to revert.
      */
@@ -56,11 +54,29 @@ public class VersionedAddressBook extends AddressBook {
         if (!canUndo()) {
             throw new NoUndoableStateException();
         }
-        if (!hasUncommittedChanges()) {
-            currentStatePointer--;
-        }
+        assert !hasUncommittedChanges() : "Uncommitted changes would be lost by undo";
+        currentStatePointer--;
         resetData(addressBookStateList.get(currentStatePointer));
-        assert currentStatePointer >= 0 && currentStatePointer < addressBookStateList.size();
+    }
+
+    /**
+     * Returns the position of the current state in the history.
+     */
+    public int getCurrentStatePointer() {
+        return currentStatePointer;
+    }
+
+    /**
+     * Moves the current state to {@code pointer} without changing the data.
+     * Used to roll back an {@link #undo()} whose result could not be saved.
+     *
+     * @throws IllegalArgumentException if {@code pointer} is not a position in the history.
+     */
+    public void setCurrentStatePointer(int pointer) {
+        if (pointer < 0 || pointer >= addressBookStateList.size()) {
+            throw new IllegalArgumentException("State pointer " + pointer + " is outside the history.");
+        }
+        currentStatePointer = pointer;
     }
 
     /**

@@ -61,34 +61,51 @@ public class VersionedAddressBookTest {
     }
 
     @Test
-    public void undo_uncommittedChange_revertsToCurrentState() {
-        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
-        vab.addPerson(ALICE);
-        vab.commit();
-        vab.addPerson(BENSON);
-        assertTrue(vab.canUndo());
-        vab.undo();
-        assertEquals(bookOf(ALICE), vab);
-        assertFalse(vab.canRedo());
-        assertTrue(vab.canUndo());
-        vab.undo();
-        assertEquals(bookOf(), vab);
-    }
-
-    @Test
     public void undo_afterRolledBackUndo_revertsAgain() {
         VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
         vab.addPerson(ALICE);
         vab.commit();
         vab.addPerson(BENSON);
         vab.commit();
+        int pointerBeforeUndo = vab.getCurrentStatePointer();
         vab.undo();
+
+        // roll back the undo, as LogicManager does when saving fails
         vab.resetData(bookOf(ALICE, BENSON));
+        vab.setCurrentStatePointer(pointerBeforeUndo);
+
         vab.undo();
         assertEquals(bookOf(ALICE), vab);
         vab.undo();
         assertEquals(bookOf(), vab);
         assertFalse(vab.canUndo());
+    }
+
+    @Test
+    public void commit_afterRolledBackUndo_keepsEarlierStates() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        vab.addPerson(ALICE);
+        vab.commit();
+        vab.addPerson(BENSON);
+        vab.commit();
+        int pointerBeforeUndo = vab.getCurrentStatePointer();
+        vab.undo();
+        vab.resetData(bookOf(ALICE, BENSON));
+        vab.setCurrentStatePointer(pointerBeforeUndo);
+
+        vab.removePerson(ALICE);
+        vab.commit();
+        vab.undo();
+        assertEquals(bookOf(ALICE, BENSON), vab);
+    }
+
+    @Test
+    public void setCurrentStatePointer_outsideHistory_throwsIllegalArgumentException() {
+        VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
+        vab.addPerson(ALICE);
+        vab.commit();
+        assertThrows(IllegalArgumentException.class, () -> vab.setCurrentStatePointer(-1));
+        assertThrows(IllegalArgumentException.class, () -> vab.setCurrentStatePointer(2));
     }
 
     @Test

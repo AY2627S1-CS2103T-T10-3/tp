@@ -70,13 +70,17 @@ public interface Model {
     void updateFilteredPersonList(Predicate<Person> predicate);
 
     /**
+     * Returns the predicate currently used to filter the person list
+     */
+    Predicate<Person> getFilteredPersonListPredicate();
+
+    /**
      * Returns true if there is a change that {@link #undoAddressBook()} can revert.
      */
     boolean canUndoAddressBook();
 
     /**
      * Reverts the most recent change to the address book.
-     * If there are uncommitted changes, they are reverted first.
      */
     void undoAddressBook();
 
@@ -95,4 +99,15 @@ public interface Model {
      * Does nothing if the address book is unchanged since the last recorded state.
      */
     void commitAddressBook();
+
+    /**
+     * Returns the position of the current state in the address book's undo history.
+     */
+    int getAddressBookHistoryPosition();
+
+    /**
+     * Moves the undo history back to {@code position}, as returned by {@link #getAddressBookHistoryPosition()}.
+     * The address book data is not changed.
+     */
+    void restoreAddressBookHistoryPosition(int position);
 }

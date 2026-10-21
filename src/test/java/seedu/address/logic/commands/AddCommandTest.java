@@ -138,6 +138,11 @@ public class AddCommandTest {
         }
 
         @Override
+        public Predicate<Person> getFilteredPersonListPredicate() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public void updateFilteredPersonList(Predicate<Person> predicate) {
             throw new AssertionError("This method should not be called.");
         }
@@ -164,6 +169,16 @@ public class AddCommandTest {
 
         @Override
         public void commitAddressBook() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public int getAddressBookHistoryPosition() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void restoreAddressBookHistoryPosition(int position) {
             throw new AssertionError("This method should not be called.");
         }
     }

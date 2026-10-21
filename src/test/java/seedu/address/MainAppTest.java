@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -43,6 +45,27 @@ public class MainAppTest {
         assertEquals(invalidJson, Files.readString(addressBookPath.resolveSibling("addressbook.json.bak-01")));
         assertThrows(IOException.class, () -> storageManager.saveAddressBook(new AddressBook()));
         assertEquals(invalidJson, Files.readString(addressBookPath));
+    }
+
+    @Test
+    public void recoveryMode_addFailsWithoutChangingRecoveredModel() throws Exception {
+        Path addressBookPath = temporaryFolder.resolve("addressbook.json");
+        String invalidJson = "not valid JSON";
+        Files.writeString(addressBookPath, invalidJson);
+        StorageManager storageManager = createStorageManager(addressBookPath);
+
+        Model model = new TestMainApp().initializeModelManager(storageManager);
+        LogicManager logic = new LogicManager(model, storageManager);
+
+        CommandException exception = assertThrows(CommandException.class, () ->
+            logic.execute("add n/Test User p/91234567 e/test@example.com s/member"));
+
+        String expectedMessage = String.format(LogicManager.FILE_OPS_ERROR_FORMAT,
+                "Address book saving is disabled after a failed data load.");
+        assertEquals(expectedMessage, exception.getMessage());
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertEquals(invalidJson, Files.readString(addressBookPath));
+        assertEquals(invalidJson, Files.readString(addressBookPath.resolveSibling("addressbook.json.bak-01")));
     }
 
     @Test
