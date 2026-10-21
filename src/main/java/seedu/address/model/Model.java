@@ -70,6 +70,11 @@ public interface Model {
     void updateFilteredPersonList(Predicate<Person> predicate);
 
     /**
+     * Returns the predicate currently used to filter the person list
+     */
+    Predicate<Person> getFilteredPersonListPredicate();
+
+    /**
      * Returns true if there is a change that {@link #undoAddressBook()} can revert.
      */
     boolean canUndoAddressBook();
