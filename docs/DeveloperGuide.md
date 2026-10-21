@@ -122,7 +122,7 @@ How the `Logic` component works:
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
-The parser class diagram below uses `add` to show how HiveMind parses member details:
+The parser class diagram below uses `add` as one example of how HiveMind parses commands. It focuses on the Logic parser classes; the member fields are described in the text below rather than drawing the Model classes here:
 
 <img src="images/ParserClasses.png" width="850"/>
 

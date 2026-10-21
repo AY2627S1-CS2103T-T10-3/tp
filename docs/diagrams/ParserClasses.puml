@@ -18,22 +18,12 @@ Class ArgumentTokenizer
 Class Prefix
 }
 
-package "Model objects" {
-Class Person MODEL_COLOR
-Class "<<enumeration>>\nStatus" as Status MODEL_COLOR
-Class "<<enumeration>>\nMemberType" as MemberType MODEL_COLOR
-Class Role MODEL_COLOR
-Class Instrument MODEL_COLOR
-Class Group MODEL_COLOR
-}
-
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> AddressBookParser
 
 AddressBookParser .down.> AddCommandParser : <<create>>
 
 AddCommandParser ..> AddCommand : <<create>>
-AddCommandParser ..> Person : <<create>>
 AddressBookParser ..> Command : <<use>>
 AddCommandParser .up.|> Parser
 AddCommandParser ..> ArgumentMultimap
@@ -44,16 +34,5 @@ CliSyntax ..> Prefix
 AddCommandParser ..> ParserUtil
 ParserUtil .down.> Prefix
 ArgumentTokenizer .down.> Prefix
-ParserUtil ..> Status : parseStatus()
-ParserUtil ..> MemberType : parseMemberType()
-ParserUtil ..> Role : parseRole()
-ParserUtil ..> Instrument : parseInstruments()
-ParserUtil ..> Group : parseGroups()
 AddCommand -up-|> Command
-AddCommand --> Person : toAdd
-
-note right of AddCommandParser
-  n/, p/, e/, and s/ are required.
-  ty/ defaults to student; r/, i/, and g/ are optional.
-end note
 @enduml
