@@ -6,9 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.STATUS_DESC_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.STATUS_DESC_BOB;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -164,13 +168,41 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_undoAfterFailedSave_revertsUnsavedChange() throws Exception {
+    public void execute_undoAfterFailedSave_nothingToUndo() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
         setUp();
 
+        assertCommandException(UndoCommand.COMMAND_WORD, UndoCommand.MESSAGE_FAILURE);
+    }
+
+    @Test
+    public void execute_undoWhenSaveFails_keepsChangeAndHistory() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + STATUS_DESC_AMY);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        setStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION);
+        String expectedMessage = String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage());
+
+        assertCommandFailure(UndoCommand.COMMAND_WORD, CommandException.class, expectedMessage, expectedModel);
+        assertCommandFailure(UndoCommand.COMMAND_WORD, CommandException.class, expectedMessage, expectedModel);
+
+        // the retried undo succeeds once saving works again
+        setUp();
         assertCommandSuccess(UndoCommand.COMMAND_WORD, UndoCommand.MESSAGE_SUCCESS, new ModelManager());
         assertFalse(model.canUndoAddressBook());
+    }
+
+    @Test
+    public void execute_addAfterFailedUndo_undoRestoresStateBeforeAdd() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + STATUS_DESC_AMY);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        setStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION);
+        assertThrows(CommandException.class, () -> logic.execute(UndoCommand.COMMAND_WORD));
+        setUp();
+
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + STATUS_DESC_BOB);
+
+        assertCommandSuccess(UndoCommand.COMMAND_WORD, UndoCommand.MESSAGE_SUCCESS, expectedModel);
     }
 
     @Test

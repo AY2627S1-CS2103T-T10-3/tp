@@ -81,7 +81,6 @@ public interface Model {
 
     /**
      * Reverts the most recent change to the address book.
-     * If there are uncommitted changes, they are reverted first.
      */
     void undoAddressBook();
 
@@ -90,4 +89,15 @@ public interface Model {
      * Does nothing if the address book is unchanged since the last recorded state.
      */
     void commitAddressBook();
+
+    /**
+     * Returns the position of the current state in the address book's undo history.
+     */
+    int getAddressBookHistoryPosition();
+
+    /**
+     * Moves the undo history back to {@code position}, as returned by {@link #getAddressBookHistoryPosition()}.
+     * The address book data is not changed.
+     */
+    void restoreAddressBookHistoryPosition(int position);
 }

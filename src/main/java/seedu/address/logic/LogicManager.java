@@ -49,6 +49,7 @@ public class LogicManager implements Logic {
         Command command = addressBookParser.parseCommand(commandText);
         AddressBook addressBookBeforeCommand = new AddressBook(model.getAddressBook());
         Predicate<Person> filterBeforeCommand = model.getFilteredPersonListPredicate();
+        int historyPositionBeforeCommand = model.getAddressBookHistoryPosition();
         CommandResult commandResult = command.execute(model);
 
         if (!command.requiresSave()) {
@@ -58,18 +59,26 @@ public class LogicManager implements Logic {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
-            model.setAddressBook(addressBookBeforeCommand);
-            model.updateFilteredPersonList(filterBeforeCommand);
+            rollBack(addressBookBeforeCommand, filterBeforeCommand, historyPositionBeforeCommand);
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
-            model.setAddressBook(addressBookBeforeCommand);
-            model.updateFilteredPersonList(filterBeforeCommand);
+            rollBack(addressBookBeforeCommand, filterBeforeCommand, historyPositionBeforeCommand);
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
 
         // Only changes that were saved successfully become undoable states
         model.commitAddressBook();
         return commandResult;
+    }
+
+    /**
+     * Restores the model to how it was before a command whose changes could not be saved.
+     * The undo history is restored too, so that a failed {@code undo} or {@code redo} leaves it unchanged.
+     */
+    private void rollBack(AddressBook addressBook, Predicate<Person> filter, int historyPosition) {
+        model.setAddressBook(addressBook);
+        model.updateFilteredPersonList(filter);
+        model.restoreAddressBookHistoryPosition(historyPosition);
     }
 
     @Override

@@ -161,6 +161,16 @@ public class AddCommandTest {
         public void commitAddressBook() {
             throw new AssertionError("This method should not be called.");
         }
+
+        @Override
+        public int getAddressBookHistoryPosition() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void restoreAddressBookHistoryPosition(int position) {
+            throw new AssertionError("This method should not be called.");
+        }
     }
 
     /**
