@@ -31,7 +31,7 @@ public class AddCommand extends Command {
             + PREFIX_STATUS + "STATUS "
             + "[" + PREFIX_MEMBER_TYPE + "STUDENT_OR_TEACHER] "
             + "[" + PREFIX_ROLE + "ROLE] "
-            + "[" + PREFIX_INSTRUMENT + "INSTRUMENT:YEARS]...\n"
+            + "[" + PREFIX_INSTRUMENT + "INSTRUMENT:YEARS]... "
             + "[" + PREFIX_GROUP + "GROUP]...\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "John Doe "

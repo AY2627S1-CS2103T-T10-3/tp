@@ -208,6 +208,7 @@ public class ParserUtil {
         requireNonNull(groups);
         Set<Group> parsedGroups = new HashSet<>();
         for (String group : groups) {
+            // Repeated group names represent the same membership, unlike duplicate instrument entries.
             parsedGroups.add(parseGroup(group));
         }
         return parsedGroups;
