@@ -30,6 +30,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
@@ -165,10 +166,34 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_singleGroup_replacesGroups() {
+        Index targetIndex = INDEX_SECOND_PERSON;
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withGroups("Training").build();
+        assertParseSuccess(parser, targetIndex.getOneBased() + " " + PREFIX_GROUP + "Training",
+                new EditCommand(targetIndex, descriptor));
+    }
+
+    @Test
+    public void parse_groupsDifferingOnlyInCase_storesOneGroup() {
+        Index targetIndex = INDEX_SECOND_PERSON;
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withGroups("Training").build();
+        assertParseSuccess(parser, targetIndex.getOneBased() + " " + PREFIX_GROUP + "Training "
+                + PREFIX_GROUP + "training", new EditCommand(targetIndex, descriptor));
+    }
+
+    @Test
     public void parse_emptyGroup_clearsGroups() {
         Index targetIndex = INDEX_SECOND_PERSON;
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withGroups().build();
         assertParseSuccess(parser, targetIndex.getOneBased() + " " + PREFIX_GROUP,
+                new EditCommand(targetIndex, descriptor));
+    }
+
+    @Test
+    public void parse_emptyGroupWithName_clearsGroupsAndEditsName() {
+        Index targetIndex = INDEX_SECOND_PERSON;
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName("Bob").withGroups().build();
+        assertParseSuccess(parser, targetIndex.getOneBased() + " " + PREFIX_NAME + "Bob " + PREFIX_GROUP,
                 new EditCommand(targetIndex, descriptor));
     }
 

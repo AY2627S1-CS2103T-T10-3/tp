@@ -48,7 +48,7 @@ public class PersonCardTest {
             Person person = new PersonBuilder().withName("Alicia Tan").withPhone("90000002")
                     .withEmail("alicia@example.com").withStatus("active-alumnus").withMemberType("teacher")
                     .withRole("Section Leader").withInstruments("Violin:1", "piano:5")
-                    .withGroups("Training", "Chamber Orchestra").build();
+                    .withGroups("zeta", "Alpha").build();
             PersonCard card = new PersonCard(person, 3);
 
             assertEquals("3. ", label(card, "id").getText());
@@ -66,7 +66,7 @@ public class PersonCardTest {
             List<String> instrumentLabels = instruments.getChildren().stream()
                     .map(node -> ((Label) node).getText()).toList();
             assertEquals(List.of("piano (5 yrs)", "Violin (1 yr)"), instrumentLabels);
-            assertEquals("Groups: Chamber Orchestra, Training", label(card, "groups").getText());
+            assertEquals("Groups: Alpha, zeta", label(card, "groups").getText());
             assertTrue(label(card, "groups").isVisible());
             assertTrue(label(card, "groups").isManaged());
         });
