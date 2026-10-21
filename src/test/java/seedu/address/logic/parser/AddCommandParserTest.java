@@ -30,6 +30,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_INSTRUMENT_VIOL
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -46,6 +47,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
@@ -90,6 +92,20 @@ public class AddCommandParserTest {
                 + MEMBER_TYPE_DESC_BOB + ROLE_DESC_BOB
                 + INSTRUMENT_DESC_PIANO + INSTRUMENT_DESC_VIOLIN,
                 new AddCommand(teacherWithRoleAndInstruments));
+
+        Person personWithGroups = new PersonBuilder(BOB)
+                .withInstruments()
+                .withGroups("Chamber Orchestra", "Training")
+                .build();
+        assertParseSuccess(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + STATUS_DESC_BOB
+                + " " + PREFIX_GROUP + "Chamber Orchestra " + PREFIX_GROUP + "Training",
+                new AddCommand(personWithGroups));
+
+        // Repeating a group with different case or spacing records it only once.
+        Person personWithOneGroup = new PersonBuilder(BOB).withInstruments().withGroups("Chamber Orchestra").build();
+        assertParseSuccess(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + STATUS_DESC_BOB
+                + " " + PREFIX_GROUP + "Chamber Orchestra " + PREFIX_GROUP + "chamber   orchestra",
+                new AddCommand(personWithOneGroup));
     }
 
     @Test
@@ -159,6 +175,7 @@ public class AddCommandParserTest {
                 new AddCommand(expectedPerson));
         assertEquals(MemberType.STUDENT, expectedPerson.getMemberType());
         assertTrue(expectedPerson.getRole().isEmpty());
+        assertTrue(expectedPerson.getGroups().isEmpty());
     }
 
     @Test
@@ -224,6 +241,8 @@ public class AddCommandParserTest {
                 + INVALID_MEMBER_TYPE_DESC, MemberType.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + STATUS_DESC_BOB
                 + INVALID_ROLE_DESC, Role.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + STATUS_DESC_BOB
+                + " " + PREFIX_GROUP + " ", Group.MESSAGE_CONSTRAINTS);
 
         // invalid instrument
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + STATUS_DESC_BOB

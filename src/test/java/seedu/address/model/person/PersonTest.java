@@ -23,6 +23,7 @@ public class PersonTest {
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
         Person person = new PersonBuilder().build();
         assertThrows(UnsupportedOperationException.class, () -> person.getInstruments().remove(0));
+        assertThrows(UnsupportedOperationException.class, () -> person.getGroups().add(new Group("Training")));
     }
 
     @Test
@@ -101,6 +102,10 @@ public class PersonTest {
         // different instruments -> returns false
         editedAlice = new PersonBuilder(ALICE).withInstruments(VALID_INSTRUMENT_PIANO).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different participation groups -> returns false
+        editedAlice = new PersonBuilder(ALICE).withGroups("Chamber Orchestra").build();
+        assertFalse(ALICE.equals(editedAlice));
     }
 
     @Test
@@ -108,7 +113,7 @@ public class PersonTest {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", status=" + ALICE.getStatus()
                 + ", memberType=" + ALICE.getMemberType() + ", role=" + ALICE.getRole()
-                + ", instruments=" + ALICE.getInstruments() + "}";
+                + ", instruments=" + ALICE.getInstruments() + ", groups=" + ALICE.getGroups() + "}";
         assertEquals(expected, ALICE.toString());
     }
 

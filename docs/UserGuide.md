@@ -77,7 +77,7 @@ Format: `help`
 
 Adds a person to HiveMind.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`
 
 * `s/STATUS` is required: use `member`, `active-alumnus`, or `inactive-alumnus`. Status is case-insensitive.
 * `ty/TYPE` is optional: use `student` or `teacher`. It defaults to `student` when omitted.
@@ -85,6 +85,8 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRU
 * Type and status appear beneath the member's name on the card. If a role is supplied, it appears beneath the contact details; otherwise, the role line is hidden.
 * `i/INSTRUMENT:YEARS` records an instrument the person plays and how many whole years they have played it, from `0` to `99`. For example, `i/Violin:5` or `i/Bass Guitar:1`.
 * Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case, so `Violin` and `violin` count as the same instrument.
+* `g/GROUP` records a participation group, such as `g/Chamber Orchestra`. It may be repeated for multiple groups. Blank group names are rejected; names are compared ignoring case and extra whitespace, so repeated names are stored only once.
+* Recorded groups appear in the command's success message. The member card will show them in a later update.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of instruments, including zero.
@@ -93,6 +95,7 @@ A person can have any number of instruments, including zero.
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com s/member`
 * `add n/Betsy Crowe p/1234567 e/betsy@example.com s/active-alumnus ty/teacher r/Conductor i/Violin:12 i/Piano:4`
+* `add n/Jane Tan p/91234567 e/jane@example.com s/member g/Chamber Orchestra g/New Member Training`
 
 ### Listing all persons: `list`
 
@@ -270,7 +273,7 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com s/member r/Section Leader i/Trumpet:3`
+**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com s/member g/Chamber Orchestra`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​`<br> e.g., `edit 2 n/James Lee s/active-alumnus`

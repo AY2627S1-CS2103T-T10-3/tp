@@ -12,6 +12,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
@@ -186,5 +187,30 @@ public class ParserUtil {
             throw new ParseException(Role.MESSAGE_CONSTRAINTS);
         }
         return new Role(trimmedRole);
+    }
+
+    /**
+     * Parses a non-blank participation group name.
+     * Surrounding and repeated whitespace is normalized by {@code Group}.
+     */
+    public static Group parseGroup(String group) throws ParseException {
+        requireNonNull(group);
+        if (!Group.isValidName(group)) {
+            throw new ParseException(Group.MESSAGE_CONSTRAINTS);
+        }
+        return new Group(group);
+    }
+
+    /**
+     * Parses repeated group names, keeping each distinct name only once.
+     */
+    public static Set<Group> parseGroups(Collection<String> groups) throws ParseException {
+        requireNonNull(groups);
+        Set<Group> parsedGroups = new HashSet<>();
+        for (String group : groups) {
+            // Repeated group names represent the same membership, unlike duplicate instrument entries.
+            parsedGroups.add(parseGroup(group));
+        }
+        return parsedGroups;
     }
 }
