@@ -29,6 +29,16 @@ public class CsvExporterTest {
     }
 
     @Test
+    public void export_emptyList_writesHeaderOnly() throws Exception {
+        Path outputPath = testFolder.resolve("current-results-01.csv");
+
+        Path returnedPath = CsvExporter.export(List.of(), testFolder);
+
+        assertEquals(outputPath, returnedPath);
+        assertEquals(CsvExporter.HEADER, Files.readString(outputPath));
+    }
+
+    @Test
     public void export_existingExport_preservesEarlierExport() throws Exception {
         Path firstExport = testFolder.resolve("current-results-01.csv");
         Files.writeString(firstExport, "existing export");
