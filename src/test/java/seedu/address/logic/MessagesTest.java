@@ -23,4 +23,11 @@ public class MessagesTest {
         assertEquals("Amy Bee; Phone: 85355255; Email: amy@gmail.com; Status: member; Member type: student; "
                 + "Role: Conductor; Instruments: ", formatted);
     }
+
+    @Test
+    public void format_personWithGroups_listsGroupsAlphabetically() {
+        String formatted = Messages.format(new PersonBuilder().withGroups("Training", "Chamber Orchestra").build());
+        assertEquals("Amy Bee; Phone: 85355255; Email: amy@gmail.com; Status: member; Member type: student; "
+                + "Instruments: ; Groups: Chamber Orchestra, Training", formatted);
+    }
 }

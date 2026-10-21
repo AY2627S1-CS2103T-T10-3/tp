@@ -13,5 +13,6 @@ public class CliSyntax {
     public static final Prefix PREFIX_MEMBER_TYPE = new Prefix("ty/");
     public static final Prefix PREFIX_ROLE = new Prefix("r/");
     public static final Prefix PREFIX_INSTRUMENT = new Prefix("i/");
+    public static final Prefix PREFIX_GROUP = new Prefix("g/");
 
 }

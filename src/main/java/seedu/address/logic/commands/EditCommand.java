@@ -113,7 +113,7 @@ public class EditCommand extends Command {
                 .orElse(personToEdit.getInstruments());
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedStatus,
-                updatedMemberType, updatedRole, updatedInstruments);
+                updatedMemberType, updatedRole, updatedInstruments, personToEdit.getGroups());
     }
 
     @Override

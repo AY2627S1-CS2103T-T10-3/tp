@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
@@ -30,6 +31,7 @@ public class PersonBuilder {
     private MemberType memberType;
     private Optional<Role> role;
     private Set<Instrument> instruments;
+    private Set<Group> groups;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -42,6 +44,7 @@ public class PersonBuilder {
         memberType = MemberType.STUDENT;
         role = Optional.empty();
         instruments = new HashSet<>();
+        groups = new HashSet<>();
     }
 
     /**
@@ -55,6 +58,7 @@ public class PersonBuilder {
         memberType = personToCopy.getMemberType();
         role = personToCopy.getRole();
         instruments = new HashSet<>(personToCopy.getInstruments());
+        groups = new HashSet<>(personToCopy.getGroups());
     }
 
     /**
@@ -71,6 +75,17 @@ public class PersonBuilder {
      */
     public PersonBuilder withInstruments(String ... instruments) {
         this.instruments = SampleDataUtil.getInstrumentSet(instruments);
+        return this;
+    }
+
+    /**
+     * Sets the participation groups of the person being built.
+     */
+    public PersonBuilder withGroups(String... groups) {
+        this.groups = new HashSet<>();
+        for (String group : groups) {
+            this.groups.add(new Group(group));
+        }
         return this;
     }
 
@@ -123,7 +138,7 @@ public class PersonBuilder {
     }
 
     public Person build() {
-        return new Person(name, phone, email, status, memberType, role, instruments);
+        return new Person(name, phone, email, status, memberType, role, instruments, groups);
     }
 
 }
