@@ -117,6 +117,7 @@ public class MainAppTest {
 
         app.init();
 
+        assertTrue(Files.isDirectory(Path.of("imports")));
         assertInstanceOf(StorageManager.class, app.storage);
         assertSame(app.storage, app.storageProvidedToModelInitialization);
         assertSame(app.modelToInitialize, app.model);
