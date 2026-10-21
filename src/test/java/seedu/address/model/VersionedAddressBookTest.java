@@ -194,13 +194,22 @@ public class VersionedAddressBookTest {
     }
 
     @Test
-    public void redo_withUncommittedChanges_notPossible() {
+    public void redo_afterRolledBackRedo_redoesAgain() {
         VersionedAddressBook vab = new VersionedAddressBook(new AddressBook());
         vab.addPerson(ALICE);
         vab.commit();
         vab.undo();
-        vab.addPerson(BENSON);
-        assertFalse(vab.canRedo());
+        int pointerBeforeRedo = vab.getCurrentStatePointer();
+        vab.redo();
+
+        // roll back the redo, as LogicManager does when saving fails
+        vab.resetData(bookOf());
+        vab.setCurrentStatePointer(pointerBeforeRedo);
+
+        assertFalse(vab.canUndo());
+        assertTrue(vab.canRedo());
+        vab.redo();
+        assertEquals(bookOf(ALICE), vab);
     }
 
     @Test

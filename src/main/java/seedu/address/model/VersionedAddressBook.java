@@ -68,7 +68,7 @@ public class VersionedAddressBook extends AddressBook {
 
     /**
      * Moves the current state to {@code pointer} without changing the data.
-     * Used to roll back an {@link #undo()} whose result could not be saved.
+     * Used to roll back an {@link #undo()} or {@link #redo()} whose result could not be saved.
      *
      * @throws IllegalArgumentException if {@code pointer} is not a position in the history.
      */
@@ -81,10 +81,9 @@ public class VersionedAddressBook extends AddressBook {
 
     /**
      * Returns true if there is an undone change that {@link #redo()} can restore.
-     * Redo is not possible while the data has uncommitted changes, as it would discard them.
      */
     public boolean canRedo() {
-        return currentStatePointer < addressBookStateList.size() - 1 && !hasUncommittedChanges();
+        return currentStatePointer < addressBookStateList.size() - 1;
     }
 
     /**
@@ -96,9 +95,9 @@ public class VersionedAddressBook extends AddressBook {
         if (!canRedo()) {
             throw new NoRedoableStateException();
         }
+        assert !hasUncommittedChanges() : "Uncommitted changes would be lost by redo";
         currentStatePointer++;
         resetData(addressBookStateList.get(currentStatePointer));
-        assert currentStatePointer < addressBookStateList.size();
     }
 
     /**

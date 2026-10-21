@@ -175,6 +175,34 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_redoWhenSaveFails_keepsHistory() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + STATUS_DESC_AMY);
+        Model modelWithAmy = new ModelManager(model.getAddressBook(), new UserPrefs());
+        logic.execute(UndoCommand.COMMAND_WORD);
+        setStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION);
+        String expectedMessage = String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage());
+
+        assertCommandFailure(RedoCommand.COMMAND_WORD, CommandException.class, expectedMessage, new ModelManager());
+        assertCommandFailure(RedoCommand.COMMAND_WORD, CommandException.class, expectedMessage, new ModelManager());
+        assertFalse(model.canUndoAddressBook());
+
+        // the retried redo succeeds once saving works again
+        setUp();
+        assertCommandSuccess(RedoCommand.COMMAND_WORD, RedoCommand.MESSAGE_SUCCESS, modelWithAmy);
+    }
+
+    @Test
+    public void execute_undoAfterFailedRedo_nothingToUndo() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + STATUS_DESC_AMY);
+        logic.execute(UndoCommand.COMMAND_WORD);
+        setStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION);
+        assertThrows(CommandException.class, () -> logic.execute(RedoCommand.COMMAND_WORD));
+        setUp();
+
+        assertCommandException(UndoCommand.COMMAND_WORD, UndoCommand.MESSAGE_FAILURE);
+    }
+
+    @Test
     public void execute_undoAfterReadOnlyCommand_undoesEarlierChange() throws Exception {
         logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + STATUS_DESC_AMY);
         logic.execute(ListCommand.COMMAND_WORD);
