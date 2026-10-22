@@ -1,13 +1,18 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.STATUS_DESC_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.STATUS_DESC_BOB;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -25,6 +30,8 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RedoCommand;
+import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -141,6 +148,104 @@ public class LogicManagerTest {
         ReadOnlyAddressBook savedAddressBook = storage.readAddressBook().orElseThrow();
 
         assertEquals(List.of(expectedPerson), savedAddressBook.getPersonList());
+    }
+
+    @Test
+    public void execute_undoAfterAdd_removesPersonFromModelAndFile() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + STATUS_DESC_AMY);
+
+        assertCommandSuccess(UndoCommand.COMMAND_WORD, UndoCommand.MESSAGE_SUCCESS, new ModelManager());
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(List.of(), storage.readAddressBook().orElseThrow().getPersonList());
+        assertFalse(model.canUndoAddressBook());
+    }
+
+    @Test
+    public void execute_redoAfterUndo_restoresPersonInModelAndFile() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + STATUS_DESC_AMY);
+        logic.execute(UndoCommand.COMMAND_WORD);
+
+        Person expectedPerson = new PersonBuilder(AMY).withInstruments().build();
+        ModelManager expectedModel = new ModelManager();
+        expectedModel.addPerson(expectedPerson);
+        assertCommandSuccess(RedoCommand.COMMAND_WORD, RedoCommand.MESSAGE_SUCCESS, expectedModel);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(List.of(expectedPerson), storage.readAddressBook().orElseThrow().getPersonList());
+        assertFalse(model.canRedoAddressBook());
+    }
+
+    @Test
+    public void execute_redoWhenSaveFails_keepsHistory() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + STATUS_DESC_AMY);
+        Model modelWithAmy = new ModelManager(model.getAddressBook(), new UserPrefs());
+        logic.execute(UndoCommand.COMMAND_WORD);
+        setStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION);
+        String expectedMessage = String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage());
+
+        assertCommandFailure(RedoCommand.COMMAND_WORD, CommandException.class, expectedMessage, new ModelManager());
+        assertCommandFailure(RedoCommand.COMMAND_WORD, CommandException.class, expectedMessage, new ModelManager());
+        assertFalse(model.canUndoAddressBook());
+
+        // the retried redo succeeds once saving works again
+        setUp();
+        assertCommandSuccess(RedoCommand.COMMAND_WORD, RedoCommand.MESSAGE_SUCCESS, modelWithAmy);
+    }
+
+    @Test
+    public void execute_undoAfterFailedRedo_nothingToUndo() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + STATUS_DESC_AMY);
+        logic.execute(UndoCommand.COMMAND_WORD);
+        setStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION);
+        assertThrows(CommandException.class, () -> logic.execute(RedoCommand.COMMAND_WORD));
+        setUp();
+
+        assertCommandException(UndoCommand.COMMAND_WORD, UndoCommand.MESSAGE_FAILURE);
+    }
+
+    @Test
+    public void execute_undoAfterReadOnlyCommand_undoesEarlierChange() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + STATUS_DESC_AMY);
+        logic.execute(ListCommand.COMMAND_WORD);
+
+        assertCommandSuccess(UndoCommand.COMMAND_WORD, UndoCommand.MESSAGE_SUCCESS, new ModelManager());
+    }
+
+    @Test
+    public void execute_undoAfterFailedSave_nothingToUndo() {
+        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
+                LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+        setUp();
+
+        assertCommandException(UndoCommand.COMMAND_WORD, UndoCommand.MESSAGE_FAILURE);
+    }
+
+    @Test
+    public void execute_undoWhenSaveFails_keepsChangeAndHistory() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + STATUS_DESC_AMY);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        setStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION);
+        String expectedMessage = String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage());
+
+        assertCommandFailure(UndoCommand.COMMAND_WORD, CommandException.class, expectedMessage, expectedModel);
+        assertCommandFailure(UndoCommand.COMMAND_WORD, CommandException.class, expectedMessage, expectedModel);
+
+        // the retried undo succeeds once saving works again
+        setUp();
+        assertCommandSuccess(UndoCommand.COMMAND_WORD, UndoCommand.MESSAGE_SUCCESS, new ModelManager());
+        assertFalse(model.canUndoAddressBook());
+    }
+
+    @Test
+    public void execute_addAfterFailedUndo_undoRestoresStateBeforeAdd() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + STATUS_DESC_AMY);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        setStorageThatThrowsOnSave(DUMMY_IO_EXCEPTION);
+        assertThrows(CommandException.class, () -> logic.execute(UndoCommand.COMMAND_WORD));
+        setUp();
+
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + STATUS_DESC_BOB);
+
+        assertCommandSuccess(UndoCommand.COMMAND_WORD, UndoCommand.MESSAGE_SUCCESS, expectedModel);
     }
 
     @Test
