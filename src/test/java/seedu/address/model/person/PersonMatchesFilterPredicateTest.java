@@ -3,6 +3,7 @@ package seedu.address.model.person;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,62 @@ import org.junit.jupiter.api.Test;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonMatchesFilterPredicateTest {
+
+    @Test
+    public void test_groups_matchesEitherWholeGroupIgnoringCaseAndWhitespace() {
+        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(Set.of(), Set.of(),
+                Set.of(), Set.of(), Set.of(new Group("Chamber Orchestra"), new Group("Training")));
+        assertTrue(predicate.test(new PersonBuilder().withGroups("CHAMBER   orchestra").build()));
+        assertTrue(predicate.test(new PersonBuilder().withGroups("Training", "Quartet").build()));
+        assertTrue(predicate.test(new PersonBuilder().withGroups("Chamber Orchestra", "Training").build()));
+        assertTrue(predicate.test(new PersonBuilder().withStatus("inactive-alumnus").withMemberType("teacher")
+                .withoutRole().withInstruments().withGroups("Training").build()));
+        assertFalse(predicate.test(new PersonBuilder().withGroups("Orchestra").build()));
+        assertFalse(predicate.test(new PersonBuilder().withGroups("Junior Chamber Orchestra").build()));
+        assertFalse(predicate.test(new PersonBuilder().withGroups("Quartet").build()));
+        assertFalse(predicate.test(new PersonBuilder().withGroups().build()));
+        assertFalse(predicate.test(new PersonBuilder().withName("Training").withRole("Training")
+                .withGroups().build()));
+    }
+
+    @Test
+    public void test_groupsWithOtherFields_requiresEverySpecifiedField() {
+        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
+                Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS),
+                Set.of(new InstrumentCriterion("Violin", 3), new InstrumentCriterion("Cello", 5)),
+                Set.of(MemberType.TEACHER), Set.of(new Role("Conductor")),
+                Set.of(new Group("Orchestra"), new Group("Training")));
+        Person matching = new PersonBuilder().withStatus("member").withInstruments("Violin:3")
+                .withMemberType("teacher").withRole("Conductor").withGroups("Orchestra").build();
+        assertTrue(predicate.test(matching));
+        assertTrue(predicate.test(new PersonBuilder(matching).withStatus("active-alumnus")
+                .withInstruments("Cello:5").withGroups("Training").build()));
+        assertFalse(predicate.test(new PersonBuilder(matching).withStatus("inactive-alumnus").build()));
+        assertFalse(predicate.test(new PersonBuilder(matching).withInstruments("Violin:2", "Piano:10").build()));
+        assertFalse(predicate.test(new PersonBuilder(matching).withMemberType("student").build()));
+        assertFalse(predicate.test(new PersonBuilder(matching).withoutRole().build()));
+        assertFalse(predicate.test(new PersonBuilder(matching).withGroups("Quartet").build()));
+        assertFalse(predicate.test(new PersonBuilder(matching).withGroups().build()));
+    }
+
+    @Test
+    public void test_omittedGroups_doesNotRestrictMatches() {
+        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
+                Set.of(Status.MEMBER), Set.of(), Set.of(), Set.of(), Set.of());
+        assertTrue(predicate.test(new PersonBuilder().withGroups("Orchestra").build()));
+        assertTrue(predicate.test(new PersonBuilder().withGroups().build()));
+    }
+
+    @Test
+    public void test_mutatingOriginalGroups_doesNotChangePredicate() {
+        Set<Group> groups = new HashSet<>(Set.of(new Group("Orchestra")));
+        PersonMatchesFilterPredicate predicate = new PersonMatchesFilterPredicate(
+                Set.of(), Set.of(), Set.of(), Set.of(), groups);
+        groups.clear();
+        groups.add(new Group("Training"));
+        assertTrue(predicate.test(new PersonBuilder().withGroups("Orchestra").build()));
+        assertFalse(predicate.test(new PersonBuilder().withGroups("Training").build()));
+    }
 
     @Test
     public void test_multipleInstruments_matchesEitherInstrument() {

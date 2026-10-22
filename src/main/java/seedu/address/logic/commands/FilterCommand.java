@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE;
@@ -11,6 +12,7 @@ import java.util.Set;
 
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.InstrumentCriterion;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.PersonMatchesFilterPredicate;
@@ -25,35 +27,39 @@ public class FilterCommand extends Command {
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Lists people matching member criteria (OR within a field, AND between fields).\n"
             + "Parameters: [" + PREFIX_STATUS + "STATUS]... [" + PREFIX_INSTRUMENT + "NAME[:MIN_YEARS]]... "
-            + "[" + PREFIX_MEMBER_TYPE + "TYPE]... [" + PREFIX_ROLE + "ROLE]...\n"
+            + "[" + PREFIX_MEMBER_TYPE + "TYPE]... [" + PREFIX_ROLE + "ROLE]... [" + PREFIX_GROUP + "GROUP]...\n"
             + "At least one criterion is required. TYPE is student or teacher; ROLE matches the whole role, "
             + "ignoring case.\n"
             + "MIN_YEARS is an inclusive minimum from 0 to 99; omitted years match any experience.\n"
+            + "GROUP matches the whole group name, ignoring case and extra whitespace.\n"
             + "Example: " + COMMAND_WORD + " " + PREFIX_STATUS + "member "
-            + PREFIX_STATUS + "active-alumnus " + PREFIX_INSTRUMENT + "Violin:3";
+            + PREFIX_STATUS + "active-alumnus " + PREFIX_INSTRUMENT + "Violin:3 "
+            + PREFIX_GROUP + "Chamber Orchestra";
 
     private final Set<Status> statuses;
     private final Set<InstrumentCriterion> instrumentCriteria;
     private final Set<MemberType> memberTypes;
     private final Set<Role> roles;
+    private final Set<Group> groups;
 
     /**
-     * Creates a filter command with optional status, instrument, member type, and role criteria.
+     * Creates a filter command with optional status, instrument, member type, role, and group criteria.
      * An empty set leaves its field unrestricted.
      */
     public FilterCommand(Set<Status> statuses, Set<InstrumentCriterion> instrumentCriteria,
-            Set<MemberType> memberTypes, Set<Role> roles) {
+            Set<MemberType> memberTypes, Set<Role> roles, Set<Group> groups) {
         this.statuses = Set.copyOf(requireNonNull(statuses));
         this.instrumentCriteria = Set.copyOf(requireNonNull(instrumentCriteria));
         this.memberTypes = Set.copyOf(requireNonNull(memberTypes));
         this.roles = Set.copyOf(requireNonNull(roles));
+        this.groups = Set.copyOf(requireNonNull(groups));
     }
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(
-                new PersonMatchesFilterPredicate(statuses, instrumentCriteria, memberTypes, roles));
+                new PersonMatchesFilterPredicate(statuses, instrumentCriteria, memberTypes, roles, groups));
         return new CommandResult(String.format(
                 Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
     }
@@ -74,11 +80,12 @@ public class FilterCommand extends Command {
         }
 
         return statuses.equals(otherCommand.statuses) && instrumentCriteria.equals(otherCommand.instrumentCriteria)
-                && memberTypes.equals(otherCommand.memberTypes) && roles.equals(otherCommand.roles);
+                && memberTypes.equals(otherCommand.memberTypes) && roles.equals(otherCommand.roles)
+                && groups.equals(otherCommand.groups);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(statuses, instrumentCriteria, memberTypes, roles);
+        return Objects.hash(statuses, instrumentCriteria, memberTypes, roles, groups);
     }
 }

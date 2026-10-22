@@ -13,17 +13,29 @@ public class PersonMatchesFilterPredicate implements Predicate<Person> {
     private final Set<InstrumentCriterion> instrumentCriteria;
     private final Set<MemberType> memberTypes;
     private final Set<Role> roles;
+    private final Set<Group> groups;
 
     /**
      * Creates a predicate with optional status, instrument, member type, and role criteria.
-     * An empty set leaves its field unrestricted. Roles match the whole name, ignoring case and surrounding whitespace.
+     * Participation groups are unrestricted.
      */
     public PersonMatchesFilterPredicate(Set<Status> statuses, Set<InstrumentCriterion> instrumentCriteria,
             Set<MemberType> memberTypes, Set<Role> roles) {
+        this(statuses, instrumentCriteria, memberTypes, roles, Set.of());
+    }
+
+    /**
+     * Creates a predicate with optional status, instrument, member type, role, and group criteria.
+     * An empty set leaves its field unrestricted. Roles match the whole name, ignoring case and surrounding whitespace.
+     * Groups match the whole name, ignoring case and extra whitespace.
+     */
+    public PersonMatchesFilterPredicate(Set<Status> statuses, Set<InstrumentCriterion> instrumentCriteria,
+            Set<MemberType> memberTypes, Set<Role> roles, Set<Group> groups) {
         this.statuses = Set.copyOf(requireNonNull(statuses));
         this.instrumentCriteria = Set.copyOf(requireNonNull(instrumentCriteria));
         this.memberTypes = Set.copyOf(requireNonNull(memberTypes));
         this.roles = Set.copyOf(requireNonNull(roles));
+        this.groups = Set.copyOf(requireNonNull(groups));
     }
 
     @Override
@@ -37,6 +49,7 @@ public class PersonMatchesFilterPredicate implements Predicate<Person> {
                 .map(role -> roles.stream().anyMatch(criterion -> criterion.value.trim()
                         .equalsIgnoreCase(role.value.trim())))
                 .orElse(false);
-        return matchesStatus && matchesInstrument && matchesMemberType && matchesRole;
+        boolean matchesGroup = groups.isEmpty() || person.getGroups().stream().anyMatch(groups::contains);
+        return matchesStatus && matchesInstrument && matchesMemberType && matchesRole && matchesGroup;
     }
 }

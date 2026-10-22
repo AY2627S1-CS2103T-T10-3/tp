@@ -3,6 +3,7 @@ package seedu.address.logic.parser;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -16,6 +17,7 @@ import java.util.stream.Stream;
 
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.InstrumentCriterion;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Role;
@@ -28,7 +30,7 @@ public class FilterCommandParser implements Parser<FilterCommand> {
 
     /**
      * Prefixes of other fields that {@code filter} does not support yet. They are tokenized only so that they are
-     * rejected instead of being silently read as part of an instrument name.
+     * rejected instead of being silently read as part of an instrument, role, or group name.
      */
     private static final Prefix[] UNSUPPORTED_PREFIXES = {
         PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL
@@ -43,7 +45,7 @@ public class FilterCommandParser implements Parser<FilterCommand> {
     public FilterCommand parse(String args) throws ParseException {
         requireNonNull(args);
         Prefix[] prefixes = Stream.concat(
-                Stream.of(PREFIX_STATUS, PREFIX_INSTRUMENT, PREFIX_MEMBER_TYPE, PREFIX_ROLE),
+                Stream.of(PREFIX_STATUS, PREFIX_INSTRUMENT, PREFIX_MEMBER_TYPE, PREFIX_ROLE, PREFIX_GROUP),
                 Stream.of(UNSUPPORTED_PREFIXES))
                 .toArray(Prefix[]::new);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args.trim(), prefixes);
@@ -53,7 +55,8 @@ public class FilterCommandParser implements Parser<FilterCommand> {
         boolean hasCriteria = argMultimap.getValue(PREFIX_STATUS).isPresent()
                 || argMultimap.getValue(PREFIX_INSTRUMENT).isPresent()
                 || argMultimap.getValue(PREFIX_MEMBER_TYPE).isPresent()
-                || argMultimap.getValue(PREFIX_ROLE).isPresent();
+                || argMultimap.getValue(PREFIX_ROLE).isPresent()
+                || argMultimap.getValue(PREFIX_GROUP).isPresent();
         if (!argMultimap.getPreamble().isEmpty() || !hasCriteria
                 || hasUnsupportedPrefix) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
@@ -75,7 +78,8 @@ public class FilterCommandParser implements Parser<FilterCommand> {
         for (String role : argMultimap.getAllValues(PREFIX_ROLE)) {
             roles.add(ParserUtil.parseRole(role));
         }
-        return new FilterCommand(statuses, instrumentCriteria, memberTypes, roles);
+        Set<Group> groups = ParserUtil.parseGroups(argMultimap.getAllValues(PREFIX_GROUP));
+        return new FilterCommand(statuses, instrumentCriteria, memberTypes, roles, groups);
     }
 
     /**
