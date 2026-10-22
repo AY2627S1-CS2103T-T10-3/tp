@@ -115,7 +115,12 @@ public class CsvImporter {
             }
 
             String name = instrumentFieldValue.substring(0, separatorIndex);
-            int years = Integer.parseInt(instrumentFieldValue.substring(separatorIndex + 1));
+            int years;
+            try {
+                years = Integer.parseInt(instrumentFieldValue.substring(separatorIndex + 1));
+            } catch (NumberFormatException exception) {
+                throw new IllegalArgumentException(Instrument.MESSAGE_FORMAT_CONSTRAINTS, exception);
+            }
             instruments.add(new Instrument(name, years));
         }
         return instruments;

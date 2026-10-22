@@ -110,7 +110,7 @@ public class CsvImporterTest {
     @Test
     public void importPeople_nonNumericInstrumentYears_throwsIllegalValueException() throws Exception {
         Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin:many,");
-        String expectedMessage = "Invalid value at line 2: For input string: \"many\"";
+        String expectedMessage = "Invalid value at line 2: " + Instrument.MESSAGE_FORMAT_CONSTRAINTS;
 
         assertThrows(IllegalValueException.class, expectedMessage, () -> CsvImporter.importPeople(csvFile));
     }

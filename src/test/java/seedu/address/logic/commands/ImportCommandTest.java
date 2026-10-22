@@ -24,6 +24,7 @@ public class ImportCommandTest {
 
     private static final Path IMPORT_DIRECTORY = Path.of("imports");
     private static final String FILE_NAME = "import-command-test.csv";
+    private static final String MISSING_FILE_NAME = "missing.csv";
     private static final Path IMPORT_FILE = IMPORT_DIRECTORY.resolve(FILE_NAME);
     private static final String HEADER = "name,phone,email,status,memberType,role,instruments,groups";
 
@@ -72,6 +73,12 @@ public class ImportCommandTest {
         writeImportFile(HEADER, "Existing Person,81111111,existing@example.com,member,student,,,");
 
         assertCommandFailure(new ImportCommand(FILE_NAME), model, ImportCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_missingFile_failureWithHelpfulMessage() {
+        assertCommandFailure(new ImportCommand(MISSING_FILE_NAME), model,
+                String.format(ImportCommand.MESSAGE_FILE_NOT_FOUND, MISSING_FILE_NAME));
     }
 
     private void writeImportFile(String... lines) throws IOException {

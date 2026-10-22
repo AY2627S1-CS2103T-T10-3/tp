@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class ImportCommand extends Command {
             + "Example: " + COMMAND_WORD + " members.csv";
     public static final String MESSAGE_SUCCESS = "Imported %d people from %s.";
     public static final String MESSAGE_IMPORT_FAILURE = "Could not import %s: %s";
+    public static final String MESSAGE_FILE_NOT_FOUND = "No file named %s in the imports folder.";
     public static final String MESSAGE_DUPLICATE_PERSON =
             "Import failed because a person already exists in the address book or is repeated in the CSV.";
 
@@ -45,6 +47,8 @@ public class ImportCommand extends Command {
         List<Person> importedPeople;
         try {
             importedPeople = CsvImporter.importPeople(importPath);
+        } catch (NoSuchFileException exception) {
+            throw new CommandException(String.format(MESSAGE_FILE_NOT_FOUND, fileName), exception);
         } catch (IOException | IllegalValueException exception) {
             throw new CommandException(String.format(MESSAGE_IMPORT_FAILURE, fileName, exception.getMessage()),
                     exception);
