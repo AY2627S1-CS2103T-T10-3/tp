@@ -85,7 +85,7 @@ The `UI` component,
 
 #### Member cards
 
-`PersonListPanel` observes the filtered person list exposed by `Logic`. Its list cells create a `PersonCard` for each displayed person, passing the cell's one-based index. When `find`, `filter`, or `list` changes the displayed results, the list updates the cards and their indices. The existing UI class diagram shows this relationship; the card enhancement adds no new classes or dependencies.
+`PersonListPanel` observes the filtered and sorted person view exposed by `Logic`. Its list cells create a `PersonCard` for each displayed person, passing the cell's one-based index. When `find`, `filter`, `sort`, or `list` changes the displayed results, the list updates the cards and their indices. The existing UI class diagram shows this relationship; the card enhancement adds no new classes or dependencies.
 
 `PersonCard` loads `PersonListCard.fxml` through `UiPart`. The FXML `fx:id` attributes match the controller's `@FXML` fields. The constructor reads the person's public getters to populate the name, contact details, membership status, member type, optional role, and instruments. Type and status use the model's keyword strings. Instrument labels use `Instrument.toDisplayString()` and are sorted by name, ignoring case.
 
@@ -141,7 +141,7 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* maintains a `FilteredList<Person>` view of the directory and a `SortedList<Person>` view of those filtered results. It exposes the sorted view as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when membership or ordering changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -171,7 +171,7 @@ This section describes some noteworthy details on how certain features are imple
 
 The `find` command matches any part of a person's name, ignoring case. For example, `find ali` matches `Alice Tan`. Multiple whitespace-separated keywords use OR: a person is included when at least one keyword matches. Only the name is searched.
 
-`FindCommandParser` rejects empty arguments and splits valid arguments into keywords. It constructs a `FindCommand` containing a `NameContainsKeywordsPredicate`. When executed, the command passes the predicate to `ModelManager.updateFilteredPersonList`, which updates the predicate of the JavaFX `FilteredList`. The UI observes this list and displays the matching persons with indices starting at 1; the underlying address book remains unchanged.
+`FindCommandParser` rejects empty arguments and splits valid arguments into keywords. It constructs a `FindCommand` containing a `NameContainsKeywordsPredicate`. When executed, the command passes the predicate to `ModelManager.updateFilteredPersonList`, which updates the predicate of the JavaFX `FilteredList`. The UI observes the wrapping `SortedList` and displays the matching persons in the selected order with indices starting at 1; the underlying address book remains unchanged.
 
 The following sequence diagram traces a successful `find ali` command. The participant `m:Model` is implemented by `ModelManager`. Setting the predicate evaluates the full directory, replacing any previous search or filter. The command uses the resulting list size for its feedback message and does not require a save.
 
@@ -182,6 +182,16 @@ The following sequence diagram traces a successful `find ali` command. The parti
 `NameContainsKeywordsPredicate` uses `StringUtil.containsSubstringIgnoreCase` for each keyword. The helper trims the keyword, rejects null, empty or multiple-word inputs, and normalises both strings with `Locale.ROOT` before checking for a substring. The original `containsWordIgnoreCase` helper retains its whole-word behaviour for other callers.
 
 Tests in `StringUtilTest` cover substring positions, case differences, invalid inputs and non-matches. `NameContainsKeywordsPredicateTest` verifies name-only matching and OR semantics. `FindCommandTest` checks the resulting persons and feedback count, while `FindCommandParserTest` covers empty arguments and extra whitespace.
+
+### Sorting displayed members
+
+`SortCommandParser` accepts exactly one attribute, `name` or `status`, ignoring case and surrounding whitespace. `SortCommandParser` maps each keyword to a `SortKey` enum value holding its comparator. `SortCommand` passes that comparator to `Model.updateSortedPersonList`. Name sorting compares full names using `String.CASE_INSENSITIVE_ORDER`. Status sorting uses explicit ranks: `MEMBER`, `ACTIVE_ALUMNUS`, then `INACTIVE_ALUMNUS`, independently of enum declaration order.
+
+`ModelManager` wraps its `FilteredList<Person>` in a `SortedList<Person>`. `getFilteredPersonList` exposes this sorted view to the UI and index-based commands, keeping displayed indices consistent with edit and delete. The model breaks comparator ties using cached directory positions, so switching from name sorting still restores directory order within each status. A source-list listener refreshes the cache before the filtered and sorted views process each directory change; comparisons use constant-time lookups without retaining the model in the comparator. Stored records are not reordered, and `SortCommand.requiresSave` returns false.
+
+Find/filter update the predicate without clearing the comparator. Add/edit retain sorting while restoring the full directory. `ListCommand` resets the predicate and clears the comparator to restore insertion order. A new model starts without a comparator, so sorting is session-only.
+
+Sorting tests cover case-insensitive names, membership order, ties, switching ordering, filter/search transitions, empty results, list reset, add/edit/delete interactions and unchanged stored order. Parser tests cover case and whitespace, missing attributes, unsupported attributes and extra arguments.
 
 ### Status, instrument, type, role, and group filtering
 
@@ -197,17 +207,18 @@ The following sequence diagram traces `filter s/member i/Violin:3 ty/teacher r/C
 
 [Open the sequence diagram at full size](images/FilterSequenceDiagram.png). [PlantUML source](diagrams/FilterSequenceDiagram.puml). The diagram focuses on successful parsing and execution; model snapshots and UI list-change notifications are omitted.
 
-### \[Proposed\] Undo/redo feature
+### Undo/redo feature
 
-#### Proposed Implementation
+#### Implementation
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+The undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
 
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
+* `VersionedAddressBook#commit()` — Records the current address book state in its history, unless the data is unchanged.
+* `VersionedAddressBook#undo()` — Reverts the most recent change by restoring an earlier state from its history.
+* `VersionedAddressBook#redo()` — Restores the most recently undone state from its history.
+* `VersionedAddressBook#canUndo()` and `VersionedAddressBook#canRedo()` — Return whether there is a change to revert or restore.
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()`, `Model#redoAddressBook()`, `Model#canUndoAddressBook()` and `Model#canRedoAddressBook()` respectively.
 
 Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
 
@@ -215,24 +226,23 @@ Step 1. The user launches the application for the first time. The `VersionedAddr
 
 ![UndoRedoState0](images/UndoRedoState0.png)
 
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Step 2. The user executes `delete 5` command to delete the 5th person in the address book. `LogicManager` executes the command and, after the address book is saved to storage successfully, calls `Model#commitAddressBook()`, causing the modified state of the address book to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
 
 ![UndoRedoState1](images/UndoRedoState1.png)
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+Step 3. The user executes `add n/David …​` to add a new person. `LogicManager` executes the command and, after a successful save, calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
 
 ![UndoRedoState2](images/UndoRedoState2.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** No state is committed if the command fails or the save fails. If the save fails, `LogicManager` also restores the address book, the filtered list and the `currentStatePointer` to how they were before the command, so a failed `undo` leaves the history unchanged.
 
 </div>
 
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
+Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command calls `Model#undoAddressBook()`, which shifts the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state. The full member list is then shown.
 
 ![UndoRedoState3](images/UndoRedoState3.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial address book state, then there is nothing to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will show "There is no change to undo." to the user.
 
 </div>
 
@@ -248,17 +258,17 @@ Similarly, how an undo operation goes through the `Model` component is shown bel
 
 ![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
 
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
+The `redo` command does the opposite: it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it shows "There is no undone change to redo." to the user.
 
 </div>
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
+Step 5. The user then decides to execute the command `list`. `list` does not change data, so `LogicManager` returns its result without saving or calling `Model#commitAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
 
 ![UndoRedoState4](images/UndoRedoState4.png)
 
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
+Step 6. The user executes `clear`. `LogicManager` executes the command and, after a successful save, calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: it no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
 
 ![UndoRedoState5](images/UndoRedoState5.png)
 
@@ -274,12 +284,19 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Easy to implement.
   * Cons: May have performance issues in terms of memory usage.
 
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
+* **Alternative 2:** Individual command knows how to undo/redo by itself.
   * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
-_{more aspects and alternatives to be added}_
+**Aspect: Where states are committed:**
+
+* **Alternative 1 (current choice):** `LogicManager` commits after a successful save.
+  * Pros: Failed saves never enter the history; new data-changing commands are undoable without extra code.
+  * Cons: Relies on `commit()` comparing states to skip unchanged data.
+
+* **Alternative 2:** Each data-changing command calls `Model#commitAddressBook()` (the original AB3 proposal).
+  * Pros: Explicit.
+  * Cons: Easy to forget in new commands; a change is recorded even if saving it fails.
 
 ### \[Proposed\] Data archiving
 
@@ -509,7 +526,7 @@ Priorities: High (must have), Medium (nice to have), Low (unlikely to have)
 * **CCA**: Co-Curricular Activity. A student society, such as a school band or orchestra.
 * **Coordinator**: The user of HiveMind, i.e., the person in the CCA who is responsible for maintaining its member records and organising players for pieces and activities.
 * **Directory**: The full set of member records stored in HiveMind.
-* **Displayed index**: The number shown next to a member in the list currently displayed. It changes after a `find`, `filter` or `list`, and is used to refer to a member in commands such as `delete`.
+* **Displayed index**: The number shown next to a member in the list currently displayed. It may change after a `find`, `filter`, `sort` or `list`, and is used to refer to a member in commands such as `delete`.
 * **Filter**: To display only the members who meet all the given criteria (e.g., status, instrument, minimum years played). Unlike _find_, which searches by name only.
 * **Inactive alumnus**: An alumnus who no longer plays with the CCA, but whose record is kept (e.g., for contacting them about alumni events).
 * **Instrument experience**: The whole number of years a member has played a particular instrument. It is recorded separately for each instrument, and is used as the measure of a member's competency on that instrument.
@@ -565,6 +582,34 @@ Use a disposable directory for these checks so the test records do not affect yo
    Expected: Each result shows the appropriate members with complete card details and indices starting at `1`; the no-match search shows no cards; `list` restores all members in insertion order.
 1. Add a member with a long name, email and role, and several instruments. Resize the window narrower and scroll through the list.<br>
    Expected: Text wraps without overlapping other fields, instrument labels flow onto additional rows, and all recorded details remain accessible. Check both full and empty optional fields again after scrolling.
+
+### Sorting displayed members
+
+Use a disposable directory with only these four records, added in this order:
+
+* `add n/Amy p/90000011 e/amy@example.com s/inactive-alumnus`
+* `add n/Zoe p/90000012 e/zoe@example.com s/member`
+* `add n/Bob p/90000013 e/bob@example.com s/active-alumnus`
+* `add n/alice p/90000014 e/alice@example.com s/member`
+
+1. Run `sort name`.<br>
+   Expected: alice, Amy, Bob, Zoe, numbered 1 to 4. The feedback is `Sorted displayed members by name.`
+1. Run `sort status`.<br>
+   Expected: Zoe, alice, Bob, Amy. Zoe precedes alice because status ties use directory order, not the previous alphabetical order.
+1. Run `find amy bob`, then `filter s/member s/active-alumnus`.<br>
+   Expected: The search shows Bob, Amy; the filter shows Zoe, alice, Bob, retaining status order.
+1. Run `sort`, `sort role` and `sort status desc`.<br>
+   Expected: Each shows invalid-format feedback with sort usage, without changing the displayed results.
+1. Run `list`, then `sort STATUS`.<br>
+   Expected: `list` shows Amy, Zoe, Bob, alice; the uppercase attribute is accepted and restores status order.
+1. Run `delete 1`.<br>
+   Expected: Zoe is deleted, and the remaining cards are alice, Bob, Amy, numbered 1 to 3.
+1. Run `edit 1 s/inactive-alumnus`.<br>
+   Expected: alice becomes an inactive alumnus; the cards reorder to Bob, Amy, alice.
+1. Run `find zzznomatch`, then `sort status`.<br>
+   Expected: The empty results stay empty and sorting reports success.
+1. Close and reopen the app.<br>
+   Expected: The remaining records appear in stored directory order, Amy, Bob, alice. Status changes and deletion persist, but sorting does not.
 
 ### Deleting a person
 
