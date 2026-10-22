@@ -6,20 +6,24 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Tests status and instrument criteria, with OR within each field and AND between fields.
+ * Tests member criteria, with OR within each field and AND between fields.
  */
 public class PersonMatchesFilterPredicate implements Predicate<Person> {
     private final Set<Status> statuses;
     private final Set<InstrumentCriterion> instrumentCriteria;
+    private final Set<MemberType> memberTypes;
+    private final Set<Role> roles;
 
     /**
-     * Creates a predicate with OR within each field and AND between fields.
-     * An empty set leaves its field unrestricted.
-     * Each instrument criterion specifies an inclusive minimum for that same instrument.
+     * Creates a predicate with optional status, instrument, member type, and role criteria.
+     * An empty set leaves its field unrestricted. Roles match the whole name, ignoring case and surrounding whitespace.
      */
-    public PersonMatchesFilterPredicate(Set<Status> statuses, Set<InstrumentCriterion> instrumentCriteria) {
+    public PersonMatchesFilterPredicate(Set<Status> statuses, Set<InstrumentCriterion> instrumentCriteria,
+            Set<MemberType> memberTypes, Set<Role> roles) {
         this.statuses = Set.copyOf(requireNonNull(statuses));
         this.instrumentCriteria = Set.copyOf(requireNonNull(instrumentCriteria));
+        this.memberTypes = Set.copyOf(requireNonNull(memberTypes));
+        this.roles = Set.copyOf(requireNonNull(roles));
     }
 
     @Override
@@ -28,6 +32,11 @@ public class PersonMatchesFilterPredicate implements Predicate<Person> {
         boolean matchesInstrument = instrumentCriteria.isEmpty() || instrumentCriteria.stream()
                 .anyMatch(criterion -> person.getInstruments().stream()
                         .anyMatch(criterion::matches));
-        return matchesStatus && matchesInstrument;
+        boolean matchesMemberType = memberTypes.isEmpty() || memberTypes.contains(person.getMemberType());
+        boolean matchesRole = roles.isEmpty() || person.getRole()
+                .map(role -> roles.stream().anyMatch(criterion -> criterion.value.trim()
+                        .equalsIgnoreCase(role.value.trim())))
+                .orElse(false);
+        return matchesStatus && matchesInstrument && matchesMemberType && matchesRole;
     }
 }

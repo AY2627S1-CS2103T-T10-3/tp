@@ -75,4 +75,7 @@ public interface Model {
      * A null comparator restores the source order.
      */
     void updateSortedPersonList(Comparator<Person> comparator);
+
+    /** Returns the predicate currently used to filter the person list. */
+    Predicate<Person> getFilteredPersonListPredicate();
 }

@@ -4,29 +4,56 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 
-import java.util.Locale;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.model.ModelManager;
+import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
+import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 public class SortCommandParserTest {
     private final SortCommandParser parser = new SortCommandParser();
 
     @Test
-    public void parse_validAttributes_acceptsCaseAndSurroundingWhitespace() throws Exception {
-        for (String attribute : new String[] {"name", "status"}) {
-            assertEquals(String.format(SortCommand.MESSAGE_SUCCESS, attribute),
-                    parser.parse(" \t" + attribute.toUpperCase(Locale.ROOT) + "\n ")
-                            .execute(new ModelManager()).getFeedbackToUser());
+    public void parse_validArgs_returnsNameSortCommand() throws Exception {
+        Person zoe = new PersonBuilder().withName("Zoe").build();
+        Person alice = new PersonBuilder().withName("alice").build();
+        for (String input : List.of("name", "NAME", "NaMe", " \n name \t ")) {
+            ModelManager model = new ModelManager(new AddressBookBuilder()
+                    .withPerson(zoe).withPerson(alice).build(), new UserPrefs());
+            SortCommand command = parser.parse(input);
+            assertEquals(String.format(SortCommand.MESSAGE_SUCCESS, "name"),
+                    command.execute(model).getFeedbackToUser());
+            assertEquals(List.of(alice, zoe), model.getFilteredPersonList());
+            assertEquals(List.of(zoe, alice), model.getAddressBook().getPersonList());
         }
     }
 
     @Test
-    public void parse_invalidArguments_throwsParseException() {
-        for (String args : new String[] {"", " ", "role", "name status", "status name", "status desc"}) {
-            assertParseFailure(parser, args, String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE));
+    public void parse_emptyArgs_throwsParseException() {
+        for (String input : List.of("", " ", "\n\t")) {
+            assertParseFailure(parser, input,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE));
+        }
+    }
+
+    @Test
+    public void parse_unsupportedAttribute_throwsParseException() {
+        for (String input : List.of("phone", "role", "names")) {
+            assertParseFailure(parser, input,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE));
+        }
+    }
+
+    @Test
+    public void parse_extraArguments_throwsParseException() {
+        for (String input : List.of("name descending", "name name", "name\tphone")) {
+            assertParseFailure(parser, input,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE));
         }
     }
 }

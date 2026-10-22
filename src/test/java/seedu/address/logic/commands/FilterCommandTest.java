@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
@@ -27,7 +28,9 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.InstrumentCriterion;
+import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.Role;
 import seedu.address.model.person.Status;
 import seedu.address.testutil.PersonBuilder;
 
@@ -42,7 +45,8 @@ public class FilterCommandTest {
         Model expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         expectedModel.updateFilteredPersonList(person -> List.of(ALICE, BENSON, DANIEL).contains(person));
 
-        assertCommandSuccess(new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("VIOLIN", 0))), model,
+        assertCommandSuccess(new FilterCommand(Set.of(),
+                Set.of(new InstrumentCriterion("VIOLIN", 0)), Set.of(), Set.of()), model,
                 String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3), expectedModel);
         assertEquals(List.of(ALICE, BENSON, DANIEL), model.getFilteredPersonList());
         assertEquals(getTypicalAddressBook(), model.getAddressBook());
@@ -53,7 +57,8 @@ public class FilterCommandTest {
         Model expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         expectedModel.updateFilteredPersonList(person -> false);
 
-        assertCommandSuccess(new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Harp", 0))), model,
+        assertCommandSuccess(new FilterCommand(Set.of(),
+                Set.of(new InstrumentCriterion("Harp", 0)), Set.of(), Set.of()), model,
                 String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0), expectedModel);
         assertEquals(List.of(), model.getFilteredPersonList());
     }
@@ -61,7 +66,7 @@ public class FilterCommandTest {
     @Test
     public void execute_previouslyFiltered_searchesWholeDirectory() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
-        new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Cello", 0))).execute(model);
+        new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Cello", 0)), Set.of(), Set.of()).execute(model);
 
         assertEquals(List.of(BENSON), model.getFilteredPersonList());
         assertEquals(getTypicalAddressBook(), model.getAddressBook());
@@ -69,7 +74,7 @@ public class FilterCommandTest {
 
     @Test
     public void execute_listAfterFilter_showsEveryone() {
-        new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Cello", 0))).execute(model);
+        new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Cello", 0)), Set.of(), Set.of()).execute(model);
         new ListCommand().execute(model);
 
         assertEquals(getTypicalAddressBook().getPersonList(), model.getFilteredPersonList());
@@ -159,25 +164,25 @@ public class FilterCommandTest {
     public void equalsAndHashCode_statusesAndInstruments_includeBothFields() {
         FilterCommand command = new FilterCommand(
                 Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS),
-                Set.of(new InstrumentCriterion("Violin", 0), new InstrumentCriterion("Cello", 0)));
+                Set.of(new InstrumentCriterion("Violin", 0), new InstrumentCriterion("Cello", 0)), Set.of(), Set.of());
         FilterCommand equivalentCommand = new FilterCommand(
                 Set.of(Status.ACTIVE_ALUMNUS, Status.MEMBER),
-                Set.of(new InstrumentCriterion("Cello", 0), new InstrumentCriterion("Violin", 0)));
+                Set.of(new InstrumentCriterion("Cello", 0), new InstrumentCriterion("Violin", 0)), Set.of(), Set.of());
         assertEquals(command, equivalentCommand);
         assertEquals(command.hashCode(), equivalentCommand.hashCode());
         assertTrue(Set.of(command).contains(equivalentCommand));
         assertNotEquals(command, new FilterCommand(Set.of(Status.MEMBER),
-                Set.of(new InstrumentCriterion("Violin", 0), new InstrumentCriterion("Cello", 0))));
+                Set.of(new InstrumentCriterion("Violin", 0), new InstrumentCriterion("Cello", 0)), Set.of(), Set.of()));
         assertNotEquals(command, new FilterCommand(Set.of(Status.MEMBER, Status.ACTIVE_ALUMNUS),
-                Set.of(new InstrumentCriterion("Violin", 0))));
+                Set.of(new InstrumentCriterion("Violin", 0)), Set.of(), Set.of()));
     }
 
     @Test
     public void hashCode_equalInstrumentSets_supportsHashSetLookup() {
         FilterCommand command = new FilterCommand(Set.of(),
-                Set.of(new InstrumentCriterion("Violin", 0), new InstrumentCriterion("Viola", 0)));
+                Set.of(new InstrumentCriterion("Violin", 0), new InstrumentCriterion("Viola", 0)), Set.of(), Set.of());
         FilterCommand equivalentCommand = new FilterCommand(Set.of(),
-                Set.of(new InstrumentCriterion("Viola", 0), new InstrumentCriterion("Violin", 0)));
+                Set.of(new InstrumentCriterion("Viola", 0), new InstrumentCriterion("Violin", 0)), Set.of(), Set.of());
         Set<FilterCommand> commands = new HashSet<>();
         commands.add(command);
 
@@ -188,11 +193,14 @@ public class FilterCommandTest {
 
     @Test
     public void equals() {
-        FilterCommand command = new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Violin", 0)));
+        FilterCommand command = new FilterCommand(Set.of(),
+                Set.of(new InstrumentCriterion("Violin", 0)), Set.of(), Set.of());
 
         assertEquals(command, command);
-        assertEquals(command, new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Violin", 0))));
-        assertNotEquals(command, new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Cello", 0))));
+        assertEquals(command, new FilterCommand(Set.of(),
+                Set.of(new InstrumentCriterion("Violin", 0)), Set.of(), Set.of()));
+        assertNotEquals(command, new FilterCommand(Set.of(),
+                Set.of(new InstrumentCriterion("Cello", 0)), Set.of(), Set.of()));
         assertNotEquals(command, null);
         assertNotEquals(command, "Violin");
     }
@@ -229,11 +237,53 @@ public class FilterCommandTest {
 
     @Test
     public void equalsAndHashCode_minimumYears_areIncluded() {
-        FilterCommand command = new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Violin", 3)));
-        FilterCommand equivalentCommand = new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("VIOLIN", 3)));
+        FilterCommand command = new FilterCommand(Set.of(),
+                Set.of(new InstrumentCriterion("Violin", 3)), Set.of(), Set.of());
+        FilterCommand equivalentCommand = new FilterCommand(Set.of(),
+                Set.of(new InstrumentCriterion("VIOLIN", 3)), Set.of(), Set.of());
         assertEquals(command, equivalentCommand);
         assertEquals(command.hashCode(), equivalentCommand.hashCode());
         assertTrue(Set.of(command).contains(equivalentCommand));
-        assertNotEquals(command, new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Violin", 4))));
+        assertNotEquals(command, new FilterCommand(Set.of(),
+                Set.of(new InstrumentCriterion("Violin", 4)), Set.of(), Set.of()));
+    }
+
+    @Test
+    public void execute_typeAndRole_searchesWholeDirectoryAndListRestoresEveryone() throws Exception {
+        Person teacher = new PersonBuilder().withName("Teacher").withMemberType("teacher")
+                .withRole("Section Leader").withInstruments("Violin:3").build();
+        Person student = new PersonBuilder(teacher).withName("Student").withMemberType("student").build();
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(student);
+        addressBook.addPerson(teacher);
+        Model customModel = new ModelManager(addressBook, new UserPrefs());
+        showPersonAtIndex(customModel, INDEX_FIRST_PERSON);
+
+        Command command = new AddressBookParser().parseCommand(
+                "filter ty/teacher r/section leader s/member i/Violin:3");
+        CommandResult result = command.execute(customModel);
+        assertEquals(List.of(teacher), customModel.getFilteredPersonList());
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
+        assertFalse(command.requiresSave());
+        assertEquals(addressBook, customModel.getAddressBook());
+
+        new AddressBookParser().parseCommand("filter r/Conductor").execute(customModel);
+        assertEquals(List.of(), customModel.getFilteredPersonList());
+        new ListCommand().execute(customModel);
+        assertEquals(addressBook.getPersonList(), customModel.getFilteredPersonList());
+    }
+
+    @Test
+    public void equalsAndHashCode_memberTypesAndRoles_areIncluded() {
+        FilterCommand command = new FilterCommand(Set.of(), Set.of(),
+                Set.of(MemberType.TEACHER), Set.of(new Role("Conductor")));
+        FilterCommand equivalent = new FilterCommand(Set.of(), Set.of(),
+                Set.of(MemberType.TEACHER), Set.of(new Role("Conductor")));
+        assertEquals(command, equivalent);
+        assertEquals(command.hashCode(), equivalent.hashCode());
+        assertNotEquals(command, new FilterCommand(Set.of(), Set.of(),
+                Set.of(MemberType.STUDENT), Set.of(new Role("Conductor"))));
+        assertNotEquals(command, new FilterCommand(Set.of(), Set.of(),
+                Set.of(MemberType.TEACHER), Set.of(new Role("Section Leader"))));
     }
 }

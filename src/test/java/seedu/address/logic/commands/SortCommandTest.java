@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
@@ -26,6 +27,32 @@ public class SortCommandTest {
     private final AddressBook addressBook = new AddressBookBuilder()
             .withPerson(zoe).withPerson(alice).withPerson(bob).build();
     private final ModelManager model = new ModelManager(addressBook, new UserPrefs());
+
+    @Test
+    public void constructor_nullAttribute_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new SortCommand(null));
+    }
+
+    @Test
+    public void execute_nullModel_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new SortCommand("name").execute(null));
+    }
+
+    @Test
+    public void execute_unsupportedAttribute_throwsIllegalArgumentExceptionWithoutChangingModel() {
+        assertThrows(IllegalArgumentException.class,
+                "Unsupported sort attribute: phone", () -> new SortCommand("phone").execute(model));
+        assertEquals(new ModelManager(addressBook, new UserPrefs()), model);
+    }
+
+    @Test
+    public void execute_repeatedSort_preservesSortedAndStoredOrder() {
+        SortCommand command = new SortCommand("name");
+        command.execute(model);
+        assertEquals(String.format(SortCommand.MESSAGE_SUCCESS, "name"), command.execute(model).getFeedbackToUser());
+        assertEquals(List.of(alice, bob, zoe), model.getFilteredPersonList());
+        assertEquals(List.of(zoe, alice, bob), model.getAddressBook().getPersonList());
+    }
 
     @Test
     public void execute_fullList_sortsIgnoringCaseWithoutChangingStoredOrder() throws Exception {

@@ -47,7 +47,8 @@ public class PersonCardTest {
         runOnFxThread(() -> {
             Person person = new PersonBuilder().withName("Alicia Tan").withPhone("90000002")
                     .withEmail("alicia@example.com").withStatus("active-alumnus").withMemberType("teacher")
-                    .withRole("Section Leader").withInstruments("Violin:1", "piano:5").build();
+                    .withRole("Section Leader").withInstruments("Violin:1", "piano:5")
+                    .withGroups("zeta", "Alpha").build();
             PersonCard card = new PersonCard(person, 3);
 
             assertEquals("3. ", label(card, "id").getText());
@@ -65,6 +66,9 @@ public class PersonCardTest {
             List<String> instrumentLabels = instruments.getChildren().stream()
                     .map(node -> ((Label) node).getText()).toList();
             assertEquals(List.of("piano (5 yrs)", "Violin (1 yr)"), instrumentLabels);
+            assertEquals("Groups: Alpha, zeta", label(card, "groups").getText());
+            assertTrue(label(card, "groups").isVisible());
+            assertTrue(label(card, "groups").isManaged());
         });
     }
 
@@ -79,6 +83,9 @@ public class PersonCardTest {
             FlowPane instruments = (FlowPane) card.getRoot().lookup("#instruments");
             assertNotNull(instruments);
             assertTrue(instruments.getChildren().isEmpty());
+            assertEquals("", label(card, "groups").getText());
+            assertFalse(label(card, "groups").isVisible());
+            assertFalse(label(card, "groups").isManaged());
         });
     }
 
