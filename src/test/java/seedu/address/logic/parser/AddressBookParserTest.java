@@ -74,7 +74,8 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_filter() throws Exception {
-        assertEquals(new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Violin", 0)), Set.of(), Set.of()),
+        assertEquals(new FilterCommand(Set.of(), Set.of(new InstrumentCriterion("Violin", 0)), Set.of(), Set.of(),
+                Set.of()),
                 parser.parseCommand(FilterCommand.COMMAND_WORD + " i/Violin"));
     }
 
