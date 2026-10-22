@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An {@code AddressBook} that keeps a history of its committed states so that changes can be undone.
+ * An {@code AddressBook} that keeps a history of its committed states so that changes can be undone and redone.
  */
 public class VersionedAddressBook extends AddressBook {
 
@@ -68,7 +68,7 @@ public class VersionedAddressBook extends AddressBook {
 
     /**
      * Moves the current state to {@code pointer} without changing the data.
-     * Used to roll back an {@link #undo()} whose result could not be saved.
+     * Used to roll back an {@link #undo()} or {@link #redo()} whose result could not be saved.
      *
      * @throws IllegalArgumentException if {@code pointer} is not a position in the history.
      */
@@ -77,6 +77,27 @@ public class VersionedAddressBook extends AddressBook {
             throw new IllegalArgumentException("State pointer " + pointer + " is outside the history.");
         }
         currentStatePointer = pointer;
+    }
+
+    /**
+     * Returns true if there is an undone change that {@link #redo()} can restore.
+     */
+    public boolean canRedo() {
+        return currentStatePointer < addressBookStateList.size() - 1;
+    }
+
+    /**
+     * Restores the most recently undone change.
+     *
+     * @throws NoRedoableStateException if there is no undone change to restore.
+     */
+    public void redo() {
+        if (!canRedo()) {
+            throw new NoRedoableStateException();
+        }
+        assert !hasUncommittedChanges() : "Uncommitted changes would be lost by redo";
+        currentStatePointer++;
+        resetData(addressBookStateList.get(currentStatePointer));
     }
 
     /**
@@ -92,6 +113,15 @@ public class VersionedAddressBook extends AddressBook {
     public static class NoUndoableStateException extends RuntimeException {
         public NoUndoableStateException() {
             super("Current state pointer at start of addressBookState list, unable to undo.");
+        }
+    }
+
+    /**
+     * Thrown when a redo is attempted but there is no undone change to restore.
+     */
+    public static class NoRedoableStateException extends RuntimeException {
+        public NoRedoableStateException() {
+            super("Current state pointer at end of addressBookState list, unable to redo.");
         }
     }
 }

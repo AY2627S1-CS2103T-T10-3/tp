@@ -110,7 +110,7 @@ public class ModelManager implements Model {
         filteredPersons.setPredicate(predicate);
     }
 
-    //=========== Undo =====================================================================================
+    //=========== Undo/Redo ================================================================================
 
     @Override
     public boolean canUndoAddressBook() {
@@ -120,6 +120,16 @@ public class ModelManager implements Model {
     @Override
     public void undoAddressBook() {
         addressBook.undo();
+    }
+
+    @Override
+    public boolean canRedoAddressBook() {
+        return addressBook.canRedo();
+    }
+
+    @Override
+    public void redoAddressBook() {
+        addressBook.redo();
     }
 
     @Override
