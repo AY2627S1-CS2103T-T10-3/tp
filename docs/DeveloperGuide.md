@@ -122,13 +122,15 @@ How the `Logic` component works:
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
+The parser class diagram below uses `add` as one example of how HiveMind parses commands. It focuses on the Logic parser classes; the member fields are described in the text below rather than drawing the Model classes here:
 
-<img src="images/ParserClasses.png" width="600"/>
+<img src="images/ParserClasses.png" width="850"/>
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* `AddressBookParser` creates an `AddCommandParser` for `add`. The parser tokenizes prefixes into an `ArgumentMultimap` and checks that `n/`, `p/`, `e/`, and `s/` are present.
+* `ParserUtil` validates the status, member type, optional role, instruments, and participation groups. When `ty/` is omitted, `AddCommandParser` uses `student`; when `r/` is omitted, the person's role is empty. Repeated `g/` prefixes add groups to the person's group set.
+* `AddCommandParser` creates a `Person` from the parsed values, then an `AddCommand` containing that person. `AddressBookParser` returns it as a `Command` to `LogicManager`.
+* Other command parsers follow the same `Parser` interface, although their accepted prefixes and validation rules differ.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
@@ -171,15 +173,21 @@ The `find` command matches any part of a person's name, ignoring case. For examp
 
 `FindCommandParser` rejects empty arguments and splits valid arguments into keywords. It constructs a `FindCommand` containing a `NameContainsKeywordsPredicate`. When executed, the command passes the predicate to `ModelManager.updateFilteredPersonList`, which updates the predicate of the JavaFX `FilteredList`. The UI observes this list and displays the matching persons with indices starting at 1; the underlying address book remains unchanged.
 
+The following sequence diagram traces a successful `find ali` command. The participant `m:Model` is implemented by `ModelManager`. Setting the predicate evaluates the full directory, replacing any previous search or filter. The command uses the resulting list size for its feedback message and does not require a save.
+
+![Sequence diagram for find ali, showing keyword parsing, predicate creation, filtering, and the result count](images/FindSequenceDiagram.png)
+
+[Open the sequence diagram at full size](images/FindSequenceDiagram.png). The diagram focuses on parsing and execution; UI list-change notifications are omitted.
+
 `NameContainsKeywordsPredicate` uses `StringUtil.containsSubstringIgnoreCase` for each keyword. The helper trims the keyword, rejects null, empty or multiple-word inputs, and normalises both strings with `Locale.ROOT` before checking for a substring. The original `containsWordIgnoreCase` helper retains its whole-word behaviour for other callers.
 
 Tests in `StringUtilTest` cover substring positions, case differences, invalid inputs and non-matches. `NameContainsKeywordsPredicateTest` verifies name-only matching and OR semantics. `FindCommandTest` checks the resulting persons and feedback count, while `FindCommandParserTest` covers empty arguments and extra whitespace.
 
-### Status and instrument filtering
+### Status, instrument, type, and role filtering
 
-`FilterCommandParser` accepts repeated `s/STATUS` and `i/NAME[:MIN_YEARS]` arguments and requires at least one criterion. It validates every status through `ParserUtil.parseStatus`. Its `parseInstrumentCriterion` helper validates names through `ParserUtil.parseInstrumentName` and optional whole minimum years from 0 to 99. Name-only criteria default to a minimum of zero. Invalid minimum years use `InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS`. Other member-field prefixes are tokenized and rejected rather than absorbed into instrument names.
+`FilterCommandParser` accepts repeated `s/STATUS`, `i/NAME[:MIN_YEARS]`, `ty/TYPE`, and `r/ROLE` arguments and requires at least one criterion. It validates statuses, member types, and roles through `ParserUtil.parseStatus`, `parseMemberType`, and `parseRole`. Its `parseInstrumentCriterion` helper validates names through `ParserUtil.parseInstrumentName` and optional whole minimum years from 0 to 99. Name-only criteria default to a minimum of zero. Invalid minimum years use `InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS`. Unsupported contact-field prefixes are tokenized and rejected rather than absorbed into criterion values.
 
-`FilterCommand` stores immutable sets of statuses and `InstrumentCriterion` values. Each criterion has a normalized `name` and an explicit `minimumYears`. Its `matches(Instrument)` method checks the whole name through `Instrument.hasName` and an inclusive experience threshold on the same recorded instrument. `Instrument` continues to represent actual years played in member records and storage. `PersonMatchesFilterPredicate` checks the selected statuses and delegates instrument matching to each criterion. Criteria within a field use OR, including repeated names with different minimums, and the two fields use AND. An omitted field imposes no restriction, so status-only filters also include matching people without instruments.
+`FilterCommand` stores immutable sets of statuses, `InstrumentCriterion` values, member types, and roles. Each instrument criterion has a normalized `name` and an explicit `minimumYears`. Its `matches(Instrument)` method checks the whole name through `Instrument.hasName` and an inclusive experience threshold on the same recorded instrument. `Instrument` continues to represent actual years played in member records and storage. `PersonMatchesFilterPredicate` checks the selected statuses and member types and delegates instrument matching to each criterion. Roles match complete names, ignoring case and surrounding whitespace, without changing `Role.equals`. A missing role fails an explicit role criterion. Criteria within a field use OR, including repeated names with different minimums, and different fields use AND. An omitted field imposes no restriction, so status-only filters also include matching people without instruments or roles.
 
 The command replaces the predicate on the full directory's `FilteredList`, reports its match count, and leaves stored records unchanged. `list` restores all records. Parser, predicate, and command tests cover repeated criteria, invalid inputs, threshold boundaries, matching years on the correct instrument, combined criteria, people without instruments, empty results, and searches after earlier filters.
 

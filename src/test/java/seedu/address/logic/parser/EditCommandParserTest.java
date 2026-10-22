@@ -27,8 +27,10 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ROLE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_STATUS_AMY;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
@@ -45,6 +47,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
@@ -118,6 +121,8 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1 " + PREFIX_STATUS, Status.MESSAGE_CONSTRAINTS); // blank status
         assertParseFailure(parser, "1" + INVALID_MEMBER_TYPE_DESC,
                 MemberType.MESSAGE_CONSTRAINTS); // invalid member type
+        assertParseFailure(parser, "1 " + PREFIX_GROUP + "Training " + PREFIX_GROUP,
+                Group.MESSAGE_CONSTRAINTS);
 
         // multiple invalid values, but only the first invalid value is captured
         assertParseFailure(parser, "1" + INVALID_NAME_DESC + INVALID_EMAIL_DESC + VALID_PHONE_AMY,
@@ -148,6 +153,48 @@ public class EditCommandParserTest {
         EditCommand expectedCommand = new EditCommand(targetIndex, descriptor);
 
         assertParseSuccess(parser, userInput, expectedCommand);
+    }
+
+    @Test
+    public void parse_groupsSpecified_replacesGroups() {
+        Index targetIndex = INDEX_SECOND_PERSON;
+        String userInput = targetIndex.getOneBased() + " " + PREFIX_GROUP + "Training "
+                + PREFIX_GROUP + "Chamber Orchestra";
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withGroups("Training", "Chamber Orchestra").build();
+        assertParseSuccess(parser, userInput, new EditCommand(targetIndex, descriptor));
+    }
+
+    @Test
+    public void parse_singleGroup_replacesGroups() {
+        Index targetIndex = INDEX_SECOND_PERSON;
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withGroups("Training").build();
+        assertParseSuccess(parser, targetIndex.getOneBased() + " " + PREFIX_GROUP + "Training",
+                new EditCommand(targetIndex, descriptor));
+    }
+
+    @Test
+    public void parse_groupsDifferingOnlyInCase_storesOneGroup() {
+        Index targetIndex = INDEX_SECOND_PERSON;
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withGroups("Training").build();
+        assertParseSuccess(parser, targetIndex.getOneBased() + " " + PREFIX_GROUP + "Training "
+                + PREFIX_GROUP + "training", new EditCommand(targetIndex, descriptor));
+    }
+
+    @Test
+    public void parse_emptyGroup_clearsGroups() {
+        Index targetIndex = INDEX_SECOND_PERSON;
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withGroups().build();
+        assertParseSuccess(parser, targetIndex.getOneBased() + " " + PREFIX_GROUP,
+                new EditCommand(targetIndex, descriptor));
+    }
+
+    @Test
+    public void parse_emptyGroupWithName_clearsGroupsAndEditsName() {
+        Index targetIndex = INDEX_SECOND_PERSON;
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName("Bob").withGroups().build();
+        assertParseSuccess(parser, targetIndex.getOneBased() + " " + PREFIX_NAME + "Bob " + PREFIX_GROUP,
+                new EditCommand(targetIndex, descriptor));
     }
 
     @Test

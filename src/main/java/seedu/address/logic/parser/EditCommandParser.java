@@ -3,6 +3,7 @@ package seedu.address.logic.parser;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -19,6 +20,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Role;
 
@@ -36,7 +38,7 @@ public class EditCommandParser implements Parser<EditCommand> {
         requireNonNull(args);
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_STATUS,
-                        PREFIX_MEMBER_TYPE, PREFIX_ROLE, PREFIX_INSTRUMENT);
+                        PREFIX_MEMBER_TYPE, PREFIX_ROLE, PREFIX_INSTRUMENT, PREFIX_GROUP);
 
         Index index;
 
@@ -72,6 +74,8 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
         parseInstrumentsForEdit(argMultimap.getAllValues(PREFIX_INSTRUMENT))
                 .ifPresent(editPersonDescriptor::setInstruments);
+        parseGroupsForEdit(argMultimap.getAllValues(PREFIX_GROUP))
+                .ifPresent(editPersonDescriptor::setGroups);
 
         if (!editPersonDescriptor.isAnyFieldEdited()) {
             throw new ParseException(EditCommand.MESSAGE_NOT_EDITED);
@@ -110,6 +114,20 @@ public class EditCommandParser implements Parser<EditCommand> {
                 ? Collections.emptySet()
                 : instruments;
         return Optional.of(ParserUtil.parseInstruments(instrumentSet));
+    }
+
+    /**
+     * Parses replacement groups. One empty {@code g/} clears all groups; a blank group
+     * mixed with named groups is invalid.
+     */
+    private Optional<Set<Group>> parseGroupsForEdit(Collection<String> groups) throws ParseException {
+        requireNonNull(groups);
+        if (groups.isEmpty()) {
+            return Optional.empty();
+        }
+        Collection<String> replacementGroups = groups.size() == 1 && groups.contains("")
+                ? Collections.emptySet() : groups;
+        return Optional.of(ParserUtil.parseGroups(replacementGroups));
     }
 
 }

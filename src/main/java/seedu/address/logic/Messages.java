@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import seedu.address.logic.parser.Prefix;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
 
@@ -53,6 +54,13 @@ public class Messages {
                         .sorted(Comparator.comparing(Instrument::getName, String.CASE_INSENSITIVE_ORDER))
                         .map(Instrument::toString)
                         .collect(Collectors.joining(", ")));
+        if (!person.getGroups().isEmpty()) {
+            builder.append("; Groups: ")
+                    .append(person.getGroups().stream()
+                            .sorted(Comparator.comparing(Group::getName, String.CASE_INSENSITIVE_ORDER))
+                            .map(Group::toString)
+                            .collect(Collectors.joining(", ")));
+        }
         return builder.toString();
     }
 

@@ -17,6 +17,8 @@ import java.util.stream.Stream;
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.InstrumentCriterion;
+import seedu.address.model.person.MemberType;
+import seedu.address.model.person.Role;
 import seedu.address.model.person.Status;
 
 /**
@@ -29,25 +31,29 @@ public class FilterCommandParser implements Parser<FilterCommand> {
      * rejected instead of being silently read as part of an instrument name.
      */
     private static final Prefix[] UNSUPPORTED_PREFIXES = {
-        PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_MEMBER_TYPE, PREFIX_ROLE
+        PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL
     };
 
     /**
-     * Parses status and instrument criteria, including optional minimum years, and returns a FilterCommand.
+     * Parses member criteria, including optional minimum instrument years, and returns a FilterCommand.
      *
      * @throws ParseException if the arguments do not conform to the expected format.
      */
     @Override
     public FilterCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        Prefix[] prefixes = Stream.concat(Stream.of(PREFIX_STATUS, PREFIX_INSTRUMENT), Stream.of(UNSUPPORTED_PREFIXES))
+        Prefix[] prefixes = Stream.concat(
+                Stream.of(PREFIX_STATUS, PREFIX_INSTRUMENT, PREFIX_MEMBER_TYPE, PREFIX_ROLE),
+                Stream.of(UNSUPPORTED_PREFIXES))
                 .toArray(Prefix[]::new);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" " + args.trim(), prefixes);
 
         boolean hasUnsupportedPrefix = Stream.of(UNSUPPORTED_PREFIXES)
                 .anyMatch(prefix -> argMultimap.getValue(prefix).isPresent());
         boolean hasCriteria = argMultimap.getValue(PREFIX_STATUS).isPresent()
-                || argMultimap.getValue(PREFIX_INSTRUMENT).isPresent();
+                || argMultimap.getValue(PREFIX_INSTRUMENT).isPresent()
+                || argMultimap.getValue(PREFIX_MEMBER_TYPE).isPresent()
+                || argMultimap.getValue(PREFIX_ROLE).isPresent();
         if (!argMultimap.getPreamble().isEmpty() || !hasCriteria
                 || hasUnsupportedPrefix) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
@@ -61,7 +67,15 @@ public class FilterCommandParser implements Parser<FilterCommand> {
         for (String instrument : argMultimap.getAllValues(PREFIX_INSTRUMENT)) {
             instrumentCriteria.add(parseInstrumentCriterion(instrument));
         }
-        return new FilterCommand(statuses, instrumentCriteria);
+        Set<MemberType> memberTypes = new HashSet<>();
+        for (String memberType : argMultimap.getAllValues(PREFIX_MEMBER_TYPE)) {
+            memberTypes.add(ParserUtil.parseMemberType(memberType));
+        }
+        Set<Role> roles = new HashSet<>();
+        for (String role : argMultimap.getAllValues(PREFIX_ROLE)) {
+            roles.add(ParserUtil.parseRole(role));
+        }
+        return new FilterCommand(statuses, instrumentCriteria, memberTypes, roles);
     }
 
     /**

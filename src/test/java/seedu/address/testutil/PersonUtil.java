@@ -1,6 +1,7 @@
 package seedu.address.testutil;
 
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -12,6 +13,7 @@ import java.util.Set;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Role;
@@ -42,6 +44,7 @@ public class PersonUtil {
         person.getInstruments().stream().forEach(
             s -> sb.append(PREFIX_INSTRUMENT + s.toString() + " ")
         );
+        person.getGroups().forEach(group -> sb.append(PREFIX_GROUP).append(group).append(" "));
         return sb.toString();
     }
 
@@ -61,9 +64,17 @@ public class PersonUtil {
         if (descriptor.getInstruments().isPresent()) {
             Set<Instrument> instruments = descriptor.getInstruments().get();
             if (instruments.isEmpty()) {
-                sb.append(PREFIX_INSTRUMENT);
+                sb.append(PREFIX_INSTRUMENT).append(" ");
             } else {
                 instruments.forEach(s -> sb.append(PREFIX_INSTRUMENT).append(s).append(" "));
+            }
+        }
+        if (descriptor.getGroups().isPresent()) {
+            Set<Group> groups = descriptor.getGroups().get();
+            if (groups.isEmpty()) {
+                sb.append(PREFIX_GROUP);
+            } else {
+                groups.forEach(group -> sb.append(PREFIX_GROUP).append(group).append(" "));
             }
         }
         return sb.toString();

@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.MemberType;
 import seedu.address.model.person.Name;
@@ -33,6 +35,7 @@ class JsonAdaptedPerson {
     private final String memberType;
     private final String role;
     private final List<JsonAdaptedInstrument> instruments = new ArrayList<>();
+    private final List<String> groups = new ArrayList<>();
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -41,7 +44,8 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("status") String status,
             @JsonProperty("memberType") String memberType, @JsonProperty("role") String role,
-            @JsonProperty("instruments") List<JsonAdaptedInstrument> instruments) {
+            @JsonProperty("instruments") List<JsonAdaptedInstrument> instruments,
+            @JsonProperty("groups") List<String> groups) {
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -51,6 +55,17 @@ class JsonAdaptedPerson {
         if (instruments != null) {
             this.instruments.addAll(instruments);
         }
+        if (groups != null) {
+            this.groups.addAll(groups);
+        }
+    }
+
+    /**
+     * Creates an adapted person without groups for callers using the previous data shape.
+     */
+    public JsonAdaptedPerson(String name, String phone, String email, String status,
+            String memberType, String role, List<JsonAdaptedInstrument> instruments) {
+        this(name, phone, email, status, memberType, role, instruments, null);
     }
 
     /**
@@ -66,6 +81,10 @@ class JsonAdaptedPerson {
         instruments.addAll(source.getInstruments().stream()
                 .map(JsonAdaptedInstrument::new)
                 .collect(Collectors.toList()));
+        groups.addAll(source.getGroups().stream()
+                .map(Group::getName)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -80,6 +99,14 @@ class JsonAdaptedPerson {
         }
         if (Instrument.hasDuplicateNames(personInstruments)) {
             throw new IllegalValueException(Instrument.MESSAGE_DUPLICATE_NAMES);
+        }
+
+        final Set<Group> modelGroups = new HashSet<>();
+        for (String group : groups) {
+            if (group == null || !Group.isValidName(group)) {
+                throw new IllegalValueException(Group.MESSAGE_CONSTRAINTS);
+            }
+            modelGroups.add(new Group(group));
         }
 
         if (name == null) {
@@ -130,7 +157,7 @@ class JsonAdaptedPerson {
 
         final Set<Instrument> modelInstruments = Set.copyOf(personInstruments);
         return new Person(modelName, modelPhone, modelEmail, modelStatus, modelMemberType, modelRole,
-                modelInstruments);
+                modelInstruments, modelGroups);
     }
 
 }

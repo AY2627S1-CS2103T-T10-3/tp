@@ -1,18 +1,20 @@
 package seedu.address.ui;
 
 import java.util.Comparator;
+import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
 
 /**
  * A UI component that displays a person's name, contact details, membership status,
- * member type, optional role, and instruments with years of experience.
+ * member type, optional role, instruments with years of experience, and participation groups.
  */
 public class PersonCard extends UiPart<Region> {
 
@@ -46,6 +48,8 @@ public class PersonCard extends UiPart<Region> {
     private Label role;
     @FXML
     private FlowPane instruments;
+    @FXML
+    private Label groups;
 
     /**
      * Creates a card for the given person at the specified displayed index.
@@ -76,5 +80,14 @@ public class PersonCard extends UiPart<Region> {
         person.getInstruments().stream()
                 .sorted(Comparator.comparing(Instrument::getName, String.CASE_INSENSITIVE_ORDER))
                 .forEach(instrument -> instruments.getChildren().add(new Label(instrument.toDisplayString())));
+
+        boolean hasGroups = !person.getGroups().isEmpty();
+        String groupNames = person.getGroups().stream()
+                .sorted(Comparator.comparing(Group::getName, String.CASE_INSENSITIVE_ORDER))
+                .map(Group::toString)
+                .collect(Collectors.joining(", "));
+        groups.setText(hasGroups ? "Groups: " + groupNames : "");
+        groups.setVisible(hasGroups);
+        groups.setManaged(hasGroups);
     }
 }

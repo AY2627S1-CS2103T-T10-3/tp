@@ -75,9 +75,9 @@ Format: `help`
 
 ### Adding a person: `add`
 
-Adds a person to the address book.
+Adds a person to HiveMind.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`
 
 * `s/STATUS` is required: use `member`, `active-alumnus`, or `inactive-alumnus`. Status is case-insensitive.
 * `ty/TYPE` is optional: use `student` or `teacher`. It defaults to `student` when omitted.
@@ -85,6 +85,8 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRU
 * Type and status appear beneath the member's name on the card. If a role is supplied, it appears beneath the contact details; otherwise, the role line is hidden.
 * `i/INSTRUMENT:YEARS` records an instrument the person plays and how many whole years they have played it, from `0` to `99`. For example, `i/Violin:5` or `i/Bass Guitar:1`.
 * Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case, so `Violin` and `violin` count as the same instrument.
+* `g/GROUP` records a participation group, such as `g/Chamber Orchestra`. It may be repeated for multiple groups. Blank group names are rejected; names are compared ignoring case and extra whitespace, so repeated names are stored only once.
+* Recorded groups appear in the command's success message and on the member card.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of instruments, including zero.
@@ -93,6 +95,7 @@ A person can have any number of instruments, including zero.
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com s/member`
 * `add n/Betsy Crowe p/1234567 e/betsy@example.com s/active-alumnus ty/teacher r/Conductor i/Violin:12 i/Piano:4`
+* `add n/Jane Tan p/91234567 e/jane@example.com s/member g/Chamber Orchestra g/New Member Training`
 
 ### Listing all persons: `list`
 
@@ -107,6 +110,7 @@ Each member card displays:
 * Phone number and email address.
 * A `Role:` line when a role is recorded. No role line is shown when it is absent.
 * Recorded instruments and their years of experience, sorted alphabetically by instrument name, ignoring case. For example, `Piano (5 yrs)` and `Violin (1 yr)`. No instrument labels appear when none are recorded.
+* A `Groups:` line listing participation groups alphabetically when any are recorded. No groups line is shown when none are recorded.
 
 The same card details are shown in `find` and `filter` results. Displayed indices start at `1` and refer to the current list, so a member's index may change after a search or filter. Use the current displayed index for commands such as `edit` and `delete`.
 
@@ -114,19 +118,20 @@ Example: after `find alex david`, enter `list` to show everyone again. The resul
 
 ### Editing a person: `edit`
 
-Edits an existing person in the address book.
+Edits an existing person in HiveMind.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​`
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
 * `s/STATUS` and `ty/TYPE` accept the same values as in `add`: `member`, `active-alumnus`, or `inactive-alumnus` for status, and `student` or `teacher` for type, ignoring case.
 * `r/ROLE` replaces the person's role. To remove the role, enter `r/` without a role after it.
-* Fields that are not specified are preserved. For example, editing a person's status keeps their contact details, type, role, and instruments.
+* Fields that are not specified are preserved. For example, editing a person's status keeps their contact details, type, role, instruments, and groups.
 * Instruments are preserved when they are not edited.
 * When editing instruments, all of the person's existing instruments are replaced; adding instruments is not cumulative.
 * To remove all of a person's instruments, enter `i/` without an instrument after it.
+* When editing groups, all existing groups are replaced by the supplied `g/GROUP` values. To remove all groups, enter `g/` alone. Mixing an empty `g/` with named groups is invalid.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
@@ -134,6 +139,8 @@ Examples:
 *  `edit 3 i/Cello:6 i/Piano:2` Replaces the instruments of the 3rd person with Cello (6 years) and Piano (2 years).
 *  `edit 1 s/active-alumnus r/` Marks the 1st person as an active alumnus and removes their role.
 *  `edit 4 ty/teacher r/Conductor` Changes the 4th person's type to teacher and their role to `Conductor`.
+*  `edit 2 g/Chamber Orchestra g/Training` Replaces the 2nd person's groups.
+*  `edit 2 g/` Removes all groups from the 2nd person.
 
 ### Locating persons by name: `find`
 
@@ -156,13 +163,17 @@ Examples using the built-in sample records:
 
 ![Results for find alex david, showing Alex Yeoh and David Li with their complete member cards](images/findAlexDavidResult.png)
 
-### Filtering persons by status and instrument: `filter`
+### Filtering persons by status, instrument, type, and role: `filter`
 
-Format: `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]...`
+Format: `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]... [ty/TYPE]... [r/ROLE]...`
 
-Shows people matching the specified status and instrument criteria and reports the number of matches.
+Shows people matching the specified criteria and reports the number of matches.
 
-* At least one status or instrument criterion is required. Status-only, instrument-only, and combined filters are supported.
+* At least one criterion is required. Each field is optional; an omitted field imposes no restriction.
+* Introduce each member type with `ty/`: use `student` or `teacher`, ignoring case and surrounding whitespace. Repeated types use OR.
+* Introduce each role with `r/`, for example `r/Section Leader`. Matches the complete role, ignoring case and surrounding whitespace; `r/Leader` does not match `Section Leader`. Repeated roles use OR.
+* Blank or invalid types and blank roles are rejected. People without a role do not match an explicit role criterion.
+* Different fields use AND: `filter ty/teacher r/Conductor s/member i/Violin:3` matches member teachers who are conductors and have at least three years on violin.
 * Introduce each status with `s/`: use `member`, `active-alumnus`, or `inactive-alumnus`, ignoring case and surrounding whitespace.
 * Statuses are combined with OR: `filter s/member s/active-alumnus` matches current members or active alumni.
 * Introduce each instrument name with `i/`. `i/Violin` matches anyone who plays violin, regardless of experience.
@@ -174,7 +185,7 @@ Shows people matching the specified status and instrument criteria and reports t
 * Status and instrument groups are combined with AND: `filter s/member s/active-alumnus i/Violin:3 i/Viola:5` matches people who are members or active alumni and have at least 3 years on violin or at least 5 years on viola.
 * Matches complete instrument names, ignoring case: `guitar` matches `Guitar`, but not `Bass Guitar`.
 * Spaces after `i/` and around `:` are allowed: `filter i/ Violin : 3` is equivalent to `filter i/Violin:3`.
-* Only `s/` and `i/` are supported. Other member-field prefixes such as `n/`, `ty/`, or `r/` are rejected with the command format.
+* Supported prefixes are `s/`, `i/`, `ty/`, and `r/`. Other member-field prefixes such as `n/`, `p/`, or `e/` are rejected with the command format.
 * Searches the full directory, including after a previous `find` or `filter`.
 * If no person matches, the displayed list is empty and the result reports zero matches.
 * Stored records are unchanged. Use `list` to display everyone again.
@@ -183,7 +194,7 @@ Example: `filter s/member i/Violin:3`
 
 ### Deleting a person: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified person from HiveMind.
 
 Format: `delete INDEX`
 
@@ -192,12 +203,12 @@ Format: `delete INDEX`
 * The index **must be a positive integer** 1, 2, 3, …​
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
+* `list` followed by `delete 2` deletes the 2nd person in the member list.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Clears all entries from HiveMind.
 
 Format: `clear`
 
@@ -209,15 +220,15 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+HiveMind automatically saves data after every command. You do not need to save manually.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+HiveMind data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, HiveMind starts with an empty directory at the next run, creates a backup alongside it with a `.bak` suffix, and prevents directory changes from being saved. Repair or restore the original data file before restarting the app.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+Furthermore, certain edits can cause HiveMind to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
 ### Archiving data files `[coming in v2.0]`
@@ -229,7 +240,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous HiveMind home folder.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -244,11 +255,11 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com s/member r/Section Leader i/Trumpet:3`
+**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com s/member g/Chamber Orchestra`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​`<br> e.g., `edit 2 n/James Lee s/active-alumnus`
+**Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`<br> e.g., `edit 2 n/James Lee g/Chamber Orchestra`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…`<br> e.g., `find alex david`
-**Filter** | `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]...`<br> e.g., `filter s/member s/active-alumnus i/Violin:3`
+**Filter** | `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]... [ty/TYPE]... [r/ROLE]...`<br> e.g., `filter ty/teacher r/Conductor i/Violin:3`
 **List** | `list`
 **Help** | `help`
