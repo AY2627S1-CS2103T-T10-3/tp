@@ -97,6 +97,41 @@ Examples:
 * `add n/Betsy Crowe p/1234567 e/betsy@example.com s/active-alumnus ty/teacher r/Conductor i/Violin:12 i/Piano:4`
 * `add n/Jane Tan p/91234567 e/jane@example.com s/member g/Chamber Orchestra g/New Member Training`
 
+### Importing people from a CSV file: `import`
+
+Imports people from a CSV file in the `imports` folder. The imported people are added to the existing directory; import does not replace existing people.
+
+Format: `import FILE_NAME`
+
+Place the CSV file in `[JAR file location]/imports`, then provide its file name, including the `.csv` extension. For example, use `import members.csv` for `[JAR file location]/imports/members.csv`.
+
+The CSV file must have this exact header and column order:
+
+```text
+name,phone,email,status,memberType,role,instruments,groups
+```
+
+Each subsequent row must have exactly these eight columns:
+
+* `name`, `phone`, and `email` follow the same validation rules as `add`.
+* `status` must be `member`, `active-alumnus`, or `inactive-alumnus`.
+* `memberType` must be `student` or `teacher`.
+* `role` and `groups` are optional. Represent an empty optional value with `""`.
+* List multiple instruments as `NAME:YEARS` values separated by semicolons, for example `Violin:8;Piano:5`.
+* List multiple groups separated by semicolons, for example `Orchestra;Leadership Team`.
+
+Example CSV file:
+
+```csv
+name,phone,email,status,memberType,role,instruments,groups
+"Alicia Tan","91234567","alicia.tan@example.com","member","student","Section Leader","Violin:8;Piano:5","Orchestra;Leadership Team"
+"Benjamin Lee","92345678","benjamin.lee@example.com","active-alumnus","teacher","","Cello:12",""
+```
+
+If any row has invalid data, does not contain eight columns, or duplicates an existing person or another CSV row, the entire import fails and the directory remains unchanged.
+
+Example: `import members.csv`
+
 ### Listing all persons: `list`
 
 Shows all members and alumni in the directory, in insertion order. Use this command after `find` or `filter` to return to the full list. It also clears any ordering selected with `sort`.
@@ -336,3 +371,4 @@ Action | Format, Examples
 **Undo** | `undo`
 **Redo** | `redo`
 **Help** | `help`
+**Import** | `import FILE_NAME`<br> e.g., `import members.csv`
