@@ -34,6 +34,20 @@ public class SortCommandParserTest {
     }
 
     @Test
+    public void parse_statusArgs_returnsStatusSortCommand() throws Exception {
+        Person inactive = new PersonBuilder().withName("Alice").withStatus("inactive-alumnus").build();
+        Person member = new PersonBuilder().withName("Zoe").withStatus("member").build();
+        Person active = new PersonBuilder().withName("Bob").withStatus("active-alumnus").build();
+        for (String input : List.of("status", "STATUS", "StAtUs", " \n status \t ")) {
+            ModelManager model = new ModelManager(new AddressBookBuilder()
+                    .withPerson(inactive).withPerson(member).withPerson(active).build(), new UserPrefs());
+            assertEquals("Sorted displayed members by status.", parser.parse(input).execute(model).getFeedbackToUser());
+            assertEquals(List.of(member, active, inactive), model.getFilteredPersonList());
+            assertEquals(List.of(inactive, member, active), model.getAddressBook().getPersonList());
+        }
+    }
+
+    @Test
     public void parse_emptyArgs_throwsParseException() {
         for (String input : List.of("", " ", "\n\t")) {
             assertParseFailure(parser, input,
@@ -51,7 +65,7 @@ public class SortCommandParserTest {
 
     @Test
     public void parse_extraArguments_throwsParseException() {
-        for (String input : List.of("name descending", "name name", "name\tphone")) {
+        for (String input : List.of("name descending", "name name", "name\tphone", "name status", "status desc")) {
             assertParseFailure(parser, input,
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE));
         }

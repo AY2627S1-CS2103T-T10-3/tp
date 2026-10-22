@@ -11,6 +11,7 @@ import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.SortKey;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -31,8 +32,35 @@ public class SortStatusCommandTest {
             new UserPrefs());
 
     @Test
+    public void execute_addAfterSorting_restoresFullListAndAppendsWithinStatus() throws Exception {
+        new AddressBookParser().parseCommand("find amy").execute(model);
+        new SortCommand(SortKey.STATUS).execute(model);
+        Person added = new PersonBuilder().withName("Aaron").withStatus("member").build();
+        new AddCommand(added).execute(model);
+        assertEquals(List.of(member, secondMember, added, active, inactive), model.getFilteredPersonList());
+        assertEquals(List.of(inactive, member, active, secondMember, added), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_deleteThenAdd_keepsDirectoryOrderWithinStatus() throws Exception {
+        new SortCommand(SortKey.STATUS).execute(model);
+        new DeleteCommand(INDEX_FIRST_PERSON).execute(model);
+        new AddCommand(member).execute(model);
+        assertEquals(List.of(secondMember, member, active, inactive), model.getFilteredPersonList());
+        assertEquals(List.of(inactive, active, secondMember, member), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_replaceDirectory_refreshesTieOrder() {
+        new SortCommand(SortKey.STATUS).execute(model);
+        model.setAddressBook(new AddressBookBuilder().withPerson(secondMember)
+                .withPerson(inactive).withPerson(member).build());
+        assertEquals(List.of(secondMember, member, inactive), model.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_status_sortsByMembershipAndKeepsSourceOrderWithinGroups() throws Exception {
-        new SortCommand("name").execute(model);
+        new SortCommand(SortKey.NAME).execute(model);
         Command command = new AddressBookParser().parseCommand("sort STATUS");
         assertEquals("Sorted displayed members by status.", command.execute(model).getFeedbackToUser());
         assertEquals(List.of(member, secondMember, active, inactive), model.getFilteredPersonList());
@@ -46,7 +74,7 @@ public class SortStatusCommandTest {
     public void execute_filteredResults_preservesFilterAndRetainsSortingAcrossQueries() throws Exception {
         AddressBookParser parser = new AddressBookParser();
         parser.parseCommand("filter s/member s/inactive-alumnus").execute(model);
-        new SortCommand("status").execute(model);
+        new SortCommand(SortKey.STATUS).execute(model);
         assertEquals(List.of(member, secondMember, inactive), model.getFilteredPersonList());
 
         parser.parseCommand("find amy bob").execute(model);
@@ -57,7 +85,7 @@ public class SortStatusCommandTest {
 
     @Test
     public void execute_deleteAfterSorting_usesDisplayedIndex() throws Exception {
-        new SortCommand("status").execute(model);
+        new SortCommand(SortKey.STATUS).execute(model);
         new DeleteCommand(INDEX_FIRST_PERSON).execute(model);
         assertEquals(List.of(secondMember, active, inactive), model.getFilteredPersonList());
         assertEquals(List.of(inactive, active, secondMember), model.getAddressBook().getPersonList());
@@ -65,7 +93,7 @@ public class SortStatusCommandTest {
 
     @Test
     public void execute_editStatus_reordersEditedMember() throws Exception {
-        new SortCommand("status").execute(model);
+        new SortCommand(SortKey.STATUS).execute(model);
         new AddressBookParser().parseCommand("edit 1 s/inactive-alumnus").execute(model);
         Person editedMember = new PersonBuilder(member).withStatus("inactive-alumnus").build();
         assertEquals(List.of(secondMember, active, inactive, editedMember), model.getFilteredPersonList());

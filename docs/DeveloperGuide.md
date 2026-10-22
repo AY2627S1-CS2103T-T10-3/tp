@@ -185,13 +185,13 @@ Tests in `StringUtilTest` cover substring positions, case differences, invalid i
 
 ### Sorting displayed members
 
-`SortCommandParser` accepts exactly one attribute, `name` or `status`, ignoring case and surrounding whitespace. `SortCommand` selects a `Comparator<Person>` and passes it to `Model.updateSortedPersonList`. Name sorting compares full names using `String.CASE_INSENSITIVE_ORDER`. Status sorting uses the `Status` enum's declaration order: `MEMBER`, `ACTIVE_ALUMNUS`, then `INACTIVE_ALUMNUS`. Changing that declaration order would change the user-visible sorting contract.
+`SortCommandParser` accepts exactly one attribute, `name` or `status`, ignoring case and surrounding whitespace. `SortCommandParser` maps each keyword to a `SortKey` enum value holding its comparator. `SortCommand` passes that comparator to `Model.updateSortedPersonList`. Name sorting compares full names using `String.CASE_INSENSITIVE_ORDER`. Status sorting uses explicit ranks: `MEMBER`, `ACTIVE_ALUMNUS`, then `INACTIVE_ALUMNUS`, independently of enum declaration order.
 
-`ModelManager` wraps its `FilteredList<Person>` in a `SortedList<Person>`. `getFilteredPersonList` exposes this sorted view to the UI and index-based commands, keeping displayed indices consistent with edit and delete. The status comparator breaks ties using each person's position in the underlying directory, so switching from name sorting still restores directory order within each status. Stored records are not reordered, and `SortCommand.requiresSave` returns false.
+`ModelManager` wraps its `FilteredList<Person>` in a `SortedList<Person>`. `getFilteredPersonList` exposes this sorted view to the UI and index-based commands, keeping displayed indices consistent with edit and delete. The model breaks comparator ties using cached directory positions, so switching from name sorting still restores directory order within each status. A source-list listener refreshes the cache before the filtered and sorted views process each directory change; comparisons use constant-time lookups without retaining the model in the comparator. Stored records are not reordered, and `SortCommand.requiresSave` returns false.
 
 Find/filter update the predicate without clearing the comparator. Add/edit retain sorting while restoring the full directory. `ListCommand` resets the predicate and clears the comparator to restore insertion order. A new model starts without a comparator, so sorting is session-only.
 
-Sorting tests cover case-insensitive names, membership order, ties, switching ordering, filter/search transitions, empty results, list reset, edit/delete indices and unchanged stored order. Parser tests cover case and whitespace, missing attributes, unsupported attributes and extra arguments.
+Sorting tests cover case-insensitive names, membership order, ties, switching ordering, filter/search transitions, empty results, list reset, add/edit/delete interactions and unchanged stored order. Parser tests cover case and whitespace, missing attributes, unsupported attributes and extra arguments.
 
 ### Status, instrument, type, and role filtering
 

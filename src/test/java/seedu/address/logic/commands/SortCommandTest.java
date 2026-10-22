@@ -14,6 +14,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.SortKey;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -35,23 +36,26 @@ public class SortCommandTest {
 
     @Test
     public void execute_nullModel_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new SortCommand("name").execute(null));
-    }
-
-    @Test
-    public void execute_unsupportedAttribute_throwsIllegalArgumentExceptionWithoutChangingModel() {
-        assertThrows(IllegalArgumentException.class,
-                "Unsupported sort attribute: phone", () -> new SortCommand("phone").execute(model));
-        assertEquals(new ModelManager(addressBook, new UserPrefs()), model);
+        assertThrows(NullPointerException.class, () -> new SortCommand(SortKey.NAME).execute(null));
     }
 
     @Test
     public void execute_repeatedSort_preservesSortedAndStoredOrder() {
-        SortCommand command = new SortCommand("name");
+        SortCommand command = new SortCommand(SortKey.NAME);
         command.execute(model);
         assertEquals(String.format(SortCommand.MESSAGE_SUCCESS, "name"), command.execute(model).getFeedbackToUser());
         assertEquals(List.of(alice, bob, zoe), model.getFilteredPersonList());
         assertEquals(List.of(zoe, alice, bob), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_addAfterSort_restoresFullListInNameOrder() throws Exception {
+        new AddressBookParser().parseCommand("find zoe").execute(model);
+        new SortCommand(SortKey.NAME).execute(model);
+        Person added = new PersonBuilder().withName("Aaron").build();
+        new AddCommand(added).execute(model);
+        assertEquals(List.of(added, alice, bob, zoe), model.getFilteredPersonList());
+        assertEquals(List.of(zoe, alice, bob, added), model.getAddressBook().getPersonList());
     }
 
     @Test
@@ -69,7 +73,7 @@ public class SortCommandTest {
     public void execute_filteredList_preservesFilterAndSortingAcrossFind() throws Exception {
         AddressBookParser parser = new AddressBookParser();
         parser.parseCommand("find zoe bob").execute(model);
-        new SortCommand("name").execute(model);
+        new SortCommand(SortKey.NAME).execute(model);
         assertEquals(List.of(bob, zoe), model.getFilteredPersonList());
 
         parser.parseCommand("find zoe alice").execute(model);
@@ -83,13 +87,13 @@ public class SortCommandTest {
     @Test
     public void execute_emptyResults_remainsEmpty() throws Exception {
         new AddressBookParser().parseCommand("find missing").execute(model);
-        new SortCommand("name").execute(model);
+        new SortCommand(SortKey.NAME).execute(model);
         assertEquals(List.of(), model.getFilteredPersonList());
     }
 
     @Test
     public void execute_deleteAfterSort_deletesFirstDisplayedPerson() throws Exception {
-        new SortCommand("name").execute(model);
+        new SortCommand(SortKey.NAME).execute(model);
         new DeleteCommand(INDEX_FIRST_PERSON).execute(model);
         assertEquals(List.of(bob, zoe), model.getFilteredPersonList());
         assertEquals(List.of(zoe, bob), model.getAddressBook().getPersonList());
@@ -97,7 +101,7 @@ public class SortCommandTest {
 
     @Test
     public void execute_editAfterSort_editsFirstDisplayedPersonAndUpdatesOrder() throws Exception {
-        new SortCommand("name").execute(model);
+        new SortCommand(SortKey.NAME).execute(model);
         EditCommand.EditPersonDescriptor descriptor = new EditCommand.EditPersonDescriptor();
         Person editedAlice = new PersonBuilder(alice).withName("Zelda").build();
         descriptor.setName(editedAlice.getName());

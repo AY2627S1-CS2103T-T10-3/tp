@@ -2,10 +2,8 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.Comparator;
-
 import seedu.address.model.Model;
-import seedu.address.model.person.Person;
+import seedu.address.model.person.SortKey;
 
 /**
  * Sorts the displayed persons by the specified attribute.
@@ -21,31 +19,20 @@ public class SortCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "Sorted displayed members by %s.";
 
-    private final String attribute;
+    private final SortKey sortKey;
 
     /**
      * Creates a SortCommand to sort by the specified attribute.
      */
-    public SortCommand(String attribute) {
-        this.attribute = requireNonNull(attribute);
+    public SortCommand(SortKey sortKey) {
+        this.sortKey = requireNonNull(sortKey);
     }
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        Comparator<Person> comparator = switch (attribute) {
-            case "name" -> Comparator.comparing(
-                    person -> person.getName().fullName,
-                    String.CASE_INSENSITIVE_ORDER);
-            // Status declaration order is member, active alumnus, inactive alumnus.
-            case "status" -> Comparator.comparing(Person::getStatus)
-                    .thenComparingInt(person -> model.getAddressBook().getPersonList().indexOf(person));
-            default -> throw new IllegalArgumentException(
-                    "Unsupported sort attribute: " + attribute);
-        };
-
-        model.updateSortedPersonList(comparator);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, attribute));
+        model.updateSortedPersonList(sortKey.getComparator());
+        return new CommandResult(String.format(MESSAGE_SUCCESS, sortKey.getKeyword()));
     }
 
     @Override

@@ -4,9 +4,12 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -24,6 +27,7 @@ public class ModelManager implements Model {
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final SortedList<Person> sortedPersons;
+    private final Map<Person, Integer> sourcePositions = new HashMap<>();
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -35,6 +39,9 @@ public class ModelManager implements Model {
 
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
+        updateSourcePositions();
+        // Refresh positions before the filtered/sorted views process additions, edits or resets.
+        this.addressBook.getPersonList().addListener((ListChangeListener<Person>) change -> updateSourcePositions());
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
         sortedPersons = new SortedList<>(filteredPersons);
     }
@@ -116,7 +123,18 @@ public class ModelManager implements Model {
 
     @Override
     public void updateSortedPersonList(Comparator<Person> comparator) {
-        sortedPersons.setComparator(comparator);
+        sortedPersons.setComparator(comparator == null ? null : comparator.thenComparingInt(sourcePositions::get));
+    }
+
+    /**
+     * Caches directory positions once per source change for constant-time tie comparisons.
+     */
+    private void updateSourcePositions() {
+        sourcePositions.clear();
+        ObservableList<Person> persons = addressBook.getPersonList();
+        for (int i = 0; i < persons.size(); i++) {
+            sourcePositions.put(persons.get(i), i);
+        }
     }
 
     @Override
