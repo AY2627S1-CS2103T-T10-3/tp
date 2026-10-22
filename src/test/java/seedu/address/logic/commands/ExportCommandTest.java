@@ -43,7 +43,7 @@ public class ExportCommandTest {
 
         CommandResult result = new ExportCommand(testFolder).execute(model);
 
-        assertEquals(String.format(ExportCommand.MESSAGE_EXPORT_SUCCESS, 1, outputPath),
+        assertEquals(String.format(ExportCommand.MESSAGE_EXPORT_SUCCESS_SINGULAR, 1, outputPath),
                 result.getFeedbackToUser());
         assertEquals(List.of(ALICE), model.getFilteredPersonList());
         assertEquals(String.join(System.lineSeparator(),
@@ -51,6 +51,17 @@ public class ExportCommandTest {
                 "\"Alice Pauline\",\"94351253\",\"alice@example.com\","
                         + "\"member\",\"student\",\"\",\"Violin:3\",\"\""),
                 Files.readString(outputPath));
+    }
+
+    @Test
+    public void execute_multiplePeople_usesPluralSuccessMessage() throws Exception {
+        Path outputPath = testFolder.resolve("current-results-01.csv");
+        int displayedPersonCount = model.getFilteredPersonList().size();
+
+        CommandResult result = new ExportCommand(testFolder).execute(model);
+
+        assertEquals(String.format(ExportCommand.MESSAGE_EXPORT_SUCCESS, displayedPersonCount, outputPath),
+                result.getFeedbackToUser());
     }
 
     @Test

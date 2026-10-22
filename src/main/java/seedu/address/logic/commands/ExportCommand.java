@@ -18,6 +18,7 @@ public class ExportCommand extends Command {
     public static final String COMMAND_WORD = "export";
 
     public static final String MESSAGE_EXPORT_SUCCESS = "Exported %d people to %s.";
+    public static final String MESSAGE_EXPORT_SUCCESS_SINGULAR = "Exported %d person to %s.";
     public static final String MESSAGE_EXPORT_FAILURE = "Could not export current results: %s";
 
     private static final Path DEFAULT_EXPORT_DIRECTORY = Path.of("exports");
@@ -40,9 +41,12 @@ public class ExportCommand extends Command {
 
         try {
             Path outputPath = CsvExporter.export(currentResults, exportDirectory);
+            String successMessage = currentResults.size() == 1
+                    ? MESSAGE_EXPORT_SUCCESS_SINGULAR
+                    : MESSAGE_EXPORT_SUCCESS;
 
             return new CommandResult(
-                String.format(MESSAGE_EXPORT_SUCCESS, currentResults.size(), outputPath));
+                String.format(successMessage, currentResults.size(), outputPath));
         } catch (IOException ioe) {
             throw new CommandException(
                 String.format(MESSAGE_EXPORT_FAILURE, ioe.getMessage()), ioe);
