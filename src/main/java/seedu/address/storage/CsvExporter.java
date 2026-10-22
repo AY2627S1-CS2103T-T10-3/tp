@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import seedu.address.commons.util.FileUtil;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
 
@@ -18,7 +19,7 @@ import seedu.address.model.person.Person;
  * A class that writes supplied member information to a CSV file.
  */
 public class CsvExporter {
-    public static final String HEADER = "name,phone,email,status,memberType,role,instruments";
+    public static final String HEADER = "name,phone,email,status,memberType,role,instruments,groups";
 
     /**
      * Exports the given people to a new CSV file in the specified directory.
@@ -60,13 +61,21 @@ public class CsvExporter {
             escape(person.getStatus().toString()),
             escape(person.getMemberType().toString()),
             escape(person.getRole().map(Object::toString).orElse("")),
-            escape(formatInstruments(person.getInstruments())));
+            escape(formatInstruments(person.getInstruments())),
+            escape(formatGroups(person.getGroups())));
     }
 
     private static String formatInstruments(Set<Instrument> instruments) {
         return instruments.stream()
             .sorted(Comparator.comparing(Instrument::getName, String.CASE_INSENSITIVE_ORDER))
             .map(Instrument::toString)
+            .collect(Collectors.joining(";"));
+    }
+
+    private static String formatGroups(Set<Group> groups) {
+        return groups.stream()
+            .sorted(Comparator.comparing(Group::getName, String.CASE_INSENSITIVE_ORDER))
+            .map(Group::toString)
             .collect(Collectors.joining(";"));
     }
 
