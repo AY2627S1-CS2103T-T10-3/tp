@@ -217,6 +217,24 @@ Examples:
 * `filter g/Chamber Orchestra`
 * `filter s/member i/Violin:3 g/Chamber Orchestra`
 
+### Exporting current results: `export`
+
+Exports the members currently shown in the list to a CSV file.
+
+Format: `export`
+
+* Exports the current displayed results. Run `find` or `filter` first to export only matching members; run `list` first to export everyone.
+* Creates a CSV file in the `exports` folder inside HiveMind’s home folder.
+* Each export receives the first unused numbered filename: `current-results-01.csv`, then `current-results-02.csv`, and so on. Existing export files are not overwritten.
+* The CSV contains these columns: name, phone, email, status, member type, role, instruments, and groups.
+* A member with multiple instruments or groups has them recorded in one field, separated by semicolons.
+* Exporting an empty result list still creates a CSV file containing the column headers.
+
+Examples:
+
+* `find alex` followed by `export` exports the members whose names contain `alex`.
+* `filter s/member i/Violin` followed by `export` exports the current members who play violin.
+
 ### Deleting a person: `delete`
 
 Deletes the specified person from HiveMind.
@@ -310,6 +328,7 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`<br> e.g., `edit 2 n/James Lee g/Chamber Orchestra`
+**Export** | `export`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…`<br> e.g., `find alex david`
 **Filter** | `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]... [ty/TYPE]... [r/ROLE]... [g/GROUP]...`<br> e.g., `filter s/member i/Violin:3 g/Chamber Orchestra`
 **List** | `list`
