@@ -99,7 +99,7 @@ Examples:
 
 ### Listing all persons: `list`
 
-Shows all members and alumni in the directory, in insertion order. Use this command after `find` or `filter` to return to the full list.
+Shows all members and alumni in the directory, in insertion order. Use this command after `find` or `filter` to return to the full list. It also clears any ordering selected with `sort`.
 
 Format: `list`
 
@@ -112,7 +112,7 @@ Each member card displays:
 * Recorded instruments and their years of experience, sorted alphabetically by instrument name, ignoring case. For example, `Piano (5 yrs)` and `Violin (1 yr)`. No instrument labels appear when none are recorded.
 * A `Groups:` line listing participation groups alphabetically when any are recorded. No groups line is shown when none are recorded.
 
-The same card details are shown in `find` and `filter` results. Displayed indices start at `1` and refer to the current list, so a member's index may change after a search or filter. Use the current displayed index for commands such as `edit` and `delete`.
+The same card details are shown in `find` and `filter` results. Displayed indices start at `1` and refer to the current list, so a member's index may change after a search, filter or sort. Use the current displayed index for commands such as `edit` and `delete`.
 
 Example: after `find alex david`, enter `list` to show everyone again. The result message is `Listed all persons.`
 
@@ -141,6 +141,26 @@ Examples:
 *  `edit 4 ty/teacher r/Conductor` Changes the 4th person's type to teacher and their role to `Conductor`.
 *  `edit 2 g/Chamber Orchestra g/Training` Replaces the 2nd person's groups.
 *  `edit 2 g/` Removes all groups from the 2nd person.
+
+### Sorting displayed members: `sort`
+
+Orders the currently displayed members without changing which members are shown or the order saved in the data file.
+
+Format: `sort name` or `sort status`
+
+* `sort name` orders names alphabetically, ignoring case.
+* `sort status` groups members in this order: member, active alumnus, inactive alumnus. Within each status, members retain their original directory order.
+* The attribute (`name` or `status`) is case-insensitive. Exactly one attribute is required; unsupported attributes or extra arguments show the usage message.
+* Sorting works on the full directory and on `find` or `filter` results, including empty results.
+* Subsequent `find` and `filter` commands retain the selected ordering. Adding or editing a member also retains the ordering, while showing the full directory.
+* Use the updated displayed indices for `edit` and `delete`.
+* `list` restores the full directory in insertion order. Restarting also resets the ordering; the sorting preference is not saved.
+
+Examples:
+
+* `sort name` sorts the current results by name. The success message is `Sorted displayed members by name.`
+* Run `find alex david`, then `sort status` to group the matching members by membership status. The success message is `Sorted displayed members by status.`
+* Run `sort name`, then `sort status` to switch ordering. Members with the same status return to their original directory order; the previous name ordering is not used as a secondary sort.
 
 ### Locating persons by name: `find`
 
@@ -217,6 +237,32 @@ Clears all entries from HiveMind.
 
 Format: `clear`
 
+### Undoing the last change: `undo`
+
+Reverts the most recent change made by `add`, `edit`, `delete` or `clear`.
+
+Format: `undo`
+
+* Running `undo` again reverts the change before that, back to when HiveMind was started.
+* Commands that do not change data (e.g. `list`, `find`, `filter`) are not undone.
+* After an undo, the full member list is shown.
+
+Examples:
+* `delete 2` followed by `undo` restores the deleted person.
+
+### Redoing an undone change: `redo`
+
+Restores the most recent change reverted by `undo`.
+
+Format: `redo`
+
+* Running `redo` again restores the next undone change, in the order they were undone.
+* Once you make a new change (e.g. `add`, `edit`, `delete` or `clear`) after an `undo`, the undone changes can no longer be redone.
+* After a redo, the full member list is shown.
+
+Examples:
+* `delete 2`, then `undo`, then `redo` deletes the person again.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -267,4 +313,7 @@ Action | Format, Examples
 **Find** | `find KEYWORD [MORE_KEYWORDS]…`<br> e.g., `find alex david`
 **Filter** | `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]... [ty/TYPE]... [r/ROLE]... [g/GROUP]...`<br> e.g., `filter s/member i/Violin:3 g/Chamber Orchestra`
 **List** | `list`
+**Sort** | `sort name` or `sort status`
+**Undo** | `undo`
+**Redo** | `redo`
 **Help** | `help`
