@@ -68,12 +68,20 @@ public class MainApp extends Application {
      * Creates the directory that holds CSV files available for import.
      */
     private void createImportDirectory() {
+        Path importDirectory = getImportDirectory();
         try {
-            Files.createDirectories(IMPORT_DIRECTORY);
+            Files.createDirectories(importDirectory);
         } catch (IOException ioe) {
-            logger.warning("Could not create import directory " + IMPORT_DIRECTORY + ": "
+            logger.warning("Could not create import directory " + importDirectory + ": "
                     + StringUtil.getDetails(ioe));
         }
+    }
+
+    /**
+     * Returns the directory that holds CSV files available for import.
+     */
+    protected Path getImportDirectory() {
+        return IMPORT_DIRECTORY;
     }
 
     /**
