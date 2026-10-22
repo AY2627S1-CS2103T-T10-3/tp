@@ -226,8 +226,8 @@ Format: `export`
 * Exports the current displayed results. Run `find` or `filter` first to export only matching members; run `list` first to export everyone.
 * Creates a CSV file in the `exports` folder inside HiveMind’s home folder.
 * Each export receives the first unused numbered filename: `current-results-01.csv`, then `current-results-02.csv`, and so on. Existing export files are not overwritten.
-* The CSV contains these columns: name, phone, email, status, member type, role, and instruments.
-* A member with multiple instruments has them recorded in one field, separated by semicolons.
+* The CSV contains these columns: name, phone, email, status, member type, role, instruments, and groups.
+* A member with multiple instruments or groups has them recorded in one field, separated by semicolons.
 * Exporting an empty result list still creates a CSV file containing the column headers.
 
 Examples:

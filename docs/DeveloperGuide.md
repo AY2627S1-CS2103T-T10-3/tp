@@ -205,7 +205,7 @@ The command replaces the predicate on the full directory's `FilteredList`, repor
 
 `AddressBookParser` recognises `export` and creates an `ExportCommand` directly because the command takes no arguments. When executed, `ExportCommand` obtains the current displayed results through `Model#getFilteredPersonList()` and passes them to `CsvExporter` with the `exports` directory. Exporting does not modify the model, so it does not save the address book or create an undo state.
 
-`CsvExporter` creates CSV content with columns for name, phone, email, status, member type, role, and instruments. Each field is quoted, with embedded quotation marks escaped. It sorts a person's instruments by name and joins them with semicolons. Empty results produce a file containing only the CSV header.
+`CsvExporter` creates CSV content with columns for name, phone, email, status, member type, role, instruments, and groups. Each field is quoted, with embedded quotation marks escaped. It sorts a person's instruments and groups by name and joins them with semicolons. Empty results produce a file containing only the CSV header.
 
 Before writing, `CsvExporter` finds the first unused filename in the form `current-results-XX.csv`, beginning with `current-results-01.csv`; existing exports are therefore preserved rather than overwritten. If file creation or writing fails, `ExportCommand` converts the `IOException` into a `CommandException`. Parser and exporter tests cover recognition of the command, normal and empty exports, and selecting the first available numbered filename while preserving existing files.
 
