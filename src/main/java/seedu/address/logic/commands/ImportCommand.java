@@ -26,6 +26,7 @@ public class ImportCommand extends Command {
             + "Parameters: FILE_NAME\n"
             + "Example: " + COMMAND_WORD + " members.csv";
     public static final String MESSAGE_SUCCESS = "Imported %d people from %s.";
+    public static final String MESSAGE_SUCCESS_SINGULAR = "Imported %d person from %s.";
     public static final String MESSAGE_IMPORT_FAILURE = "Could not import %s: %s";
     public static final String MESSAGE_FILE_NOT_FOUND = "No file named %s in the imports folder.";
     public static final String MESSAGE_DUPLICATE_PERSON =
@@ -64,6 +65,7 @@ public class ImportCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON, exception);
         }
 
-        return new CommandResult(String.format(MESSAGE_SUCCESS, importedPeople.size(), importPath));
+        String successMessage = importedPeople.size() == 1 ? MESSAGE_SUCCESS_SINGULAR : MESSAGE_SUCCESS;
+        return new CommandResult(String.format(successMessage, importedPeople.size(), importPath));
     }
 }

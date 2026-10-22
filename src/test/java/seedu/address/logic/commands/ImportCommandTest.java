@@ -62,7 +62,25 @@ public class ImportCommandTest {
         expectedModel.addPerson(importedPerson);
 
         assertCommandSuccess(new ImportCommand(FILE_NAME), model,
-                String.format(ImportCommand.MESSAGE_SUCCESS, 1, IMPORT_FILE), expectedModel);
+                String.format(ImportCommand.MESSAGE_SUCCESS_SINGULAR, 1, IMPORT_FILE), expectedModel);
+    }
+
+    @Test
+    public void execute_multipleValidPeople_usesPluralSuccessMessage() throws IOException {
+        Person firstImportedPerson = new PersonBuilder().withName("Alice Tan").withPhone("91234567")
+                .withEmail("alice@example.com").build();
+        Person secondImportedPerson = new PersonBuilder().withName("Bob Lim").withPhone("93456789")
+                .withEmail("bob@example.com").build();
+        writeImportFile(HEADER,
+                "Alice Tan,91234567,alice@example.com,member,student,,,",
+                "Bob Lim,93456789,bob@example.com,member,student,,,");
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.addPerson(firstImportedPerson);
+        expectedModel.addPerson(secondImportedPerson);
+
+        assertCommandSuccess(new ImportCommand(FILE_NAME), model,
+                String.format(ImportCommand.MESSAGE_SUCCESS, 2, IMPORT_FILE), expectedModel);
     }
 
     @Test
