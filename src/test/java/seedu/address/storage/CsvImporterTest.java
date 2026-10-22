@@ -13,6 +13,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
+import seedu.address.testutil.PersonBuilder;
 
 public class CsvImporterTest {
 
@@ -65,6 +66,17 @@ public class CsvImporterTest {
 
         assertEquals(1, people.size());
         assertEquals("Assistant, \"Conductor\"", people.getFirst().getRole().orElseThrow().toString());
+    }
+
+    @Test
+    public void importPeople_exportedNamesWithSemicolonsAndBackslashes_roundTrips() throws Exception {
+        Person original = new PersonBuilder()
+                .withInstruments("Drums;Percussion:5", "Bass\\Guitar:2")
+                .withGroups("Band;Choir", "Back\\Stage")
+                .build();
+        Path exportedFile = CsvExporter.export(List.of(original), temporaryFolder);
+
+        assertEquals(List.of(original), CsvImporter.importPeople(exportedFile));
     }
 
     @Test

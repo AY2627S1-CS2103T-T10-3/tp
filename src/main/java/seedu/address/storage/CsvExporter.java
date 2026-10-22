@@ -69,6 +69,7 @@ public class CsvExporter {
         return instruments.stream()
             .sorted(Comparator.comparing(Instrument::getName, String.CASE_INSENSITIVE_ORDER))
             .map(Instrument::toString)
+            .map(CsvListCodec::escape)
             .collect(Collectors.joining(";"));
     }
 
@@ -76,6 +77,7 @@ public class CsvExporter {
         return groups.stream()
             .sorted(Comparator.comparing(Group::getName, String.CASE_INSENSITIVE_ORDER))
             .map(Group::toString)
+            .map(CsvListCodec::escape)
             .collect(Collectors.joining(";"));
     }
 
