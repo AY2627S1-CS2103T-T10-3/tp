@@ -191,6 +191,20 @@ Tests in `StringUtilTest` cover substring positions, case differences, invalid i
 
 The command replaces the predicate on the full directory's `FilteredList`, reports its match count, and leaves stored records unchanged. `list` restores all records. Parser, predicate, and command tests cover repeated criteria, invalid inputs, threshold boundaries, matching years on the correct instrument, combined criteria, people without instruments, empty results, and searches after earlier filters.
 
+### Importing people from CSV
+
+`AddressBookParser` routes `import FILE_NAME` to `ImportCommandParser`. The parser accepts a non-empty `.csv` file name without path separators, so `ImportCommand` always resolves it inside the `imports` directory.
+
+`ImportCommand` asks `CsvImporter` to read the entire CSV before changing the model. `CsvImporter` validates the required header and eight-column layout, then constructs `Person` objects using the existing model value objects such as `Name`, `Phone`, `Email`, `Status`, and `MemberType`. This reuses the application's validation rules instead of duplicating them in the CSV layer. It returns the complete imported list only when every row is valid.
+
+After parsing succeeds, `ImportCommand` copies the current address book and adds every imported person to the copy. This detects duplicates against both existing records and earlier CSV rows without mutating the model. Only when all additions succeed does it replace the model's address book with the copy. Consequently, invalid CSV data and duplicate people fail the import atomically: the current directory remains unchanged.
+
+The following sequence diagram focuses on a successful `ImportCommand.execute(...)` call. Command parsing, field-level CSV parsing, error handling, and `LogicManager`'s generic save-and-rollback handling are omitted; they do not affect the command's validate-then-replace behavior.
+
+![Import command sequence diagram](images/ImportSequenceDiagram.png)
+
+`ImportCommandTest` and `ImportCommandIntegrationTest` cover successful imports, duplicate handling, invalid data, malformed row layouts, optional fields, and atomic failures. `AddressBookParserTest` verifies that the command is recognised.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
