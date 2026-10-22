@@ -205,7 +205,6 @@ The following sequence diagram focuses on a successful `ImportCommand.execute(..
 
 `ImportCommandTest` and `ImportCommandIntegrationTest` cover successful imports, duplicate handling, invalid data, malformed row layouts, optional fields, and atomic failures. `AddressBookParserTest` verifies that the command is recognised.
 
-### \[Proposed\] Undo/redo feature
 ### Undo/redo feature
 
 #### Implementation
