@@ -201,6 +201,12 @@ Sorting tests cover case-insensitive names, membership order, ties, switching or
 
 The command replaces the predicate on the full directory's `FilteredList`, reports its match count, and leaves stored records unchanged. `list` restores all records. Parser, predicate, and command tests cover repeated criteria, invalid inputs, threshold boundaries, matching years on the correct instrument, combined criteria, people without instruments or groups, group-name normalization and whole-name matching, empty results, and searches after earlier filters.
 
+The following sequence diagram traces `filter s/member i/Violin:3 ty/teacher r/Conductor g/Chamber Orchestra`, using all five supported fields. Parsing creates a `FilterCommand` containing the criteria; executing that command creates the `PersonMatchesFilterPredicate` and applies it through `ModelManager.updateFilteredPersonList`. The participant `m:Model` is implemented by `ModelManager`.
+
+![Sequence diagram for filter, showing criteria parsing, predicate creation during execution, filtered-list evaluation, and the result count](images/FilterSequenceDiagram.png)
+
+[Open the sequence diagram at full size](images/FilterSequenceDiagram.png). [PlantUML source](diagrams/FilterSequenceDiagram.puml). The diagram focuses on successful parsing and execution; model snapshots and UI list-change notifications are omitted.
+
 ### Undo/redo feature
 
 #### Implementation
