@@ -50,6 +50,13 @@ public class CsvImporterTest {
     }
 
     @Test
+    public void importPeople_utf8ByteOrderMarkBeforeHeader_returnsEmptyList() throws Exception {
+        Path csvFile = writeCsv("\ufeff" + HEADER);
+
+        assertEquals(List.of(), CsvImporter.importPeople(csvFile));
+    }
+
+    @Test
     public void importPeople_quotedCommaAndEscapedQuote_parsesRole() throws Exception {
         Path csvFile = writeCsv(
                 HEADER,

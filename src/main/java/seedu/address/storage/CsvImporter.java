@@ -38,6 +38,7 @@ public class CsvImporter {
     private static final int ROLE_INDEX = 5;
     private static final int INSTRUMENTS_INDEX = 6;
     private static final int GROUPS_INDEX = 7;
+    private static final char UTF_8_BYTE_ORDER_MARK = '\ufeff';
 
     /**
      * Reads people from a CSV file in HiveMind's export format.
@@ -65,6 +66,9 @@ public class CsvImporter {
     }
 
     private static void validateHeader(String header) throws IllegalValueException {
+        if (!header.isEmpty() && header.charAt(0) == UTF_8_BYTE_ORDER_MARK) {
+            header = header.substring(1);
+        }
         if (!parseCsvLine(header, 1).equals(EXPECTED_HEADER)) {
             throw new IllegalValueException("CSV header must be " + String.join(",", EXPECTED_HEADER) + ".");
         }
