@@ -46,6 +46,19 @@ public class CsvExporterTest {
     }
 
     @Test
+    public void export_roleWithCommaAndQuotes_escapesCsvValue() throws Exception {
+        Person person = new PersonBuilder().withRole("Leader, \"Brass\"").build();
+        Path outputPath = testFolder.resolve("current-results-01.csv");
+
+        CsvExporter.export(List.of(person), testFolder);
+
+        assertEquals(String.join(System.lineSeparator(),
+                CsvExporter.HEADER,
+                "\"Amy Bee\",\"85355255\",\"amy@gmail.com\",\"member\",\"student\","
+                        + "\"Leader, \"\"Brass\"\"\",\"\",\"\""), Files.readString(outputPath));
+    }
+
+    @Test
     public void export_emptyList_writesHeaderOnly() throws Exception {
         Path outputPath = testFolder.resolve("current-results-01.csv");
 
