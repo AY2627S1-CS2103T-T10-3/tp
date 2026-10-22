@@ -10,6 +10,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.model.person.Person;
+import seedu.address.testutil.PersonBuilder;
+
 public class CsvExporterTest {
     @TempDir
     public Path testFolder;
@@ -24,8 +27,22 @@ public class CsvExporterTest {
         assertEquals(String.join(System.lineSeparator(),
                 CsvExporter.HEADER,
                 "\"Daniel Meier\",\"87652533\",\"cornelia@example.com\","
-                        + "\"member\",\"teacher\",\"Conductor\",\"Violin:20\""),
+                        + "\"member\",\"teacher\",\"Conductor\",\"Violin:20\",\"\""),
                 Files.readString(outputPath));
+    }
+
+    @Test
+    public void export_memberWithGroups_writesGroupsAsEighthColumn() throws Exception {
+        Person person = new PersonBuilder().withGroups("Training", "Brass Band").build();
+        Path outputPath = testFolder.resolve("current-results-01.csv");
+
+        CsvExporter.export(List.of(person), testFolder);
+
+        assertEquals("name,phone,email,status,memberType,role,instruments,groups", CsvExporter.HEADER);
+        assertEquals(String.join(System.lineSeparator(),
+                CsvExporter.HEADER,
+                "\"Amy Bee\",\"85355255\",\"amy@gmail.com\",\"member\",\"student\",\"\",\"\","
+                        + "\"Brass Band;Training\""), Files.readString(outputPath));
     }
 
     @Test

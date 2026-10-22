@@ -49,7 +49,7 @@ public class ExportCommandTest {
         assertEquals(String.join(System.lineSeparator(),
                 CsvExporter.HEADER,
                 "\"Alice Pauline\",\"94351253\",\"alice@example.com\","
-                        + "\"member\",\"student\",\"\",\"Violin:3\""),
+                        + "\"member\",\"student\",\"\",\"Violin:3\",\"\""),
                 Files.readString(outputPath));
     }
 
