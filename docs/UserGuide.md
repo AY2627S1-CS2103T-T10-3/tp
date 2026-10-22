@@ -119,6 +119,7 @@ Each subsequent row must have exactly these eight columns:
 * `role` and `groups` are optional. Represent an empty optional value with `""`.
 * List multiple instruments as `NAME:YEARS` values separated by semicolons, for example `Violin:8;Piano:5`.
 * List multiple groups separated by semicolons, for example `Orchestra;Leadership Team`.
+* Within an instrument or group name, write `\;` for a literal semicolon and `\\` for a literal backslash. `export` applies these escapes automatically.
 
 Example CSV file:
 
@@ -263,6 +264,7 @@ Format: `export`
 * Each export receives the first unused numbered filename: `current-results-01.csv`, then `current-results-02.csv`, and so on. Existing export files are not overwritten.
 * The CSV contains these columns: name, phone, email, status, member type, role, instruments, and groups.
 * A member with multiple instruments or groups has them recorded in one field, separated by semicolons.
+* A semicolon within an instrument or group name is escaped as `\;`, and a backslash as `\\`.
 * Exporting an empty result list still creates a CSV file containing the column headers.
 
 Examples:

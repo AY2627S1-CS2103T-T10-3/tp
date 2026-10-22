@@ -108,7 +108,7 @@ public class CsvImporter {
             return instruments;
         }
 
-        for (String instrumentFieldValue : instrumentField.split(";", -1)) {
+        for (String instrumentFieldValue : CsvListCodec.split(instrumentField)) {
             int separatorIndex = instrumentFieldValue.lastIndexOf(':');
             if (separatorIndex <= 0 || separatorIndex == instrumentFieldValue.length() - 1) {
                 throw new IllegalArgumentException(Instrument.MESSAGE_FORMAT_CONSTRAINTS);
@@ -132,7 +132,7 @@ public class CsvImporter {
             return groups;
         }
 
-        for (String groupName : groupField.split(";", -1)) {
+        for (String groupName : CsvListCodec.split(groupField)) {
             groups.add(new Group(groupName));
         }
         return groups;
