@@ -23,7 +23,7 @@ import seedu.address.model.person.Person;
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
 
-    private final AddressBook addressBook;
+    private final VersionedAddressBook addressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final SortedList<Person> sortedPersons;
@@ -37,7 +37,7 @@ public class ModelManager implements Model {
 
         logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
 
-        this.addressBook = new AddressBook(addressBook);
+        this.addressBook = new VersionedAddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         updateSourcePositions();
         // Refresh positions before the filtered/sorted views process additions, edits or resets.
@@ -119,6 +119,43 @@ public class ModelManager implements Model {
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
         filteredPersons.setPredicate(predicate);
+    }
+
+    //=========== Undo/Redo ================================================================================
+
+    @Override
+    public boolean canUndoAddressBook() {
+        return addressBook.canUndo();
+    }
+
+    @Override
+    public void undoAddressBook() {
+        addressBook.undo();
+    }
+
+    @Override
+    public boolean canRedoAddressBook() {
+        return addressBook.canRedo();
+    }
+
+    @Override
+    public void redoAddressBook() {
+        addressBook.redo();
+    }
+
+    @Override
+    public void commitAddressBook() {
+        addressBook.commit();
+    }
+
+    @Override
+    public int getAddressBookHistoryPosition() {
+        return addressBook.getCurrentStatePointer();
+    }
+
+    @Override
+    public void restoreAddressBookHistoryPosition(int position) {
+        addressBook.setCurrentStatePointer(position);
     }
 
     @Override

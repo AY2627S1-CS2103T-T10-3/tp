@@ -232,6 +232,32 @@ Clears all entries from HiveMind.
 
 Format: `clear`
 
+### Undoing the last change: `undo`
+
+Reverts the most recent change made by `add`, `edit`, `delete` or `clear`.
+
+Format: `undo`
+
+* Running `undo` again reverts the change before that, back to when HiveMind was started.
+* Commands that do not change data (e.g. `list`, `find`, `filter`) are not undone.
+* After an undo, the full member list is shown.
+
+Examples:
+* `delete 2` followed by `undo` restores the deleted person.
+
+### Redoing an undone change: `redo`
+
+Restores the most recent change reverted by `undo`.
+
+Format: `redo`
+
+* Running `redo` again restores the next undone change, in the order they were undone.
+* Once you make a new change (e.g. `add`, `edit`, `delete` or `clear`) after an `undo`, the undone changes can no longer be redone.
+* After a redo, the full member list is shown.
+
+Examples:
+* `delete 2`, then `undo`, then `redo` deletes the person again.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -283,4 +309,6 @@ Action | Format, Examples
 **Filter** | `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]... [ty/TYPE]... [r/ROLE]...`<br> e.g., `filter ty/teacher r/Conductor i/Violin:3`
 **List** | `list`
 **Sort** | `sort name` or `sort status`
+**Undo** | `undo`
+**Redo** | `redo`
 **Help** | `help`
