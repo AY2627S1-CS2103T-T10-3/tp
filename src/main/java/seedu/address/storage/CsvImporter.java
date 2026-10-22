@@ -80,6 +80,7 @@ public class CsvImporter {
             throw new IllegalValueException("Expected " + EXPECTED_HEADER.size()
                     + " columns at line " + lineNumber + ".");
         }
+        fields.replaceAll(String::trim);
 
         try {
             return new Person(

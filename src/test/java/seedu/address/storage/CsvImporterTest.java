@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.IllegalValueException;
-import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
 
@@ -69,6 +68,21 @@ public class CsvImporterTest {
     }
 
     @Test
+    public void importPeople_valuesWithSurroundingWhitespace_parsesTrimmedValues() throws Exception {
+        Path csvFile = writeCsv(HEADER,
+                " Cara Tan , 93456789 , cara@example.com , member , student , Leader , Piano:3 , Band ");
+
+        Person person = CsvImporter.importPeople(csvFile).getFirst();
+
+        assertEquals("Cara Tan", person.getName().toString());
+        assertEquals("93456789", person.getPhone().toString());
+        assertEquals("cara@example.com", person.getEmail().toString());
+        assertEquals("Leader", person.getRole().orElseThrow().toString());
+        assertEquals("Piano:3", person.getInstruments().iterator().next().toString());
+        assertEquals("Band", person.getGroups().iterator().next().toString());
+    }
+
+    @Test
     public void importPeople_unclosedQuotedValue_throwsIllegalValueException() throws Exception {
         Path csvFile = writeCsv(HEADER,
                 "Alice Tan,91234567,alice@example.com,member,student,\"Section Leader,Violin:1,");
@@ -110,11 +124,12 @@ public class CsvImporterTest {
     }
 
     @Test
-    public void importPeople_blankGroup_throwsIllegalValueException() throws Exception {
+    public void importPeople_whitespaceOnlyGroup_isTreatedAsEmptyGroupField() throws Exception {
         Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin:1,\" \"");
-        String expectedMessage = "Invalid value at line 2: " + Group.MESSAGE_CONSTRAINTS;
 
-        assertThrows(IllegalValueException.class, expectedMessage, () -> CsvImporter.importPeople(csvFile));
+        Person person = CsvImporter.importPeople(csvFile).getFirst();
+
+        assertEquals(0, person.getGroups().size());
     }
 
     private Path writeCsv(String... lines) throws Exception {
