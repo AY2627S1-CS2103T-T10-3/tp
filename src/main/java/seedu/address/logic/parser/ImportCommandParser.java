@@ -22,7 +22,10 @@ public class ImportCommandParser implements Parser<ImportCommand> {
     @Override
     public ImportCommand parse(String args) throws ParseException {
         String fileName = args.trim();
-        if (fileName.isEmpty() || !fileName.toLowerCase(Locale.ROOT).endsWith(".csv")) {
+        if (fileName.isEmpty()) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ImportCommand.MESSAGE_USAGE));
+        }
+        if (!fileName.toLowerCase(Locale.ROOT).endsWith(".csv")) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ImportCommand.MESSAGE_USAGE));
         }
         for (char c : INVALID_FILENAME_CHARS.toCharArray()) {

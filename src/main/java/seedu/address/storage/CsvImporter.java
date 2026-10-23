@@ -3,6 +3,7 @@ package seedu.address.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +40,8 @@ public class CsvImporter {
     private static final int INSTRUMENTS_INDEX = 6;
     private static final int GROUPS_INDEX = 7;
     private static final char UTF_8_BYTE_ORDER_MARK = '\ufeff';
+    private static final String MESSAGE_NON_UTF8_CSV = "The file could not be read. Please save it as CSV UTF-8 "
+            + "(not plain CSV).";
 
     /**
      * Reads people from a CSV file in HiveMind's export format.
@@ -51,7 +54,13 @@ public class CsvImporter {
     public static List<Person> importPeople(Path csvFile) throws IOException, IllegalValueException {
         requireNonNull(csvFile);
 
-        List<String> lines = Files.readAllLines(csvFile, StandardCharsets.UTF_8);
+        List<String> lines;
+        try {
+            lines = Files.readAllLines(csvFile, StandardCharsets.UTF_8);
+        } catch (CharacterCodingException e) {
+            // File is not UTF-8 encoded, likely saved with Excel's default CSV format
+            throw new IllegalValueException(MESSAGE_NON_UTF8_CSV, e);
+        }
         if (lines.isEmpty()) {
             throw new IllegalValueException("CSV file is empty.");
         }

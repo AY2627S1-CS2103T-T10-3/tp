@@ -23,28 +23,32 @@ public class ImportCommandParserTest {
 
     @Test
     public void parse_emptyFileName_throwsParseException() {
-        assertParseException(MESSAGE_INVALID_COMMAND_FORMAT, "");
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ImportCommand.MESSAGE_USAGE);
+        assertParseException(expectedMessage, "");
     }
 
     @Test
     public void parse_nonCsvFile_throwsParseException() {
-        assertParseException(MESSAGE_INVALID_COMMAND_FORMAT, "members.txt");
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ImportCommand.MESSAGE_USAGE);
+        assertParseException(expectedMessage, "members.txt");
     }
 
     @Test
-    public void parse_invalidFilename_withQuestionMark_throwsParseException() {
+    public void parse_invalidFilenameWithQuestionMark_throwsParseException() {
         assertParseException(MESSAGE_INVALID_FILENAME, "bad?name.csv");
     }
 
     @Test
-    public void parse_invalidFilename_withAsterisk_throwsParseException() {
+    public void parse_invalidFilenameWithAsterisk_throwsParseException() {
         assertParseException(MESSAGE_INVALID_FILENAME, "bad*name.csv");
     }
 
     @Test
-    public void parse_invalidFilename_withOtherInvalidChars_throwsParseException() {
-        String[] invalidFilenames = {"bad<name.csv", "bad>name.csv", "bad|name.csv", "bad:name.csv",
-                "bad\\name.csv", "bad\"name.csv"};
+    public void parse_invalidFilenameWithOtherInvalidChars_throwsParseException() {
+        String[] invalidFilenames = {
+            "bad<name.csv", "bad>name.csv", "bad|name.csv", "bad:name.csv",
+            "bad\\name.csv", "bad\"name.csv"
+        };
         for (String filename : invalidFilenames) {
             assertParseException(MESSAGE_INVALID_FILENAME, filename);
         }

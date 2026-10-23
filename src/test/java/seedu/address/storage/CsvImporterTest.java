@@ -3,8 +3,10 @@ package seedu.address.storage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -177,6 +179,22 @@ public class CsvImporterTest {
         assertEquals("Alice Tan", people.get(0).getName().toString());
         assertEquals("Bob Lim", people.get(1).getName().toString());
         assertEquals("Carol Ng", people.get(2).getName().toString());
+    }
+
+    @Test
+    public void importPeople_nonUtf8File_throwsIllegalValueException() throws Exception {
+        Path csvFile = temporaryFolder.resolve("non_utf8.csv");
+        String content = HEADER + System.lineSeparator() + "Zoé,12345678,zoe@example.com,member,student,,Violin:1,";
+
+        // Write file using ISO-8859-1 encoding (like Excel's default CSV)
+        try (OutputStreamWriter writer = new OutputStreamWriter(
+                Files.newOutputStream(csvFile, StandardOpenOption.CREATE),
+                java.nio.charset.StandardCharsets.ISO_8859_1)) {
+            writer.write(content);
+        }
+
+        String expectedMessage = "The file could not be read. Please save it as CSV UTF-8 (not plain CSV).";
+        assertThrows(IllegalValueException.class, expectedMessage, () -> CsvImporter.importPeople(csvFile));
     }
 
     private Path writeCsv(String... lines) throws Exception {
