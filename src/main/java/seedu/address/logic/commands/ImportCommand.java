@@ -32,11 +32,28 @@ public class ImportCommand extends Command {
     public static final String MESSAGE_FILE_NOT_FOUND = "No file named %s in the imports folder.";
     public static final String MESSAGE_DUPLICATE_PERSON =
             "Import failed because a person already exists in the address book or is repeated in the CSV.";
+    public static final String MESSAGE_INVALID_FILENAME = "Invalid filename. Filenames cannot contain the following "
+            + "characters: \\ / : * ? \" < > |";
 
     private final String fileName;
 
+    /**
+     * Creates an ImportCommand to import the specified CSV file.
+     *
+     * @param fileName Name of the CSV file to import.
+     */
     public ImportCommand(String fileName) {
-        this.fileName = requireNonNull(fileName);
+        requireNonNull(fileName);
+        this.fileName = fileName;
+    }
+
+    /**
+     * Returns the file name of the CSV file to import.
+     *
+     * @return the file name
+     */
+    public String getFileName() {
+        return fileName;
     }
 
     @Override
