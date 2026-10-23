@@ -144,6 +144,41 @@ public class CsvImporterTest {
         assertEquals(0, person.getGroups().size());
     }
 
+    @Test
+    public void importPeople_blankLineAtEnd_isSkipped() throws Exception {
+        Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin:1,", "");
+
+        assertEquals(List.of(new PersonBuilder().withName("Alice Tan").withPhone("91234567")
+                .withEmail("alice@example.com").withInstruments("Violin:1").build()),
+                CsvImporter.importPeople(csvFile));
+    }
+
+    @Test
+    public void importPeople_rowOfOnlyCommas_isSkipped() throws Exception {
+        Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin:1,", ",,,,,,,");
+
+        assertEquals(List.of(new PersonBuilder().withName("Alice Tan").withPhone("91234567")
+                .withEmail("alice@example.com").withInstruments("Violin:1").build()),
+                CsvImporter.importPeople(csvFile));
+    }
+
+    @Test
+    public void importPeople_blankAndEmptyRows_mixedWithValidData() throws Exception {
+        Path csvFile = writeCsv(HEADER,
+                "Alice Tan,91234567,alice@example.com,member,student,,Violin:1,",
+                "",
+                ",,,,,,,",
+                "Bob Lim,98765432,bob@example.com,member,student,,Drums:2,",
+                "Carol Ng,91112222,carol@example.com,member,teacher,,Cello:5,Choir");
+
+        List<Person> people = CsvImporter.importPeople(csvFile);
+
+        assertEquals(3, people.size());
+        assertEquals("Alice Tan", people.get(0).getName().toString());
+        assertEquals("Bob Lim", people.get(1).getName().toString());
+        assertEquals("Carol Ng", people.get(2).getName().toString());
+    }
+
     private Path writeCsv(String... lines) throws Exception {
         Path csvFile = temporaryFolder.resolve("members.csv");
         Files.writeString(csvFile, String.join(System.lineSeparator(), lines));

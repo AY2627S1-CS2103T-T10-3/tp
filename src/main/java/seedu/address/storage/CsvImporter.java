@@ -60,7 +60,12 @@ public class CsvImporter {
 
         List<Person> people = new ArrayList<>();
         for (int lineIndex = 1; lineIndex < lines.size(); lineIndex++) {
-            people.add(parsePerson(lines.get(lineIndex), lineIndex + 1));
+            String line = lines.get(lineIndex);
+            // Skip blank lines and rows with only empty fields
+            if (line.trim().isEmpty() || isBlankOrEmptyRow(line)) {
+                continue;
+            }
+            people.add(parsePerson(line, lineIndex + 1));
         }
         return List.copyOf(people);
     }
@@ -166,5 +171,20 @@ public class CsvImporter {
 
         fields.add(field.toString());
         return fields;
+    }
+
+    private static boolean isBlankOrEmptyRow(String line) {
+        try {
+            List<String> fields = parseCsvLine(line, -1);
+            for (String field : fields) {
+                if (!field.trim().isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (IllegalValueException e) {
+            // If parsing fails, treat as non-empty row (error will be caught later)
+            return false;
+        }
     }
 }
