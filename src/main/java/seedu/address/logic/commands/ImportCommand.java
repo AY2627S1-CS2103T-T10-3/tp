@@ -7,6 +7,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 
+import seedu.address.MainApp;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
@@ -32,8 +33,6 @@ public class ImportCommand extends Command {
     public static final String MESSAGE_DUPLICATE_PERSON =
             "Import failed because a person already exists in the address book or is repeated in the CSV.";
 
-    private static final Path IMPORT_DIRECTORY = Path.of("imports");
-
     private final String fileName;
 
     public ImportCommand(String fileName) {
@@ -44,7 +43,7 @@ public class ImportCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Path importPath = IMPORT_DIRECTORY.resolve(fileName);
+        Path importPath = MainApp.IMPORT_DIRECTORY.resolve(fileName);
         List<Person> importedPeople;
         try {
             importedPeople = CsvImporter.importPeople(importPath);
