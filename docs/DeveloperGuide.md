@@ -297,7 +297,7 @@ Step 5. The user then decides to execute the command `list`. `list` does not cha
 
 Step 6. The user executes `clear`. `LogicManager` executes the command and, after a successful save, calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: it no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The undone states are purged even if the command leaves the data unchanged (e.g. an `edit` that sets a field to its current value), because the user sees it reported as a new change. Only `undo` and `redo` keep them: they override `Command#recordsChange()` to return `false`, so `LogicManager` does not call `Model#commitAddressBook()` after them.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The undone states are purged even if the command leaves the data unchanged (e.g. an `edit` that sets a field to its current value), because the user sees it reported as a new change. The undone states are kept only after commands that do not save data (e.g. `list`, as in Step 5) and after `undo` and `redo` themselves, which override `Command#recordsChange()` to return `false` so that `LogicManager` does not call `Model#commitAddressBook()` after them.
 
 </div>
 
