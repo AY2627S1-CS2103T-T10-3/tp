@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
@@ -82,6 +83,7 @@ public class ImportCommand extends Command {
             updatedAddressBook.addPerson(person);
         }
         model.setAddressBook(updatedAddressBook);
+        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
 
         String successMessage = importedPeople.size() == 1 ? MESSAGE_SUCCESS_SINGULAR : MESSAGE_SUCCESS;
         return new CommandResult(String.format(successMessage, importedPeople.size(), importPath));
