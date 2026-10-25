@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
@@ -218,6 +219,14 @@ public class CsvImporterTest {
         Person person = CsvImporter.importPeople(csvFile).getFirst();
 
         assertEquals(0, person.getGroups().size());
+    }
+
+    @Test
+    public void importPeople_nonBreakingSpaceOnlyGroup_throwsIllegalValueException() throws Exception {
+        Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin:1,\u00A0");
+        String expectedMessage = "Invalid value at line 2: " + Group.MESSAGE_CONSTRAINTS;
+
+        assertThrows(IllegalValueException.class, expectedMessage, () -> CsvImporter.importPeople(csvFile));
     }
 
     @Test
