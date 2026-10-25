@@ -41,15 +41,18 @@ public class ArgumentTokenizer {
     }
 
     /**
-     * Verifies that {@code argsString} does not contain any token that looks like a prefix but is not one of the
-     * accepted {@code prefixes}.
+     * Verifies that {@code argsString} does not contain a prefix that the user most likely mistyped.
      * <p>
-     * A token is a candidate prefix if it is preceded by whitespace (or starts the string) and has the form of one or
-     * two ASCII letters followed by {@code /}. Such a candidate is rejected as an unknown prefix only if it is not
-     * exactly one of {@code prefixes} and its lowercase form either is a HiveMind prefix (i.e. a wrongly capitalised
-     * prefix, or a HiveMind prefix that this command does not accept) or is one of the removed AddressBook prefixes
-     * {@code t/} and {@code a/}. All other tokens, e.g. {@code c/o} or {@code w/} inside a value, are ignored as they
-     * are legitimate text in roles and groups.
+     * A token is a candidate if it starts the string or follows a space, and is one or two ASCII letters followed by
+     * {@code /}. A candidate that is exactly one of {@code prefixes} is accepted. Otherwise it is rejected if
+     * <ul>
+     *     <li>it is one of the prefixes removed from the original AddressBook, {@code t/} or {@code a/},</li>
+     *     <li>it is a HiveMind prefix that this command does not accept, or</li>
+     *     <li>it is an accepted prefix in the wrong case (e.g. {@code S/}) appearing before the first accepted prefix,
+     *     where it would otherwise be read as part of the preamble.</li>
+     * </ul>
+     * Wrong-case tokens inside values are allowed, as values such as {@code N/A} or {@code A/V} are common, and so is
+     * other slash text such as {@code c/o}.
      *
      * @param argsString Arguments string of the form: {@code preamble <prefix>value <prefix>value ...}
      * @param prefixes   Prefixes accepted by the command that is parsing {@code argsString}
@@ -66,19 +69,21 @@ public class ArgumentTokenizer {
                 .map(Prefix::getPrefix)
                 .collect(Collectors.joining(" "));
 
+        boolean isInPreamble = true;
         Matcher matcher = PREFIX_LIKE_TOKEN.matcher(argsString);
         while (matcher.find()) {
-            boolean isAtStartOfWord = matcher.start() == 0
-                    || Character.isWhitespace(argsString.charAt(matcher.start() - 1));
+            // the tokenizer only recognises a prefix that follows a space, so other characters do not start a token
+            boolean isAtStartOfWord = matcher.start() == 0 || argsString.charAt(matcher.start() - 1) == ' ';
             if (!isAtStartOfWord) {
                 continue;
             }
 
             String token = matcher.group();
             if (acceptedPrefixes.contains(token)) {
+                isInPreamble = false;
                 continue;
             }
-            if (isKnownPrefixWithWrongText(token)) {
+            if (isUnknownPrefix(token, isInPreamble)) {
                 throw new ParseException(
                         String.format(Messages.MESSAGE_UNKNOWN_PREFIX, token, acceptedPrefixList));
             }
@@ -86,13 +91,22 @@ public class ArgumentTokenizer {
     }
 
     /**
-     * Returns true if {@code token} is a HiveMind prefix (e.g. a wrongly capitalised prefix, or a HiveMind prefix that
-     * the calling command does not accept) or one of the prefixes removed from the original AddressBook.
+     * Returns true if {@code token}, which is not exactly an accepted prefix, should be rejected as an unknown prefix.
+     *
+     * @see #verifyNoUnknownPrefixes(String, Prefix...)
      */
-    private static boolean isKnownPrefixWithWrongText(String token) {
+    private static boolean isUnknownPrefix(String token, boolean isInPreamble) {
+        if (containsPrefix(CliSyntax.REMOVED_PREFIXES, token)) {
+            return true;
+        }
         String lowercaseToken = token.toLowerCase(Locale.ROOT);
-        return containsPrefix(CliSyntax.ALL_PREFIXES, lowercaseToken)
-                || containsPrefix(CliSyntax.REMOVED_PREFIXES, lowercaseToken);
+        if (!containsPrefix(CliSyntax.ALL_PREFIXES, lowercaseToken)) {
+            return false;
+        }
+        // a HiveMind prefix typed exactly is the real prefix, so the command does not accept it;
+        // a wrong-case one may be ordinary text such as N/A, unless it would be read as part of the preamble
+        boolean isExactPrefix = token.equals(lowercaseToken);
+        return isExactPrefix || isInPreamble;
     }
 
     /**
