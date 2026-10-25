@@ -59,6 +59,18 @@ public class CsvImporterTest {
     }
 
     @Test
+    public void importPeople_headerWithSurroundingWhitespace_importsPerson() throws Exception {
+        Path csvFile = writeCsv(
+                " name , phone , email , status , memberType , role , instruments , groups ",
+                "Alice Tan,91234567,alice@example.com,member,student,,Violin:1,");
+
+        List<Person> people = CsvImporter.importPeople(csvFile);
+
+        assertEquals(1, people.size());
+        assertEquals("Alice Tan", people.getFirst().getName().toString());
+    }
+
+    @Test
     public void importPeople_quotedCommaAndEscapedQuote_parsesRole() throws Exception {
         Path csvFile = writeCsv(
                 HEADER,

@@ -91,7 +91,9 @@ public class CsvImporter {
         if (!header.isEmpty() && header.charAt(0) == UTF_8_BYTE_ORDER_MARK) {
             header = header.substring(1);
         }
-        if (!parseCsvRecord(header, 1).equals(EXPECTED_HEADER)) {
+        List<String> headerFields = parseCsvRecord(header, 1);
+        headerFields.replaceAll(String::trim);
+        if (!headerFields.equals(EXPECTED_HEADER)) {
             throw new IllegalValueException("CSV header must be " + String.join(",", EXPECTED_HEADER) + ".");
         }
     }
