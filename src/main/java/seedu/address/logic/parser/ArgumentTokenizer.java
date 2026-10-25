@@ -1,9 +1,18 @@
 package seedu.address.logic.parser;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import seedu.address.logic.Messages;
+import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
  * Tokenizes arguments string of the form: {@code preamble <prefix>value <prefix>value ...}<br>
@@ -14,6 +23,9 @@ import java.util.stream.Collectors;
  *    in the above example.<br>
  */
 public class ArgumentTokenizer {
+
+    /** A token that looks like a prefix: one or two ASCII letters and a slash, e.g. {@code n/} or {@code TY/}. */
+    private static final Pattern PREFIX_LIKE_TOKEN = Pattern.compile("[A-Za-z]{1,2}/");
 
     /**
      * Tokenizes an arguments string and returns an {@code ArgumentMultimap} object that maps prefixes to their
@@ -26,6 +38,68 @@ public class ArgumentTokenizer {
     public static ArgumentMultimap tokenize(String argsString, Prefix... prefixes) {
         List<PrefixPosition> positions = findAllPrefixPositions(argsString, prefixes);
         return extractArguments(argsString, positions);
+    }
+
+    /**
+     * Verifies that {@code argsString} does not contain any token that looks like a prefix but is not one of the
+     * accepted {@code prefixes}.
+     * <p>
+     * A token is a candidate prefix if it is preceded by whitespace (or starts the string) and has the form of one or
+     * two ASCII letters followed by {@code /}. Such a candidate is rejected as an unknown prefix only if it is not
+     * exactly one of {@code prefixes} and its lowercase form either is a HiveMind prefix (i.e. a wrongly capitalised
+     * prefix, or a HiveMind prefix that this command does not accept) or is one of the removed AddressBook prefixes
+     * {@code t/} and {@code a/}. All other tokens, e.g. {@code c/o} or {@code w/} inside a value, are ignored as they
+     * are legitimate text in roles and groups.
+     *
+     * @param argsString Arguments string of the form: {@code preamble <prefix>value <prefix>value ...}
+     * @param prefixes   Prefixes accepted by the command that is parsing {@code argsString}
+     * @throws ParseException if an unknown prefix is found, naming the first unknown prefix by position
+     */
+    public static void verifyNoUnknownPrefixes(String argsString, Prefix... prefixes) throws ParseException {
+        requireNonNull(argsString);
+        requireNonNull(prefixes);
+
+        Set<String> acceptedPrefixes = Arrays.stream(prefixes)
+                .map(Prefix::getPrefix)
+                .collect(Collectors.toSet());
+        String acceptedPrefixList = Arrays.stream(prefixes)
+                .map(Prefix::getPrefix)
+                .collect(Collectors.joining(" "));
+
+        Matcher matcher = PREFIX_LIKE_TOKEN.matcher(argsString);
+        while (matcher.find()) {
+            boolean isAtStartOfWord = matcher.start() == 0
+                    || Character.isWhitespace(argsString.charAt(matcher.start() - 1));
+            if (!isAtStartOfWord) {
+                continue;
+            }
+
+            String token = matcher.group();
+            if (acceptedPrefixes.contains(token)) {
+                continue;
+            }
+            if (isKnownPrefixWithWrongText(token)) {
+                throw new ParseException(
+                        String.format(Messages.MESSAGE_UNKNOWN_PREFIX, token, acceptedPrefixList));
+            }
+        }
+    }
+
+    /**
+     * Returns true if {@code token} is a HiveMind prefix (e.g. a wrongly capitalised prefix, or a HiveMind prefix that
+     * the calling command does not accept) or one of the prefixes removed from the original AddressBook.
+     */
+    private static boolean isKnownPrefixWithWrongText(String token) {
+        String lowercaseToken = token.toLowerCase(Locale.ROOT);
+        return containsPrefix(CliSyntax.ALL_PREFIXES, lowercaseToken)
+                || containsPrefix(CliSyntax.REMOVED_PREFIXES, lowercaseToken);
+    }
+
+    /**
+     * Returns true if any of the given {@code prefixes} has the prefix text {@code prefixText}.
+     */
+    private static boolean containsPrefix(Prefix[] prefixes, String prefixText) {
+        return Arrays.stream(prefixes).anyMatch(prefix -> prefix.getPrefix().equals(prefixText));
     }
 
     /**

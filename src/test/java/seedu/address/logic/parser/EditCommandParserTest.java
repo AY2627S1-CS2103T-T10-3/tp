@@ -60,6 +60,8 @@ public class EditCommandParserTest {
     private static final String INSTRUMENT_EMPTY = " " + PREFIX_INSTRUMENT;
     private static final String ROLE_EMPTY = " " + PREFIX_ROLE;
 
+    private static final String ACCEPTED_PREFIXES = "n/ p/ e/ s/ ty/ r/ i/ g/";
+
     private static final String MESSAGE_INVALID_FORMAT =
             String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE);
 
@@ -80,10 +82,13 @@ public class EditCommandParserTest {
     @Test
     public void parse_invalidPreamble_failure() {
         // negative index
-        assertParseFailure(parser, "-5" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "-5" + NAME_DESC_AMY, ParserUtil.MESSAGE_INVALID_INDEX);
 
         // zero index
-        assertParseFailure(parser, "0" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "0" + NAME_DESC_AMY, ParserUtil.MESSAGE_INVALID_INDEX);
+
+        // plus-signed index
+        assertParseFailure(parser, "+1" + NAME_DESC_AMY, ParserUtil.MESSAGE_INVALID_INDEX);
 
         // invalid arguments being parsed as preamble
         assertParseFailure(parser, "1 some random string", MESSAGE_INVALID_FORMAT);
@@ -91,8 +96,28 @@ public class EditCommandParserTest {
         // invalid prefix being parsed as preamble
         assertParseFailure(parser, "1 x/ string", MESSAGE_INVALID_FORMAT);
 
-        // removed tag prefix being parsed as preamble
-        assertParseFailure(parser, "1 t/friends", MESSAGE_INVALID_FORMAT);
+        // preamble that is not an integer at all
+        assertParseFailure(parser, "abc n/Alex", MESSAGE_INVALID_FORMAT);
+    }
+
+    @Test
+    public void parse_indexNotPositive_failure() {
+        assertParseFailure(parser, "0 n/Alex", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "-3 n/Alex", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "+1 n/Alex", ParserUtil.MESSAGE_INVALID_INDEX);
+    }
+
+    @Test
+    public void parse_unknownPrefix_failure() {
+        // removed tag prefix that the original AddressBook accepted
+        assertParseFailure(parser, "1 r/Lead t/friend",
+                String.format(Messages.MESSAGE_UNKNOWN_PREFIX, "t/", ACCEPTED_PREFIXES));
+        assertParseFailure(parser, "1 t/friends",
+                String.format(Messages.MESSAGE_UNKNOWN_PREFIX, "t/", ACCEPTED_PREFIXES));
+
+        // wrongly capitalised prefix, seen as part of the index text before
+        assertParseFailure(parser, "1 S/member",
+                String.format(Messages.MESSAGE_UNKNOWN_PREFIX, "S/", ACCEPTED_PREFIXES));
     }
 
     @Test

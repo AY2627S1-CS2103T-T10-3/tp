@@ -1,13 +1,30 @@
 package seedu.address.logic.parser;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GROUP;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INSTRUMENT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MEMBER_TYPE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.Messages;
+import seedu.address.logic.parser.exceptions.ParseException;
+
 public class ArgumentTokenizerTest {
+
+    private static final Prefix[] HIVEMIND_PREFIXES = {PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_STATUS,
+        PREFIX_MEMBER_TYPE, PREFIX_ROLE, PREFIX_INSTRUMENT, PREFIX_GROUP};
+    private static final String ACCEPTED_PREFIXES = "n/ p/ e/ s/ ty/ r/ i/ g/";
 
     private final Prefix unknownPrefix = new Prefix("--u");
     private final Prefix pSlash = new Prefix("p/");
@@ -145,6 +162,58 @@ public class ArgumentTokenizerTest {
 
         assertNotEquals(aaa, "aaa");
         assertNotEquals(aaa, new Prefix("aab"));
+    }
+
+    @Test
+    public void verifyNoUnknownPrefixes_acceptedPrefixes_success() {
+        String argsString = "1 " + PREFIX_NAME + "Alex " + PREFIX_PHONE + "91234567 " + PREFIX_EMAIL
+                + "alex@example.com " + PREFIX_STATUS + "active " + PREFIX_MEMBER_TYPE + "External "
+                + PREFIX_ROLE + "Lead " + PREFIX_INSTRUMENT + "Violin:5 " + PREFIX_GROUP + "Training";
+
+        assertDoesNotThrow(() -> ArgumentTokenizer.verifyNoUnknownPrefixes(argsString, HIVEMIND_PREFIXES));
+    }
+
+    @Test
+    public void verifyNoUnknownPrefixes_removedPrefixes_throwsParseException() {
+        assertUnknownPrefixRejected("1 r/Lead t/friend", "t/");
+        assertUnknownPrefixRejected("1 a/Somewhere", "a/");
+    }
+
+    @Test
+    public void verifyNoUnknownPrefixes_wronglyCapitalisedPrefixes_throwsParseException() {
+        assertUnknownPrefixRejected("1 N/Alex", "N/");
+        assertUnknownPrefixRejected("1 S/member", "S/");
+        assertUnknownPrefixRejected("1 TY/member", "TY/");
+        assertUnknownPrefixRejected("1 Ty/member", "Ty/");
+    }
+
+    @Test
+    public void verifyNoUnknownPrefixes_tokenAtStartOfString_throwsParseException() {
+        assertUnknownPrefixRejected("S/member", "S/");
+    }
+
+    @Test
+    public void verifyNoUnknownPrefixes_unrecognisedTokensInValues_success() {
+        String argsString = "1 r/Lead c/o Chamber w/ friends and/or family http://example.com 1s/member";
+
+        assertDoesNotThrow(() -> ArgumentTokenizer.verifyNoUnknownPrefixes(argsString, HIVEMIND_PREFIXES));
+    }
+
+    @Test
+    public void verifyNoUnknownPrefixes_multipleUnknownPrefixes_firstByPositionReported() {
+        assertUnknownPrefixRejected("1 S/member t/friend", "S/");
+        assertUnknownPrefixRejected("1 t/friend S/member", "t/");
+    }
+
+    /**
+     * Asserts that {@code argsString} is rejected by {@link ArgumentTokenizer#verifyNoUnknownPrefixes} because of
+     * the unknown prefix {@code expectedToken}.
+     */
+    private void assertUnknownPrefixRejected(String argsString, String expectedToken) {
+        ParseException pe = assertThrows(ParseException.class, () ->
+                ArgumentTokenizer.verifyNoUnknownPrefixes(argsString, HIVEMIND_PREFIXES));
+        assertEquals(String.format(Messages.MESSAGE_UNKNOWN_PREFIX, expectedToken, ACCEPTED_PREFIXES),
+                pe.getMessage());
     }
 
 }

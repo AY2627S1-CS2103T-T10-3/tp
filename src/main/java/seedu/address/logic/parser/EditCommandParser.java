@@ -29,6 +29,13 @@ import seedu.address.model.person.Role;
  */
 public class EditCommandParser implements Parser<EditCommand> {
 
+    /** Prefixes accepted by the {@code edit} command, in the order they are reported to the user. */
+    private static final Prefix[] EDIT_PREFIXES = {PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_STATUS,
+        PREFIX_MEMBER_TYPE, PREFIX_ROLE, PREFIX_INSTRUMENT, PREFIX_GROUP};
+
+    /** Matches an optionally signed integer, e.g. {@code 1}, {@code -3} or {@code +1}. */
+    private static final String SIGNED_INTEGER_REGEX = "[+-]?\\d+";
+
     /**
      * Parses the given {@code String} of arguments in the context of the EditCommand
      * and returns an EditCommand object for execution.
@@ -36,17 +43,10 @@ public class EditCommandParser implements Parser<EditCommand> {
      */
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap argMultimap =
-                ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_STATUS,
-                        PREFIX_MEMBER_TYPE, PREFIX_ROLE, PREFIX_INSTRUMENT, PREFIX_GROUP);
+        ArgumentTokenizer.verifyNoUnknownPrefixes(args, EDIT_PREFIXES);
 
-        Index index;
-
-        try {
-            index = ParserUtil.parseIndex(argMultimap.getPreamble());
-        } catch (ParseException pe) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), pe);
-        }
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, EDIT_PREFIXES);
+        Index index = parseIndexForEdit(argMultimap.getPreamble());
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_STATUS,
                 PREFIX_MEMBER_TYPE, PREFIX_ROLE);
@@ -82,6 +82,20 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
 
         return new EditCommand(index, editPersonDescriptor);
+    }
+
+    /**
+     * Parses the {@code preamble} of the {@code edit} command into the index of the person to edit.
+     *
+     * @throws ParseException with the generic invalid-format message if {@code preamble} is not an integer at all,
+     *     or with {@code ParserUtil.MESSAGE_INVALID_INDEX} if it is an integer that is not a valid one-based index.
+     */
+    private Index parseIndexForEdit(String preamble) throws ParseException {
+        String trimmedPreamble = preamble.trim();
+        if (!trimmedPreamble.matches(SIGNED_INTEGER_REGEX)) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE));
+        }
+        return ParserUtil.parseIndex(trimmedPreamble);
     }
 
     /**
