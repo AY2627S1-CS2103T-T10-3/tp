@@ -101,6 +101,19 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_indexTooLargeForInt_failure() {
+        assertParseFailure(parser, "99999999999 n/Alex", Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertParseFailure(parser, "+99999999999 n/Alex", Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertParseFailure(parser, "-99999999999 n/Alex", ParserUtil.MESSAGE_INVALID_INDEX);
+    }
+
+    @Test
+    public void parse_fullWidthDigitIndex_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_AMY).build();
+        assertParseSuccess(parser, "\uFF11" + NAME_DESC_AMY, new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
     public void parse_indexNotPositive_failure() {
         assertParseFailure(parser, "0 n/Alex", ParserUtil.MESSAGE_INVALID_INDEX);
         assertParseFailure(parser, "-3 n/Alex", ParserUtil.MESSAGE_INVALID_INDEX);
