@@ -39,6 +39,11 @@ public class MainAppTest {
     public Path temporaryFolder;
 
     @Test
+    public void getImportDirectory_returnsSharedImportDirectory() {
+        assertSame(MainApp.IMPORT_DIRECTORY, new MainApp().getImportDirectory());
+    }
+
+    @Test
     public void initModelManager_invalidAddressBook_recoversWithoutOverwritingData() throws Exception {
         Path addressBookPath = temporaryFolder.resolve("addressbook.json");
         String invalidJson = "not valid JSON";
