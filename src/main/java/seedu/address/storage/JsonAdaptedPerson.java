@@ -150,10 +150,13 @@ class JsonAdaptedPerson {
         }
         final MemberType modelMemberType = MemberType.fromString(memberType);
 
-        if (role != null && !Role.isValidRole(role)) {
+        if (role != null && role.isBlank()) {
             throw new IllegalValueException(Role.MESSAGE_CONSTRAINTS);
         }
-        final Optional<Role> modelRole = role == null ? Optional.empty() : Optional.of(new Role(role));
+        // Earlier versions saved roles made only of Unicode spaces such as U+00A0, which are no longer valid.
+        // Load them as having no role, so that existing data files still load.
+        final Optional<Role> modelRole = role == null || !Role.isValidRole(role)
+                ? Optional.empty() : Optional.of(new Role(role));
 
         final Set<Instrument> modelInstruments = Set.copyOf(personInstruments);
         return new Person(modelName, modelPhone, modelEmail, modelStatus, modelMemberType, modelRole,

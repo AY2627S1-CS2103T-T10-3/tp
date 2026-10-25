@@ -31,6 +31,7 @@ public class RoleTest {
     public void constructor_unicodeWhitespace_collapsedToSingleSpace() {
         assertEquals("Vice President", new Role("Vice\u2003President").value);
         assertEquals("Vice President", new Role("Vice\u00A0\u202FPresident").value);
+        assertEquals("Vice President", new Role("Vice\u0085President").value);
     }
 
     @Test
@@ -60,6 +61,7 @@ public class RoleTest {
         assertFalse(Role.isValidRole("\u202F"));
         assertFalse(Role.isValidRole("\u2003\u00A0 "));
         assertFalse(Role.isValidRole("\t\n"));
+        assertFalse(Role.isValidRole("\u0085\u3000"));
     }
 
     @Test

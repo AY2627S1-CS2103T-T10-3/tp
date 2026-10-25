@@ -15,8 +15,8 @@ public class Role {
 
     public static final String MESSAGE_CONSTRAINTS = "Roles should not be blank";
 
-    /** Matches runs of ASCII or Unicode whitespace (e.g. U+00A0, U+2003, U+2007, U+202F). */
-    private static final Pattern WHITESPACE = Pattern.compile("[\\s\\p{Z}]+");
+    /** Matches runs of Unicode whitespace, including ASCII whitespace, U+0085, U+00A0, U+2003 and U+202F. */
+    private static final Pattern WHITESPACE = Pattern.compile("\\p{IsWhite_Space}+");
 
     public final String value;
 
@@ -33,7 +33,7 @@ public class Role {
     }
 
     /**
-     * Returns the given role with every run of ASCII or Unicode whitespace replaced by a single ASCII space,
+     * Returns the given role with every run of Unicode whitespace replaced by a single ASCII space,
      * and any leading or trailing spaces stripped.
      */
     public static String normalize(String role) {
