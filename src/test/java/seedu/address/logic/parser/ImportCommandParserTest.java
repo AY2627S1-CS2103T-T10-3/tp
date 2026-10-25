@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.commands.ImportCommand.MESSAGE_INVALID_FILENAME;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 
 import org.junit.jupiter.api.Test;
 
@@ -24,23 +25,23 @@ public class ImportCommandParserTest {
     @Test
     public void parse_emptyFileName_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ImportCommand.MESSAGE_USAGE);
-        assertParseException(expectedMessage, "");
+        assertParseFailure(parser, "", expectedMessage);
     }
 
     @Test
     public void parse_nonCsvFile_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ImportCommand.MESSAGE_USAGE);
-        assertParseException(expectedMessage, "members.txt");
+        assertParseFailure(parser, "members.txt", expectedMessage);
     }
 
     @Test
     public void parse_invalidFilenameWithQuestionMark_throwsParseException() {
-        assertParseException(MESSAGE_INVALID_FILENAME, "bad?name.csv");
+        assertParseFailure(parser, "bad?name.csv", MESSAGE_INVALID_FILENAME);
     }
 
     @Test
     public void parse_invalidFilenameWithAsterisk_throwsParseException() {
-        assertParseException(MESSAGE_INVALID_FILENAME, "bad*name.csv");
+        assertParseFailure(parser, "bad*name.csv", MESSAGE_INVALID_FILENAME);
     }
 
     @Test
@@ -50,16 +51,7 @@ public class ImportCommandParserTest {
             "bad\\name.csv", "bad\"name.csv"
         };
         for (String filename : invalidFilenames) {
-            assertParseException(MESSAGE_INVALID_FILENAME, filename);
-        }
-    }
-
-    private void assertParseException(String expectedMessage, String userInput) {
-        try {
-            parser.parse(userInput);
-            throw new AssertionError("Expected ParseException not thrown");
-        } catch (ParseException actualException) {
-            assertEquals(expectedMessage, actualException.getMessage());
+            assertParseFailure(parser, filename, MESSAGE_INVALID_FILENAME);
         }
     }
 }

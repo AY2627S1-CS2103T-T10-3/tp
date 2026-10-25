@@ -211,7 +211,7 @@ public class CsvImporterTest {
 
     @Test
     public void importPeople_rowOfOnlyCommas_isSkipped() throws Exception {
-        Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin:1,", ",,,,,,,");
+        Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin:1,", ",,,,,,,,");
 
         assertEquals(List.of(new PersonBuilder().withName("Alice Tan").withPhone("91234567")
                 .withEmail("alice@example.com").withInstruments("Violin:1").build()),
