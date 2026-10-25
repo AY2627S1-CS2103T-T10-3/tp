@@ -58,6 +58,11 @@ HiveMind is a **desktop directory for Music CCA members and alumni, optimized fo
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
+* A parameter value cannot contain a space followed by another prefix of the same command, as HiveMind reads that as the start of a new parameter.<br>
+  For example, `edit 1 r/Head g/Coach` sets the role to `Head` and the groups to `Coach`, and `edit 1 r/ n/a` removes the role and renames the person to `a`. Text such as `c/o` or `and/or` is fine, as it is not a prefix.
+
+* Prefixes are lowercase. Prefixes from other address book apps, such as `t/` and `a/`, are not supported.
+
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
@@ -156,7 +161,7 @@ Example: after `find alex david`, enter `list` to show everyone again. The resul
 
 Edits an existing person in HiveMind.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`
+Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
@@ -168,6 +173,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [
 * When editing instruments, all of the person's existing instruments are replaced; adding instruments is not cumulative.
 * To remove all of a person's instruments, enter `i/` without an instrument after it.
 * When editing groups, all existing groups are replaced by the supplied `g/GROUP` values. To remove all groups, enter `g/` alone. Mixing an empty `g/` with named groups is invalid.
+* After an edit, the full member list is shown, even if the list was showing the results of `find` or `filter`. Run the `find` or `filter` command again to return to those results.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
@@ -354,6 +360,9 @@ _Details coming soon ..._
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+3. **If you put the JAR file in a write-protected folder** (a folder where you cannot create files), HiveMind may fail to start, or may be unable to save your changes. The remedy is to move the JAR file to a folder you can write to, such as a new folder in your home folder, and start it from there.
+4. **Double-clicking the JAR file may not start HiveMind**, or may start it with a different Java version, on some systems. The remedy is to start it from a terminal with `java -jar`, as described in the [Quick start](#quick-start).
+5. **On macOS, if the main window is in full-screen mode**, the Help Window may open in a separate full-screen space or behind the main window. The remedy is to exit full-screen mode (e.g. press `Ctrl`+`Cmd`+`F`) before running `help`.
 
 --------------------------------------------------------------------------------------------------------------------
 
