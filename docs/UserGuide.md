@@ -292,31 +292,39 @@ Clears all entries from HiveMind.
 
 Format: `clear`
 
-### Undoing the last change: `undo`
+### Undoing changes: `undo`
 
-Reverts the most recent change made by `add`, `edit`, `delete` or `clear`.
+Reverts the most recent changes made by `add`, `edit`, `delete`, `clear` or `import`.
 
-Format: `undo`
+Format: `undo [COUNT]`
 
-* Running `undo` again reverts the change before that, back to when HiveMind was started.
-* Commands that do not change data (e.g. `list`, `find`, `filter`) are not undone.
+* Reverts the `COUNT` most recent changes, most recent first. Without `COUNT`, only the most recent change is reverted.
+* `COUNT` must be a positive integer, e.g. 1, 2, 3, …​
+* You can undo changes back to when HiveMind was started. If fewer than `COUNT` changes can be undone, nothing is undone and HiveMind tells you how many can be.
+* Commands that do not change data (e.g. `list`, `find`, `filter`, `sort`, `export`) are not undone.
+* An `import` is a single change, so `undo` removes everyone it added.
 * After an undo, the full member list is shown.
 
 Examples:
 * `delete 2` followed by `undo` restores the deleted person.
+* `delete 1`, then `delete 1` again, then `undo 2` restores both deleted people.
 
-### Redoing an undone change: `redo`
+### Redoing undone changes: `redo`
 
-Restores the most recent change reverted by `undo`.
+Restores the most recent changes reverted by `undo`.
 
-Format: `redo`
+Format: `redo [COUNT]`
 
-* Running `redo` again restores the next undone change, in the order they were undone.
-* Once you make a new change (e.g. `add`, `edit`, `delete` or `clear`) after an `undo`, the undone changes can no longer be redone.
+* Restores the `COUNT` most recently undone changes. Without `COUNT`, only the most recently undone change is restored.
+* `COUNT` must be a positive integer, e.g. 1, 2, 3, …​
+* Changes are restored in the reverse order of undoing: the most recently undone change comes back first.
+* If fewer than `COUNT` undone changes can be restored, nothing is redone and HiveMind tells you how many can be.
+* Once you make a new change (e.g. `add`, `edit`, `delete`, `clear` or `import`) after an `undo`, the undone changes can no longer be redone. This also applies to an `edit` that leaves the member's details unchanged.
 * After a redo, the full member list is shown.
 
 Examples:
 * `delete 2`, then `undo`, then `redo` deletes the person again.
+* `delete 1`, then `delete 1`, then `undo 2`, then `redo` deletes only the first of the two people again.
 
 ### Exiting the program: `exit`
 
@@ -370,7 +378,7 @@ Action | Format, Examples
 **Filter** | `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]... [ty/TYPE]... [r/ROLE]... [g/GROUP]...`<br> e.g., `filter s/member i/Violin:3 g/Chamber Orchestra`
 **List** | `list`
 **Sort** | `sort name` or `sort status`
-**Undo** | `undo`
-**Redo** | `redo`
+**Undo** | `undo [COUNT]`<br> e.g., `undo 2`
+**Redo** | `redo [COUNT]`<br> e.g., `redo 2`
 **Help** | `help`
 **Import** | `import FILE_NAME`<br> e.g., `import members.csv`

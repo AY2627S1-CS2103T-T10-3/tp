@@ -237,12 +237,13 @@ The following sequence diagram focuses on a successful `ImportCommand.execute(..
 
 The undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
 
-* `VersionedAddressBook#commit()` — Records the current address book state in its history, unless the data is unchanged.
+* `VersionedAddressBook#commit()` — Discards any undone states, then records the current address book state in its history, unless the data is unchanged.
 * `VersionedAddressBook#undo()` — Reverts the most recent change by restoring an earlier state from its history.
 * `VersionedAddressBook#redo()` — Restores the most recently undone state from its history.
 * `VersionedAddressBook#canUndo()` and `VersionedAddressBook#canRedo()` — Return whether there is a change to revert or restore.
+* `VersionedAddressBook#getUndoableCount()` and `VersionedAddressBook#getRedoableCount()` — Return how many changes can be reverted or restored one after another.
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()`, `Model#redoAddressBook()`, `Model#canUndoAddressBook()` and `Model#canRedoAddressBook()` respectively.
+These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()`, `Model#redoAddressBook()`, `Model#canUndoAddressBook()`, `Model#canRedoAddressBook()`, `Model#getUndoableChangeCount()` and `Model#getRedoableChangeCount()` respectively.
 
 Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
 
@@ -284,6 +285,8 @@ Similarly, how an undo operation goes through the `Model` component is shown bel
 
 The `redo` command does the opposite: it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
 
+Both commands take an optional count, e.g. `undo 3`. `UndoCommandParser` and `RedoCommandParser` use `ParserUtil#parseCount()` to read it, defaulting to 1. The command first compares the count with `Model#getUndoableChangeCount()` (or `Model#getRedoableChangeCount()`). If the history is too short, it fails without changing anything, so the user is never left with only some of the requested changes undone. Otherwise it calls `Model#undoAddressBook()` (or `Model#redoAddressBook()`) once per step. `LogicManager` then saves the address book once. If that save fails, the rollback described in Step 3 restores the data and the `currentStatePointer` from before the command, so all of the steps are reverted together.
+
 <div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it shows "There is no undone change to redo." to the user.
 
 </div>
@@ -293,6 +296,10 @@ Step 5. The user then decides to execute the command `list`. `list` does not cha
 ![UndoRedoState4](images/UndoRedoState4.png)
 
 Step 6. The user executes `clear`. `LogicManager` executes the command and, after a successful save, calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: it no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
+
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The undone states are purged even if the command leaves the data unchanged (e.g. an `edit` that sets a field to its current value), because the user sees it reported as a new change. Only `undo` and `redo` keep them: they override `Command#recordsChange()` to return `false`, so `LogicManager` does not call `Model#commitAddressBook()` after them.
+
+</div>
 
 ![UndoRedoState5](images/UndoRedoState5.png)
 
@@ -316,7 +323,7 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 * **Alternative 1 (current choice):** `LogicManager` commits after a successful save.
   * Pros: Failed saves never enter the history; new data-changing commands are undoable without extra code.
-  * Cons: Relies on `commit()` comparing states to skip unchanged data.
+  * Cons: Relies on `commit()` comparing states to skip unchanged data, and on `undo` and `redo` opting out through `Command#recordsChange()`.
 
 * **Alternative 2:** Each data-changing command calls `Model#commitAddressBook()` (the original AB3 proposal).
   * Pros: Explicit.
@@ -651,6 +658,25 @@ Use a disposable directory with only these four records, added in this order:
       Expected: Similar to previous.
 
 1. _{ more test cases …​ }_
+
+### Undoing and redoing changes
+
+Start from the sample data in a disposable directory (delete `data/addressbook.json` before launching).
+
+1. Run `delete 1`, then `delete 1` again, then `undo 2`.<br>
+   Expected: `Undid the 2 most recent changes.` Alex Yeoh and Bernice Yu are back, and the full list is shown.
+1. Run `redo`, then `redo 1`.<br>
+   Expected: The first `redo` deletes Alex Yeoh again (the most recently undone change); the second deletes Bernice Yu again.
+1. Run `undo 5`.<br>
+   Expected: `Cannot undo 5 changes: only 2 can be undone.` Nothing changes.
+1. Run `undo 0`, `undo -1`, `undo two` and `undo 1 2`.<br>
+   Expected: Each shows invalid-format feedback with the `undo` usage, and nothing changes. Try the same inputs with `redo`.
+1. Run `undo` (Bernice Yu is back as the first member), then `edit 1 n/Bernice Yu`, then `redo`.<br>
+   Expected: The edit reports success, and `redo` then shows `There is no undone change to redo.` because the edit counts as a new change.
+1. Run `filter s/member`, then `undo`.<br>
+   Expected: The last change is undone, and the full member list is shown instead of the filtered results.
+1. Close and reopen the app, then run `undo`.<br>
+   Expected: `There is no change to undo.` The undo history is not kept between runs, but the undone and redone data is.
 
 ### Saving data
 
