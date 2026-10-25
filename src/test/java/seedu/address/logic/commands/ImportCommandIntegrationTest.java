@@ -99,9 +99,12 @@ public class ImportCommandIntegrationTest {
         Person existingPerson = new PersonBuilder().withName("Existing Person").withPhone("81111111")
                 .withEmail("existing@example.com").build();
         model.addPerson(existingPerson);
-        writeImportFile(HEADER, "Existing Person,81111111,existing@example.com,member,student,,,");
+        writeImportFile(HEADER,
+                "Existing Person,81111111,existing@example.com,member,student,\"Section",
+                "Leader\",,");
+        String expectedMessage = String.format(ImportCommand.MESSAGE_DUPLICATE_PERSON, "Existing Person", 2);
 
-        assertCommandFailure(new ImportCommand(FILE_NAME), model, ImportCommand.MESSAGE_DUPLICATE_PERSON);
+        assertCommandFailure(new ImportCommand(FILE_NAME), model, expectedMessage);
     }
 
     @Test
@@ -111,7 +114,9 @@ public class ImportCommandIntegrationTest {
                 "Alice Tan,91234567,alice@example.com,member,student,,,",
                 "Alice Tan,91234567,alice@example.com,member,student,,,");
 
-        assertCommandFailure(new ImportCommand(FILE_NAME), model, ImportCommand.MESSAGE_DUPLICATE_PERSON);
+        String expectedMessage = String.format(ImportCommand.MESSAGE_DUPLICATE_PERSON, "Alice Tan", 3);
+
+        assertCommandFailure(new ImportCommand(FILE_NAME), model, expectedMessage);
     }
 
     private void writeImportFile(String... lines) throws IOException {
