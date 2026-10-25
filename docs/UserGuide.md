@@ -80,13 +80,15 @@ Adds a person to HiveMind.
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`
 
 * `s/STATUS` is required: use `member`, `active-alumnus`, or `inactive-alumnus`. Status is case-insensitive.
+* Names support international letters and accents, numbers, ordinary spaces, apostrophes (`'` or `’`), hyphens and full stops. A name must start with a letter or number. For example, `Zoé Tan`, `张伟`, `Anne-Marie` and `O'Neil Tan` are accepted.
+* If the name matches an existing member's name ignoring case, or the phone number matches, HiveMind shows a warning for each possible duplicate and still adds the new member. Even identical details can belong to separate records; check the warning to avoid accidental duplicates.
 * `ty/TYPE` is optional: use `student` or `teacher`. It defaults to `student` when omitted.
 * `r/ROLE` is optional free text, such as `Section Leader`. It cannot be blank.
 * Type and status appear beneath the member's name on the card. If a role is supplied, it appears beneath the contact details; otherwise, the role line is hidden.
 * `i/INSTRUMENT:YEARS` records an instrument the person plays and how many whole years they have played it, from `0` to `99`. For example, `i/Violin:5` or `i/Bass Guitar:1`.
 * Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case, so `Violin` and `violin` count as the same instrument.
 * `g/GROUP` records a participation group, such as `g/Chamber Orchestra`. It may be repeated for multiple groups. Blank group names are rejected; names are compared ignoring case and extra whitespace, so repeated names are stored only once.
-* Recorded groups appear in the command's success message and on the member card.
+* Recorded groups appear in the command's success message and as separate badges on the member card. A single group called `Dance, Music` has one badge; `g/Dance g/Music` produces two badges.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of instruments, including zero.
@@ -129,7 +131,7 @@ name,phone,email,status,memberType,role,instruments,groups
 "Benjamin Lee","92345678","benjamin.lee@example.com","active-alumnus","teacher","","Cello:12",""
 ```
 
-If any row has invalid data, does not contain eight columns, or duplicates an existing person or another CSV row, the entire import fails and the directory remains unchanged.
+If any row has invalid data, does not contain eight columns, or has the same recorded details as an existing member or another CSV row, the entire import fails and the directory remains unchanged. Sharing only a name or phone number is allowed. Unlike `add`, import rejects identical records so a repeated CSV import cannot silently duplicate the directory. Instrument and group names are compared ignoring case when identifying identical records.
 
 Example: `import members.csv`
 
@@ -146,9 +148,11 @@ Each member card displays:
 * Phone number and email address.
 * A `Role:` line when a role is recorded. No role line is shown when it is absent.
 * Recorded instruments and their years of experience, sorted alphabetically by instrument name, ignoring case. For example, `Piano (5 yrs)` and `Violin (1 yr)`. No instrument labels appear when none are recorded.
-* A `Groups:` line listing participation groups alphabetically when any are recorded. No groups line is shown when none are recorded.
+* A `Groups:` heading with one badge per participation group, ordered alphabetically ignoring case. No groups section is shown when none are recorded.
 
 The same card details are shown in `find` and `filter` results. Displayed indices start at `1` and refer to the current list, so a member's index may change after a search, filter or sort. Use the current displayed index for commands such as `edit` and `delete`.
+
+Members with matching names or contact details remain separate records. Use their current displayed indices to edit or delete the intended member.
 
 Example: after `find alex david`, enter `list` to show everyone again. The result message is `Listed all persons.`
 
@@ -331,6 +335,8 @@ HiveMind automatically saves data after every command. You do not need to save m
 ### Editing the data file
 
 HiveMind data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+
+Keep an existing member's `id` unchanged when editing the data file. To create another member, use `add` so the new record receives its own ID.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, HiveMind starts with an empty directory at the next run, creates a backup alongside it with a `.bak` suffix, and prevents directory changes from being saved. Repair or restore the original data file before restarting the app.<br>

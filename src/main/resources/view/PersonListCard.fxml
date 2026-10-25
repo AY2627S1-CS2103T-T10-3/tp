@@ -41,7 +41,10 @@
       <Label fx:id="email" styleClass="cell_small_label" text="\$email" wrapText="true" />
       <Label fx:id="role" styleClass="cell_small_label" wrapText="true" visible="false" managed="false" />
       <FlowPane fx:id="instruments" />
-      <Label fx:id="groups" styleClass="cell_small_label" wrapText="true" visible="false" managed="false" />
+      <VBox fx:id="groups" spacing="4" visible="false" managed="false">
+        <Label text="Groups:" styleClass="cell_small_label" />
+        <FlowPane fx:id="groupLabels" />
+      </VBox>
     </VBox>
   </GridPane>
 </HBox>

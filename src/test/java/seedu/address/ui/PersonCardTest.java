@@ -66,9 +66,9 @@ public class PersonCardTest {
             List<String> instrumentLabels = instruments.getChildren().stream()
                     .map(node -> ((Label) node).getText()).toList();
             assertEquals(List.of("piano (5 yrs)", "Violin (1 yr)"), instrumentLabels);
-            assertEquals("Groups: Alpha, zeta", label(card, "groups").getText());
-            assertTrue(label(card, "groups").isVisible());
-            assertTrue(label(card, "groups").isManaged());
+            assertEquals(List.of("Alpha", "zeta"), groupNames(card));
+            assertTrue(card.getRoot().lookup("#groups").isVisible());
+            assertTrue(card.getRoot().lookup("#groups").isManaged());
         });
     }
 
@@ -83,9 +83,20 @@ public class PersonCardTest {
             FlowPane instruments = (FlowPane) card.getRoot().lookup("#instruments");
             assertNotNull(instruments);
             assertTrue(instruments.getChildren().isEmpty());
-            assertEquals("", label(card, "groups").getText());
-            assertFalse(label(card, "groups").isVisible());
-            assertFalse(label(card, "groups").isManaged());
+            assertTrue(groupNames(card).isEmpty());
+            assertFalse(card.getRoot().lookup("#groups").isVisible());
+            assertFalse(card.getRoot().lookup("#groups").isManaged());
+        });
+    }
+
+    @Test
+    public void constructor_groupNameContainingComma_distinguishesSeparateGroups() throws Exception {
+        runOnFxThread(() -> {
+            PersonCard oneGroup = new PersonCard(new PersonBuilder().withGroups("Dance, Music").build(), 1);
+            PersonCard twoGroups = new PersonCard(new PersonBuilder().withGroups("Dance", "Music").build(), 2);
+
+            assertEquals(List.of("Dance, Music"), groupNames(oneGroup));
+            assertEquals(List.of("Dance", "Music"), groupNames(twoGroups));
         });
     }
 
@@ -102,6 +113,12 @@ public class PersonCardTest {
                 }
             }
         });
+    }
+
+    private static List<String> groupNames(PersonCard card) {
+        FlowPane labels = (FlowPane) card.getRoot().lookup("#groupLabels");
+        assertNotNull(labels);
+        return labels.getChildren().stream().map(node -> ((Label) node).getText()).toList();
     }
 
     private static Label label(PersonCard card, String id) {

@@ -95,6 +95,22 @@ public class ImportCommandIntegrationTest {
     }
 
     @Test
+    public void execute_sharedNameWithDifferentDetails_success() throws IOException {
+        Person first = new PersonBuilder().withName("Alex Same").withPhone("91234567")
+                .withEmail("one@example.com").build();
+        Person second = new PersonBuilder().withName("Alex Same").withPhone("92345678")
+                .withEmail("two@example.com").build();
+        writeImportFile(HEADER, "Alex Same,91234567,one@example.com,member,student,,,",
+                "Alex Same,92345678,two@example.com,member,student,,,");
+        Model expected = new ModelManager(new AddressBook(), new UserPrefs());
+        expected.addPerson(first);
+        expected.addPerson(second);
+
+        assertCommandSuccess(new ImportCommand(FILE_NAME), model,
+                String.format(ImportCommand.MESSAGE_SUCCESS, 2, IMPORT_FILE), expected);
+    }
+
+    @Test
     public void execute_duplicateExistingPerson_failureIsAtomic() throws IOException {
         Person existingPerson = new PersonBuilder().withName("Existing Person").withPhone("81111111")
                 .withEmail("existing@example.com").build();

@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -39,6 +40,22 @@ public class JsonAdaptedPersonTest {
     private static final List<JsonAdaptedInstrument> VALID_INSTRUMENTS = BENSON.getInstruments().stream()
             .map(JsonAdaptedInstrument::new)
             .collect(Collectors.toList());
+
+    @Test
+    public void jsonRoundTrip_preservesRecordIdentity() throws Exception {
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON));
+        Person restored = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+        assertTrue(BENSON.isSamePerson(restored));
+    }
+
+    @Test
+    public void toModelType_invalidRecordId_throwsIllegalValueException() {
+        for (String id : List.of("not-an-id", "1-1-1-1-1", "")) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(id, VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                    VALID_STATUS, VALID_MEMBER_TYPE, null, VALID_INSTRUMENTS, List.of());
+            assertThrows(IllegalValueException.class, JsonAdaptedPerson.INVALID_ID_MESSAGE, person::toModelType);
+        }
+    }
 
     @Test
     public void toModelType_validPersonDetails_returnsPerson() throws Exception {

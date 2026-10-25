@@ -58,6 +58,10 @@ public class ImportCommand extends Command {
         try {
             AddressBook updatedAddressBook = new AddressBook(model.getAddressBook());
             for (Person person : importedPeople) {
+                // CSV has no record IDs: reject identical recorded details, but allow shared names/phones.
+                if (updatedAddressBook.getPersonList().contains(person)) {
+                    throw new DuplicatePersonException();
+                }
                 updatedAddressBook.addPerson(person);
             }
             model.setAddressBook(updatedAddressBook);
