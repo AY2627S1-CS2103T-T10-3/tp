@@ -4,6 +4,7 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import java.util.Locale;
 
+import seedu.address.commons.util.FileUtil;
 import seedu.address.logic.commands.ImportCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
@@ -11,8 +12,6 @@ import seedu.address.logic.parser.exceptions.ParseException;
  * Parses input arguments and creates an {@link ImportCommand}.
  */
 public class ImportCommandParser implements Parser<ImportCommand> {
-
-    private static final String INVALID_FILENAME_CHARS = "\\/:*?\"<>|";
 
     /**
      * Parses an import file name and returns an {@code ImportCommand}.
@@ -25,13 +24,11 @@ public class ImportCommandParser implements Parser<ImportCommand> {
         if (fileName.isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ImportCommand.MESSAGE_USAGE));
         }
+        if (!FileUtil.isValidWindowsFileName(fileName)) {
+            throw new ParseException(ImportCommand.MESSAGE_INVALID_FILENAME);
+        }
         if (!fileName.toLowerCase(Locale.ROOT).endsWith(".csv")) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ImportCommand.MESSAGE_USAGE));
-        }
-        for (char c : INVALID_FILENAME_CHARS.toCharArray()) {
-            if (fileName.indexOf(c) >= 0) {
-                throw new ParseException(ImportCommand.MESSAGE_INVALID_FILENAME);
-            }
         }
         return new ImportCommand(fileName);
     }

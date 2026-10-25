@@ -32,8 +32,8 @@ public class ImportCommand extends Command {
     public static final String MESSAGE_FILE_NOT_FOUND = "No file named %s in the imports folder.";
     public static final String MESSAGE_DUPLICATE_PERSON =
             "Import failed because a person already exists in the address book or is repeated in the CSV.";
-    public static final String MESSAGE_INVALID_FILENAME = "Invalid filename. Filenames cannot contain the following "
-            + "characters: \\ / : * ? \" < > |";
+    public static final String MESSAGE_INVALID_FILENAME = "Invalid filename. Use a valid Windows filename without "
+            + "reserved characters, control characters, trailing periods, or reserved names such as CON or COM1.";
 
     private final String fileName;
 
