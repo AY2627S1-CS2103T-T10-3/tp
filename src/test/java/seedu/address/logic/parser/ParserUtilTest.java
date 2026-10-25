@@ -247,11 +247,16 @@ public class ParserUtilTest {
     public void parseRole_nullOrBlank_throwsException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parseRole(null));
         assertThrows(ParseException.class, Role.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseRole(" \t "));
+        assertThrows(ParseException.class, Role.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseRole("\u00A0"));
+        assertThrows(ParseException.class, Role.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseRole("\u2007\u202F"));
     }
 
     @Test
     public void parseRole_validValue_returnsTrimmedRole() throws Exception {
         assertEquals(new Role("Section Leader / Conductor"),
                 ParserUtil.parseRole("  Section Leader / Conductor  "));
+        assertEquals(new Role("Vice President"), ParserUtil.parseRole("  Vice   President  "));
+        assertEquals(new Role("Vice President"), ParserUtil.parseRole("Vice\u00A0\u2003 President"));
+        assertEquals(new Role("Vice President"), ParserUtil.parseRole(WHITESPACE + "Vice\t President" + WHITESPACE));
     }
 }

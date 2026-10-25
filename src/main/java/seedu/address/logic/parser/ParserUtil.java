@@ -176,17 +176,17 @@ public class ParserUtil {
     }
 
     /**
-     * Parses a non-blank free-text role, trimming surrounding whitespace.
+     * Parses a non-blank free-text role.
+     * Surrounding and repeated whitespace, including Unicode space separators, is normalized by {@code Role}.
      *
      * @throws ParseException if the role is blank.
      */
     public static Role parseRole(String role) throws ParseException {
         requireNonNull(role);
-        String trimmedRole = role.trim();
-        if (!Role.isValidRole(trimmedRole)) {
+        if (!Role.isValidRole(role)) {
             throw new ParseException(Role.MESSAGE_CONSTRAINTS);
         }
-        return new Role(trimmedRole);
+        return new Role(role);
     }
 
     /**
