@@ -71,6 +71,46 @@ public class CsvImporterTest {
     }
 
     @Test
+    public void importPeople_multilineQuotedRole_preservesNewline() throws Exception {
+        Path csvFile = writeCsv(
+                HEADER,
+                "Alice Tan,91234567,alice@example.com,member,student,\"Section Leader",
+                "Conductor\",Violin:1,");
+
+        Person person = CsvImporter.importPeople(csvFile).getFirst();
+
+        assertEquals("Section Leader" + System.lineSeparator() + "Conductor",
+                person.getRole().orElseThrow().toString());
+    }
+
+    @Test
+    public void importPeople_multilineQuotedRoleWithBlankLine_preservesNewlines() throws Exception {
+        Path csvFile = writeCsv(
+                HEADER,
+                "Alice Tan,91234567,alice@example.com,member,student,\"Section Leader",
+                "",
+                "Conductor\",Violin:1,");
+
+        Person person = CsvImporter.importPeople(csvFile).getFirst();
+        String newline = System.lineSeparator();
+
+        assertEquals("Section Leader" + newline + newline + "Conductor",
+                person.getRole().orElseThrow().toString());
+    }
+
+    @Test
+    public void importPeople_invalidRowAfterMultilineRecord_reportsPhysicalLineNumber() throws Exception {
+        Path csvFile = writeCsv(
+                HEADER,
+                "Alice Tan,91234567,alice@example.com,member,student,\"Section Leader",
+                "Conductor\",Violin:1,",
+                "Bob Lim,98765432,bob@example.com,member,student,,Violin,");
+        String expectedMessage = "Invalid value at line 4: " + Instrument.MESSAGE_FORMAT_CONSTRAINTS;
+
+        assertThrows(IllegalValueException.class, expectedMessage, () -> CsvImporter.importPeople(csvFile));
+    }
+
+    @Test
     public void importPeople_exportedNamesWithSemicolonsAndBackslashes_roundTrips() throws Exception {
         Person original = new PersonBuilder()
                 .withInstruments("Drums;Percussion:5", "Bass\\Guitar:2")
