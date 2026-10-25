@@ -23,7 +23,7 @@ public class UndoCommand extends Command {
     public static final String MESSAGE_SUCCESS = "Undid the most recent change.";
     public static final String MESSAGE_SUCCESS_MULTIPLE = "Undid the %1$d most recent changes.";
     public static final String MESSAGE_FAILURE = "There is no change to undo.";
-    public static final String MESSAGE_NOT_ENOUGH_CHANGES = "Cannot undo %1$d changes: only %2$d can be undone.";
+    public static final String MESSAGE_NOT_ENOUGH_CHANGES = "Not enough changes to undo: only %1$d can be undone.";
 
     private final int count;
 
@@ -50,7 +50,7 @@ public class UndoCommand extends Command {
             throw new CommandException(MESSAGE_FAILURE);
         }
         if (count > undoableCount) {
-            throw new CommandException(String.format(MESSAGE_NOT_ENOUGH_CHANGES, count, undoableCount));
+            throw new CommandException(String.format(MESSAGE_NOT_ENOUGH_CHANGES, undoableCount));
         }
         for (int i = 0; i < count; i++) {
             model.undoAddressBook();

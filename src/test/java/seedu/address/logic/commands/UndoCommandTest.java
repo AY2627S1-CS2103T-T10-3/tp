@@ -72,7 +72,7 @@ public class UndoCommandTest {
         Model model = modelWithCommittedPersons("Zed", "Yan");
 
         assertCommandFailure(new UndoCommand(3), model,
-                String.format(UndoCommand.MESSAGE_NOT_ENOUGH_CHANGES, 3, 2));
+                String.format(UndoCommand.MESSAGE_NOT_ENOUGH_CHANGES, 2));
         assertEquals(2, model.getUndoableChangeCount());
     }
 

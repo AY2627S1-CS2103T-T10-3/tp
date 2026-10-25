@@ -23,7 +23,8 @@ public class RedoCommand extends Command {
     public static final String MESSAGE_SUCCESS = "Redid the most recently undone change.";
     public static final String MESSAGE_SUCCESS_MULTIPLE = "Redid the %1$d most recently undone changes.";
     public static final String MESSAGE_FAILURE = "There is no undone change to redo.";
-    public static final String MESSAGE_NOT_ENOUGH_CHANGES = "Cannot redo %1$d changes: only %2$d can be redone.";
+    public static final String MESSAGE_NOT_ENOUGH_CHANGES =
+            "Not enough undone changes to redo: only %1$d can be redone.";
 
     private final int count;
 
@@ -50,7 +51,7 @@ public class RedoCommand extends Command {
             throw new CommandException(MESSAGE_FAILURE);
         }
         if (count > redoableCount) {
-            throw new CommandException(String.format(MESSAGE_NOT_ENOUGH_CHANGES, count, redoableCount));
+            throw new CommandException(String.format(MESSAGE_NOT_ENOUGH_CHANGES, redoableCount));
         }
         for (int i = 0; i < count; i++) {
             model.redoAddressBook();

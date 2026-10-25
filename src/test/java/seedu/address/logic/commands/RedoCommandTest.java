@@ -67,7 +67,7 @@ public class RedoCommandTest {
         Model model = modelWithUndonePersons("Zed", "Yan");
 
         assertCommandFailure(new RedoCommand(5), model,
-                String.format(RedoCommand.MESSAGE_NOT_ENOUGH_CHANGES, 5, 2));
+                String.format(RedoCommand.MESSAGE_NOT_ENOUGH_CHANGES, 2));
         assertEquals(2, model.getRedoableChangeCount());
     }
 

@@ -267,7 +267,7 @@ Step 4. The user now decides that adding the person was a mistake, and decides t
 
 ![UndoRedoState3](images/UndoRedoState3.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial address book state, then there is nothing to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will show "There is no change to undo." to the user.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial address book state, then there is nothing to restore. The `undo` command uses `Model#getUndoableChangeCount()` to check if this is the case. If so, it will show "There is no change to undo." to the user.
 
 </div>
 
@@ -287,7 +287,7 @@ The `redo` command does the opposite: it calls `Model#redoAddressBook()`, which 
 
 Both commands take an optional count, e.g. `undo 3`. `UndoCommandParser` and `RedoCommandParser` read a given count with `ParserUtil#parseCount()`, and use a count of 1 when none is given. The command first compares the count with `Model#getUndoableChangeCount()` (or `Model#getRedoableChangeCount()`). If the history is too short, it fails without changing anything, so the user is never left with only some of the requested changes undone. Otherwise it calls `Model#undoAddressBook()` (or `Model#redoAddressBook()`) once per step. `LogicManager` then saves the address book once. If that save fails, the rollback described in Step 3 restores the data and the `currentStatePointer` from before the command, so all of the steps are reverted together.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it shows "There is no undone change to redo." to the user.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone states to restore. The `redo` command uses `Model#getRedoableChangeCount()` to check if this is the case. If so, it shows "There is no undone change to redo." to the user.
 
 </div>
 
@@ -668,7 +668,7 @@ Start from the sample data in a disposable directory (delete `data/addressbook.j
 1. Run `redo`, then `redo 1`.<br>
    Expected: The first `redo` deletes Alex Yeoh again (the most recently undone change); the second deletes Bernice Yu again.
 1. Run `undo 5`.<br>
-   Expected: `Cannot undo 5 changes: only 2 can be undone.` Nothing changes.
+   Expected: `Not enough changes to undo: only 2 can be undone.` Nothing changes.
 1. Run `undo 0`, `undo -1`, `undo two` and `undo 1 2`.<br>
    Expected: Each shows invalid-format feedback with the `undo` usage, and nothing changes. Try the same inputs with `redo`.
 1. Run `undo` (Bernice Yu is back as the first member), then `edit 1 n/Bernice Yu`, then `redo`.<br>
