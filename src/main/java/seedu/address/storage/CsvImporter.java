@@ -142,27 +142,18 @@ public class CsvImporter {
      * @throws IllegalArgumentException if an encoded instrument is invalid.
      */
     private static Set<Instrument> parseInstruments(String instrumentField) {
-        Set<Instrument> instruments = new HashSet<>();
         if (instrumentField.isEmpty()) {
-            return instruments;
+            return new HashSet<>();
         }
 
+        List<Instrument> instruments = new ArrayList<>();
         for (String instrumentFieldValue : CsvListCodec.split(instrumentField)) {
-            int separatorIndex = instrumentFieldValue.lastIndexOf(':');
-            if (separatorIndex <= 0 || separatorIndex == instrumentFieldValue.length() - 1) {
-                throw new IllegalArgumentException(Instrument.MESSAGE_FORMAT_CONSTRAINTS);
-            }
-
-            String name = instrumentFieldValue.substring(0, separatorIndex);
-            int years;
-            try {
-                years = Integer.parseInt(instrumentFieldValue.substring(separatorIndex + 1));
-            } catch (NumberFormatException exception) {
-                throw new IllegalArgumentException(Instrument.MESSAGE_FORMAT_CONSTRAINTS, exception);
-            }
-            instruments.add(new Instrument(name, years));
+            instruments.add(Instrument.fromString(instrumentFieldValue));
         }
-        return instruments;
+        if (Instrument.hasDuplicateNames(instruments)) {
+            throw new IllegalArgumentException(Instrument.MESSAGE_DUPLICATE_NAMES);
+        }
+        return new HashSet<>(instruments);
     }
 
     /**
