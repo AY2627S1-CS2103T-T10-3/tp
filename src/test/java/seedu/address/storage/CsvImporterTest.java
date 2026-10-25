@@ -106,6 +106,20 @@ public class CsvImporterTest {
     }
 
     @Test
+    public void importPeople_invalidQuotePlacement_throwsIllegalValueException() throws Exception {
+        String[] malformedRoles = {
+            "\"Con\"ductor", "Con\"ductor", "\"Conductor\" "
+        };
+        String expectedMessage = "Invalid quote placement at line 2.";
+
+        for (String malformedRole : malformedRoles) {
+            Path csvFile = writeCsv(HEADER,
+                    "Alice Tan,91234567,alice@example.com,member,student," + malformedRole + ",Violin:1,");
+            assertThrows(IllegalValueException.class, expectedMessage, () -> CsvImporter.importPeople(csvFile));
+        }
+    }
+
+    @Test
     public void importPeople_invalidInstrumentFormat_throwsIllegalValueException() throws Exception {
         Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin,");
         String expectedMessage = "Invalid value at line 2: " + Instrument.MESSAGE_FORMAT_CONSTRAINTS;

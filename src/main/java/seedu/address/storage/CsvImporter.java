@@ -42,6 +42,7 @@ public class CsvImporter {
     private static final char UTF_8_BYTE_ORDER_MARK = '\ufeff';
     private static final String MESSAGE_NON_UTF8_CSV = "The file could not be read. Please save it as CSV UTF-8 "
             + "(not plain CSV).";
+    private static final String MESSAGE_INVALID_QUOTE_PLACEMENT = "Invalid quote placement at line %d.";
 
     /**
      * Reads people from a CSV file in HiveMind's export format.
@@ -156,15 +157,29 @@ public class CsvImporter {
         List<String> fields = new ArrayList<>();
         StringBuilder field = new StringBuilder();
         boolean isInsideQuotes = false;
+        boolean isAfterClosingQuote = false;
 
         for (int index = 0; index < line.length(); index++) {
             char character = line.charAt(index);
-            if (character == '"') {
-                if (isInsideQuotes && index + 1 < line.length() && line.charAt(index + 1) == '"') {
+
+            if (isAfterClosingQuote) {
+                if (character != ',') {
+                    throw new IllegalValueException(String.format(MESSAGE_INVALID_QUOTE_PLACEMENT, lineNumber));
+                }
+                fields.add(field.toString());
+                field.setLength(0);
+                isAfterClosingQuote = false;
+            } else if (character == '"') {
+                if (!isInsideQuotes && !field.isEmpty()) {
+                    throw new IllegalValueException(String.format(MESSAGE_INVALID_QUOTE_PLACEMENT, lineNumber));
+                } else if (isInsideQuotes && index + 1 < line.length() && line.charAt(index + 1) == '"') {
                     field.append(character);
                     index++;
+                } else if (isInsideQuotes) {
+                    isInsideQuotes = false;
+                    isAfterClosingQuote = true;
                 } else {
-                    isInsideQuotes = !isInsideQuotes;
+                    isInsideQuotes = true;
                 }
             } else if (character == ',' && !isInsideQuotes) {
                 fields.add(field.toString());
