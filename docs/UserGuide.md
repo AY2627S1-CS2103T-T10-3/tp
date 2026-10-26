@@ -326,7 +326,9 @@ Format: `exit`
 
 ### Saving the data
 
-HiveMind automatically saves data after every command. You do not need to save manually.
+HiveMind automatically saves every successful change to member data. Commands that do not change member data, such as
+`list`, `find`, `filter`, `sort`, `help`, `export` and `exit`, do not rewrite the member data file. Preferences are saved
+separately when HiveMind starts and exits. You do not need to save manually.
 
 ### Editing the data file
 
