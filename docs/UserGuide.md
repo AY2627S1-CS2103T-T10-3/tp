@@ -80,7 +80,9 @@ Adds a person to HiveMind.
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`
 
 * `s/STATUS` is required: use `member`, `active-alumnus`, or `inactive-alumnus`. Status is case-insensitive.
-* Names support international letters and accents, numbers, ordinary spaces, apostrophes (`'` or `’`), hyphens and full stops. A name must start with a letter or number. For example, `Zoé Tan`, `张伟`, `Anne-Marie` and `O'Neil Tan` are accepted.
+* `n/NAME` supports international letters and accents, numbers, ordinary spaces, apostrophes (`'` or `’`), hyphens and full stops. A name must start with a letter or number and cannot be blank or contain `/`. For example, `Zoé Tan`, `张伟`, `Anne-Marie` and `O'Neil Tan` are accepted; `-Alex` and `Alex/Tan` are rejected.
+* `p/PHONE_NUMBER` accepts at least three digits (`0`–`9`) with no spaces, hyphens or `+`. For example, `91234567` and `00123456789` are accepted; `12`, `ab`, `9123 4567` and `+6591234567` are rejected.
+* `e/EMAIL` must have a local part, `@`, and a domain. The local part uses letters (`A`–`Z`, `a`–`z`) and digits, with single `+`, `_`, `.`, or `-` characters allowed between alphanumeric sequences. Each domain label uses letters and digits, with single hyphens allowed between alphanumeric sequences; the final label must have at least two characters. For example, `sean@example.com` and `sean.tan+cca@example-school.sg` are accepted; `not-email`, `.sean@example.com`, `sean..tan@example.com` and `sean@example.c` are rejected.
 * If the name matches an existing member's name ignoring case, or the phone number matches, HiveMind shows a warning for each possible duplicate and still adds the new member. Even identical details can belong to separate records; check the warning to avoid accidental duplicates.
 * `ty/TYPE` is optional: use `student` or `teacher`. It defaults to `student` when omitted.
 * `r/ROLE` is optional free text, such as `Section Leader`. It cannot be blank.
@@ -89,6 +91,9 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRU
 * Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case, so `Violin` and `violin` count as the same instrument.
 * `g/GROUP` records a participation group, such as `g/Chamber Orchestra`. It may be repeated for multiple groups. Blank group names are rejected; names are compared ignoring case and extra whitespace, so repeated names are stored only once.
 * Recorded groups appear in the command's success message and as separate badges on the member card. A single group called `Dance, Music` has one badge; `g/Dance g/Music` produces two badges.
+* Start **each** group with the lowercase prefix `g/`, for example `g/Training g/Orchestra`. In `add`, an unrecognized prefix after a group can become part of that group's name: `g/Training gr/Orchestra` records one group named `Training gr/Orchestra`. Check the success message and correct a mistake with `edit INDEX g/Training g/Orchestra`.
+
+The name, phone and email rules also apply when editing those fields or importing a CSV file. Spaces at the start and end of a command field are removed. Within names, repeated ordinary spaces are preserved: `Alex Tan` and `Alex  Tan` are different name spellings. The possible-duplicate name warning ignores letter case, but does not collapse those spaces.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of instruments, including zero.

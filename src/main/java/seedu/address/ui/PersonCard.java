@@ -81,17 +81,24 @@ public class PersonCard extends UiPart<Region> {
 
         person.getInstruments().stream()
                 .sorted(Comparator.comparing(Instrument::getName, String.CASE_INSENSITIVE_ORDER))
-                .forEach(instrument -> instruments.getChildren().add(new Label(instrument.toDisplayString())));
+                .forEach(instrument -> addWrappingLabel(instruments, instrument.toDisplayString()));
 
         boolean hasGroups = !person.getGroups().isEmpty();
         person.getGroups().stream()
                 .sorted(Comparator.comparing(Group::getName, String.CASE_INSENSITIVE_ORDER))
-                .forEach(group -> {
-                    Label groupLabel = new Label(group.getName());
-                    groupLabel.setWrapText(true);
-                    groupLabels.getChildren().add(groupLabel);
-                });
+                .forEach(group -> addWrappingLabel(groupLabels, group.getName()));
         groups.setVisible(hasGroups);
         groups.setManaged(hasGroups);
+    }
+
+    /**
+     * Keeps each badge within its flow pane, including long words, as the window is resized.
+     */
+    private static void addWrappingLabel(FlowPane pane, String text) {
+        Label label = new Label(text);
+        label.setWrapText(true);
+        label.setMinWidth(0);
+        label.maxWidthProperty().bind(pane.widthProperty());
+        pane.getChildren().add(label);
     }
 }
