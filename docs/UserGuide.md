@@ -348,7 +348,9 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous HiveMind home folder.
+**A**: Close HiveMind on both computers. Copy the `data` folder from the folder where you run HiveMind on the old
+computer into the folder where you will run HiveMind on the new computer. If the new installation does not have a
+`data` folder yet, copy the old folder there directly; you do not need to start HiveMind first.
 
 --------------------------------------------------------------------------------------------------------------------
 
