@@ -30,7 +30,7 @@ public class Group {
      */
     public static boolean isValidName(String name) {
         requireNonNull(name);
-        return !name.isBlank();
+        return !normalizeName(name).isEmpty();
     }
 
     public String getName() {
@@ -46,7 +46,7 @@ public class Group {
     }
 
     private static String normalizeName(String name) {
-        return name.trim().replaceAll("\\s+", " ");
+        return name.replaceAll("(?U)\\s+", " ").trim();
     }
 
     private static String toKey(String name) {
