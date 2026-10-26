@@ -115,14 +115,15 @@ public class MainApp extends Application {
      * Preserves an unreadable address book before starting with an empty in-memory model.
      */
     private void backupUnreadableAddressBook(StorageManager storage) {
+        storage.disableAddressBookSaving();
         try {
             Path backupPath = storage.backupAddressBook();
-            storage.disableAddressBookSaving();
             logger.warning("Backed up unreadable address book to " + backupPath
                     + ". Address book changes are disabled until the data file is repaired.");
         } catch (IOException ioe) {
-            throw new IllegalStateException("Could not back up unreadable address book at "
-                    + storage.getAddressBookFilePath(), ioe);
+            logger.warning("Could not back up unreadable address book at "
+                    + storage.getAddressBookFilePath() + ". Address book changes are disabled: "
+                    + StringUtil.getDetails(ioe));
         }
     }
 

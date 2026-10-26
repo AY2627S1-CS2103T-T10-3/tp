@@ -90,7 +90,7 @@ public class MainAppTest {
     }
 
     @Test
-    public void initModelManager_backupFails_throwsIllegalStateException() {
+    public void initModelManager_backupFails_recoversWithSavingDisabled() {
         Path addressBookPath = temporaryFolder.resolve("addressbook.json");
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(addressBookPath) {
             @Override
@@ -106,10 +106,12 @@ public class MainAppTest {
         StorageManager storageManager = new StorageManager(addressBookStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
 
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
-                new TestMainApp().initializeModelManager(storageManager));
+        Model model = new TestMainApp().initializeModelManager(storageManager);
 
-        assertInstanceOf(IOException.class, exception.getCause());
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        IOException exception = assertThrows(IOException.class, () ->
+                storageManager.saveAddressBook(new AddressBook()));
+        assertEquals("Address book saving is disabled after a failed data load.", exception.getMessage());
     }
 
     @Test
