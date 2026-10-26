@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.exceptions.IllegalValueException;
 
 /**
  * Converts a Java object instance to JSON and vice versa
@@ -64,6 +65,10 @@ public class JsonUtil {
         } catch (IOException e) {
             logger.warning("Error reading from jsonFile file " + filePath + ": " + e);
             throw new DataLoadingException(e);
+        }
+
+        if (jsonFile == null) {
+            throw new DataLoadingException(new IllegalValueException("JSON data must not be null."));
         }
 
         return Optional.of(jsonFile);
