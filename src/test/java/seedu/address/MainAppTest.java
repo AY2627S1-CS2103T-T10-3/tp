@@ -31,6 +31,10 @@ import seedu.address.storage.StorageManager;
 import seedu.address.ui.Ui;
 
 public class MainAppTest {
+    private static final String VALID_ADDRESS_BOOK_JSON = "{\"persons\":[{\"name\":\"Alice\","
+            + "\"phone\":\"81234567\",\"email\":\"alice@example.com\",\"status\":\"member\","
+            + "\"memberType\":\"student\",\"role\":null,\"instruments\":[],\"groups\":[]}]}";
+
     @TempDir
     public Path temporaryFolder;
 
@@ -136,6 +140,16 @@ public class MainAppTest {
     }
 
     @Test
+    public void initModelManager_trailingGarbage_recoversWithoutOverwritingData() throws Exception {
+        assertTrailingContentTriggersRecovery("trailing-garbage", "\nGARBAGE");
+    }
+
+    @Test
+    public void initModelManager_secondJsonRoot_recoversWithoutOverwritingData() throws Exception {
+        assertTrailingContentTriggersRecovery("second-root", "\n{\"persons\":[]}");
+    }
+
+    @Test
     public void init_usesStorageManagerToInitializeModel() throws Exception {
         Path importDirectory = temporaryFolder.resolve("imports");
         TestMainApp app = new TestMainApp(importDirectory);
@@ -153,6 +167,21 @@ public class MainAppTest {
     private StorageManager createStorageManager(Path addressBookPath) {
         return new StorageManager(new JsonAddressBookStorage(addressBookPath),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
+    }
+
+    private void assertTrailingContentTriggersRecovery(String folderName, String trailingContent) throws Exception {
+        Path testFolder = Files.createDirectory(temporaryFolder.resolve(folderName));
+        Path addressBookPath = testFolder.resolve("addressbook.json");
+        String invalidJson = VALID_ADDRESS_BOOK_JSON + trailingContent;
+        Files.writeString(addressBookPath, invalidJson);
+        StorageManager storageManager = createStorageManager(addressBookPath);
+
+        Model model = new TestMainApp().initializeModelManager(storageManager);
+
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertEquals(invalidJson, Files.readString(testFolder.resolve("addressbook.json.bak-01")));
+        assertThrows(IOException.class, () -> storageManager.saveAddressBook(new AddressBook()));
+        assertEquals(invalidJson, Files.readString(addressBookPath));
     }
 
     private static class RecordingUi implements Ui {
