@@ -6,10 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.HOON;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -24,13 +27,40 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.PersonBuilder;
 
 public class MainAppTest {
     @TempDir
     public Path temporaryFolder;
+
+    @Test
+    public void initModelManager_legacyBlankGroups_loadsMembersAndAllowsSaving() throws Exception {
+        Path addressBookPath = temporaryFolder.resolve("addressbook.json");
+        StorageManager storageManager = createStorageManager(addressBookPath);
+        AddressBook legacyAddressBook = new AddressBook();
+        legacyAddressBook.addPerson(new PersonBuilder(ALICE).withGroups("Legacy Blank", "Training").build());
+        legacyAddressBook.addPerson(new PersonBuilder(HOON).withGroups("Legacy Blank").build());
+        storageManager.saveAddressBook(legacyAddressBook);
+        String legacyJson = Files.readString(addressBookPath).replace("\"Legacy Blank\"", "\"\\u00a0\"");
+        Files.writeString(addressBookPath, legacyJson);
+
+        Model model = new TestMainApp().initializeModelManager(storageManager);
+
+        Person expectedPerson = new PersonBuilder(ALICE).withGroups("Training").build();
+        Person expectedUngroupedPerson = new PersonBuilder(HOON).withGroups().build();
+        assertEquals(List.of(expectedPerson, expectedUngroupedPerson), model.getAddressBook().getPersonList());
+        assertEquals(legacyJson, Files.readString(addressBookPath));
+
+        new LogicManager(model, storageManager)
+                .execute("add n/Recovery Check p/91234567 e/recovery@example.com s/member");
+        assertEquals(3, model.getAddressBook().getPersonList().size());
+        assertEquals(model.getAddressBook(), storageManager.readAddressBook().orElseThrow());
+        assertFalse(Files.readString(addressBookPath).contains("\\u00a0"));
+    }
 
     @Test
     public void initModelManager_invalidAddressBook_recoversWithoutOverwritingData() throws Exception {

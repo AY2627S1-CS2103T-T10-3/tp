@@ -138,9 +138,30 @@ public class JsonAdaptedPersonTest {
 
     @Test
     public void toModelType_blankGroup_throwsIllegalValueException() {
+        for (String blank : List.of("", " ", "\t", "\u2002")) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                    VALID_STATUS, VALID_MEMBER_TYPE, null, VALID_INSTRUMENTS, List.of(blank));
+            assertThrows(IllegalValueException.class, Group.MESSAGE_CONSTRAINTS, person::toModelType);
+        }
+    }
+
+    @Test
+    public void toModelType_legacyBlankGroups_preservesPersonAndValidGroups() throws Exception {
+        for (String blank : List.of("\u00a0", "\u2007", "\u202f", "\u0085", " \u2002\u00a0\t")) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                    VALID_STATUS, VALID_MEMBER_TYPE, null, VALID_INSTRUMENTS,
+                    List.of(blank, "Chamber\u00a0Orchestra", "Training"));
+            Person expected = new PersonBuilder(BENSON).withoutRole()
+                    .withGroups("Chamber Orchestra", "Training").build();
+            assertEquals(expected, person.toModelType());
+        }
+    }
+
+    @Test
+    public void toModelType_onlyLegacyBlankGroups_preservesPersonWithoutGroups() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
-                VALID_STATUS, VALID_MEMBER_TYPE, null, VALID_INSTRUMENTS, List.of(" "));
-        assertThrows(IllegalValueException.class, Group.MESSAGE_CONSTRAINTS, person::toModelType);
+                VALID_STATUS, VALID_MEMBER_TYPE, null, VALID_INSTRUMENTS, List.of("\u00a0", "\u202f"));
+        assertEquals(new PersonBuilder(BENSON).withoutRole().withGroups().build(), person.toModelType());
     }
 
     @Test

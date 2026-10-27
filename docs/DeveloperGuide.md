@@ -157,6 +157,10 @@ The `Storage` component,
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
+`JsonAdaptedPerson.toModelType()` rejects null group entries and names for which `String.isBlank()` returns true. For each remaining entry, it skips the membership if `Group.isValidName()` returns false. This omits Unicode-whitespace-only names such as `"\u00A0"` while preserving the person and valid groups. Valid names are constructed as `Group` objects, which replace runs of Unicode whitespace with one ordinary space and trim the result.
+
+This loading rule applies only to saved JSON data. Command parsing rejects every group name that normalizes to empty. Loading does not rewrite the data file, and successfully loaded records remain editable and saveable. The next successful command requiring a save writes the directory without the skipped memberships.
+
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package.
