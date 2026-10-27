@@ -551,7 +551,7 @@ Priorities: High (must have), Medium (nice to have), Low (unlikely to have)
 * **Coordinator**: The user of HiveMind, i.e., the person in the CCA who is responsible for maintaining its member records and organising players for pieces and activities.
 * **Directory**: The full set of member records stored in HiveMind.
 * **Displayed index**: The number shown next to a member in the list currently displayed. It may change after a `find`, `filter`, `sort` or `list`, and is used to refer to a member in commands such as `delete`.
-* **Filter**: To display only the members who meet all the given criteria (e.g., status, instrument, minimum years played). Unlike _find_, which searches by name only.
+* **Filter**: To display only members who match at least one supplied criterion in each specified field (OR within a field, AND between fields). Omitted fields impose no restriction. Unlike _find_, which searches by name only.
 * **Inactive alumnus**: An alumnus who no longer plays with the CCA, but whose record is kept (e.g., for contacting them about alumni events).
 * **Instrument experience**: The whole number of years a member has played a particular instrument. It is recorded separately for each instrument, and is used as the measure of a member's competency on that instrument.
 * **Mainstream OS**: Windows, Linux, Unix, or macOS.
