@@ -123,4 +123,32 @@ public class PersonTest {
 
         assertEquals(ALICE.hashCode(), aliceCopy.hashCode());
     }
+
+    @Test
+    public void hasIdenticalDetails_identicalCopy_returnsTrue() {
+        Person alice = new PersonBuilder(ALICE).withInstruments("Violin:8").withGroups("Band").build();
+        Person copy = new PersonBuilder(alice).build();
+
+        assertTrue(alice.hasIdenticalDetails(copy));
+    }
+
+    @Test
+    public void hasIdenticalDetails_onlyInstrumentCaseDiffers_returnsFalse() {
+        Person alice = new PersonBuilder(ALICE).withInstruments("Violin:8").withGroups("Band").build();
+        Person edited = new PersonBuilder(alice).withInstruments("violin:8").build();
+
+        // equals ignores the capitalisation of instrument names, hasIdenticalDetails does not
+        assertTrue(alice.equals(edited));
+        assertFalse(alice.hasIdenticalDetails(edited));
+    }
+
+    @Test
+    public void hasIdenticalDetails_onlyGroupCaseDiffers_returnsFalse() {
+        Person alice = new PersonBuilder(ALICE).withInstruments("Violin:8").withGroups("Band").build();
+        Person edited = new PersonBuilder(alice).withGroups("band").build();
+
+        // equals ignores the capitalisation of group names, hasIdenticalDetails does not
+        assertTrue(alice.equals(edited));
+        assertFalse(alice.hasIdenticalDetails(edited));
+    }
 }

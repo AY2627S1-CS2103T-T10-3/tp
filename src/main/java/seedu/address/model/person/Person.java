@@ -134,6 +134,51 @@ public class Person {
                 && groups.equals(otherPerson.groups);
     }
 
+    /**
+     * Returns true if both persons are equal and their instrument and group sets match exactly,
+     * including the capitalisation of instrument and group names.
+     * Used to detect changes that {@link #equals(Object)} cannot see.
+     */
+    public boolean hasIdenticalDetails(Person other) {
+        if (other == null || !equals(other)) {
+            return false;
+        }
+        return hasIdenticalInstruments(instruments, other.instruments)
+                && hasIdenticalGroups(groups, other.groups);
+    }
+
+    /**
+     * Returns true if every instrument in {@code first} has a case-sensitive identical partner in
+     * {@code second}, and both sets are of the same size.
+     */
+    private static boolean hasIdenticalInstruments(Set<Instrument> first, Set<Instrument> second) {
+        if (first.size() != second.size()) {
+            return false;
+        }
+        for (Instrument instrument : first) {
+            if (second.stream().noneMatch(instrument::isIdenticalTo)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Returns true if every group in {@code first} has a case-sensitive identical partner in
+     * {@code second}, and both sets are of the same size.
+     */
+    private static boolean hasIdenticalGroups(Set<Group> first, Set<Group> second) {
+        if (first.size() != second.size()) {
+            return false;
+        }
+        for (Group group : first) {
+            if (second.stream().noneMatch(group::isIdenticalTo)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own

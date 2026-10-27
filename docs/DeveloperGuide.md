@@ -323,7 +323,7 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 * **Alternative 1 (current choice):** `LogicManager` commits after a successful save.
   * Pros: Failed saves never enter the history; new data-changing commands are undoable without extra code.
-  * Cons: Relies on `commit()` comparing states to skip unchanged data, and on `undo` and `redo` opting out through `Command#recordsChange()`.
+  * Cons: Relies on `commit()` comparing states to skip unchanged data. The comparison uses `AddressBook#hasIdenticalData`, not `equals`, because `Instrument` and `Group` equality ignores case, which would hide a capitalisation-only edit. It also relies on `undo` and `redo` opting out through `Command#recordsChange()`.
 
 * **Alternative 2:** Each data-changing command calls `Model#commitAddressBook()` (the original AB3 proposal).
   * Pros: Explicit.
