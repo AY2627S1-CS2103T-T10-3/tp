@@ -173,11 +173,15 @@ The `find` command matches any part of a person's name, ignoring case. For examp
 
 `FindCommandParser` rejects empty arguments and splits valid arguments into keywords. It constructs a `FindCommand` containing a `NameContainsKeywordsPredicate`. When executed, the command passes the predicate to `ModelManager.updateFilteredPersonList`, which updates the predicate of the JavaFX `FilteredList`. The UI observes the wrapping `SortedList` and displays the matching persons in the selected order with indices starting at 1; the underlying address book remains unchanged.
 
-The following sequence diagram traces a successful `find ali` command. The participant `m:Model` is implemented by `ModelManager`. Setting the predicate evaluates the full directory, replacing any previous search or filter. The command uses the resulting list size for its feedback message and does not require a save.
+The following two sequence diagrams trace a successful `find ali` command. Parsing and execution are shown separately so the labels remain readable at the guide's width.
 
-![Sequence diagram for find ali, showing keyword parsing, predicate creation, filtering, and the result count](images/FindSequenceDiagram.png)
+First, `LogicManager` calls `AddressBookParser.parseCommand`, which returns the parsed command `f` after creating its predicate `p`.
 
-[Open the sequence diagram at full size](images/FindSequenceDiagram.png). The diagram focuses on parsing and execution; UI list-change notifications are omitted.
+![Find command parsing: keyword parsing, predicate creation, and command creation](images/FindParsingSequenceDiagram.png)
+
+Execution then continues in `LogicManager`. The participant `m:Model` is implemented by `ModelManager`, and `p:Predicate` is the `NameContainsKeywordsPredicate` created during parsing. Setting the predicate evaluates the full directory, replacing any previous search or filter. The command uses the resulting list size for its feedback message and does not require a save. UI list-change notifications are omitted.
+
+![Find command execution: predicate evaluation, result count, and feedback](images/FindSequenceDiagram.png)
 
 `NameContainsKeywordsPredicate` uses `StringUtil.containsSubstringIgnoreCase` for each keyword. The helper trims the keyword, rejects null, empty or multiple-word inputs, and normalises both strings with `Locale.ROOT` before checking for a substring. The original `containsWordIgnoreCase` helper retains its whole-word behaviour for other callers.
 
