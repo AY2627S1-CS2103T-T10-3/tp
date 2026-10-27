@@ -34,11 +34,11 @@ import seedu.address.ui.UiManager;
 public class MainApp extends Application {
 
     public static final String VERSION = "V0.5.1";
+    public static final Path IMPORT_DIRECTORY = Paths.get("imports");
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
     private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
-    private static final Path IMPORT_DIRECTORY = Paths.get("imports");
 
     protected Ui ui;
     protected Logic logic;
@@ -46,6 +46,13 @@ public class MainApp extends Application {
     protected Model model;
 
     private Optional<String> startupMessage = Optional.empty();
+
+    /**
+     * Returns the directory that holds CSV files available for import.
+     */
+    protected Path getImportDirectory() {
+        return IMPORT_DIRECTORY;
+    }
 
     @Override
     public void init() throws Exception {
@@ -77,13 +84,6 @@ public class MainApp extends Application {
             logger.warning("Could not create import directory " + importDirectory + ": "
                     + StringUtil.getDetails(ioe));
         }
-    }
-
-    /**
-     * Returns the directory that holds CSV files available for import.
-     */
-    protected Path getImportDirectory() {
-        return IMPORT_DIRECTORY;
     }
 
     /**
