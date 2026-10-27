@@ -8,11 +8,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Group;
@@ -30,6 +32,8 @@ import seedu.address.model.person.Status;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+
+    private static final Logger logger = LogsCenter.getLogger(JsonAdaptedPerson.class);
 
     private final String name;
     private final String phone;
@@ -99,11 +103,16 @@ class JsonAdaptedPerson {
         final Map<String, Instrument> personInstruments = new HashMap<>();
         for (JsonAdaptedInstrument instrument : instruments) {
             if (instrument.canIgnoreBlankEntry()) {
+                logger.warning("Skipped an instrument entry with a Unicode-blank name while loading saved data.");
                 continue;
             }
             Instrument parsed = instrument.toModelType();
             personInstruments.merge(parsed.getName().toLowerCase(Locale.ROOT),
-                    parsed, (first, second) -> first.getYears() >= second.getYears() ? first : second);
+                    parsed, (first, second) -> {
+                        logger.warning("Combined duplicate instrument entries while loading saved data; "
+                                + "kept the highest years of experience.");
+                        return first.getYears() >= second.getYears() ? first : second;
+                    });
         }
 
         final Set<Group> modelGroups = new HashSet<>();
