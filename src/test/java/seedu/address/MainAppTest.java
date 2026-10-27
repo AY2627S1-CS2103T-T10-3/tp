@@ -6,10 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.HOON;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -27,10 +30,39 @@ import seedu.address.model.UserPrefs;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.PersonBuilder;
 
 public class MainAppTest {
     @TempDir
     public Path temporaryFolder;
+
+    @Test
+    public void initModelManager_unicodeInstrumentEntries_preservesMembersAndAllowsSaving() throws Exception {
+        Path addressBookPath = temporaryFolder.resolve("addressbook.json");
+        StorageManager storageManager = createStorageManager(addressBookPath);
+        AddressBook savedAddressBook = new AddressBook();
+        savedAddressBook.addPerson(new PersonBuilder(ALICE).withGroups("Training")
+                .withInstruments("Blank Placeholder:3", "Bass Guitar:3", "French Placeholder:5").build());
+        savedAddressBook.addPerson(HOON);
+        storageManager.saveAddressBook(savedAddressBook);
+        String savedJson = Files.readString(addressBookPath)
+                .replace("\"Blank Placeholder\"", "\"\\u00a0\"")
+                .replace("\"French Placeholder\"", "\"French\\u00a0Horn\"");
+        Files.writeString(addressBookPath, savedJson);
+
+        Model model = new TestMainApp().initializeModelManager(storageManager);
+
+        assertEquals(List.of(new PersonBuilder(ALICE).withGroups("Training")
+                .withInstruments("Bass Guitar:3", "French Horn:5").build(), HOON),
+                model.getAddressBook().getPersonList());
+        assertEquals(savedJson, Files.readString(addressBookPath));
+
+        new LogicManager(model, storageManager)
+                .execute("add n/Loading Check p/91234567 e/loading@example.com s/member");
+        assertEquals(3, model.getAddressBook().getPersonList().size());
+        assertEquals(model.getAddressBook(), storageManager.readAddressBook().orElseThrow());
+        assertFalse(Files.readString(addressBookPath).contains("\\u00a0"));
+    }
 
     @Test
     public void initModelManager_invalidAddressBook_recoversWithoutOverwritingData() throws Exception {

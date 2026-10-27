@@ -95,6 +95,9 @@ class JsonAdaptedPerson {
     public Person toModelType() throws IllegalValueException {
         final List<Instrument> personInstruments = new ArrayList<>();
         for (JsonAdaptedInstrument instrument : instruments) {
+            if (instrument.canIgnoreBlankEntry()) {
+                continue;
+            }
             personInstruments.add(instrument.toModelType());
         }
         if (Instrument.hasDuplicateNames(personInstruments)) {

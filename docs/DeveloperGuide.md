@@ -157,6 +157,8 @@ The `Storage` component,
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
+During JSON loading, `JsonAdaptedPerson` skips instrument entries whose names are not blank according to `String.isBlank()` but normalize to empty. Remaining instrument names are compared ignoring case and normalized Unicode whitespace.
+
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package.
