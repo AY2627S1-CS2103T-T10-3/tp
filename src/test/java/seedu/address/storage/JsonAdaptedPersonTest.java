@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.storage.JsonAdaptedPerson.MESSAGE_NULL_INSTRUMENT;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -215,6 +216,13 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
                 VALID_STATUS, VALID_MEMBER_TYPE, "  ", VALID_INSTRUMENTS);
         assertThrows(IllegalValueException.class, Role.MESSAGE_CONSTRAINTS, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_unicodeSpaceOnlyRole_returnsPersonWithoutRole() throws Exception {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_STATUS, VALID_MEMBER_TYPE, "\u00A0\u2007", VALID_INSTRUMENTS);
+        assertTrue(person.toModelType().getRole().isEmpty());
     }
 
     @Test
