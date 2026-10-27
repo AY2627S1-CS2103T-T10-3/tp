@@ -20,6 +20,9 @@ HiveMind is a **desktop directory for Music CCA members and alumni, optimized fo
 1. Copy the file to the folder you want to use as the _home folder_ for HiveMind.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar HiveMind.jar`.<br>
+   HiveMind uses the folder from which you run this command (the terminal's working directory) as its _home folder_.
+   When you follow these steps, the home folder is also the JAR folder. If you run the JAR from another folder,
+   HiveMind creates its `data`, `imports`, and `exports` folders in that other folder instead.<br>
    A GUI similar to the one below should appear in a few seconds. On first launch without a data file, the app contains sample records. The screenshot shows these sample records; existing saved records are loaded instead if a data file is present.<br>
    ![HiveMind showing member cards with contact details, type, status, optional roles, and instruments](images/Ui.png)
 
@@ -108,7 +111,8 @@ Imports people from a CSV file in the `imports` folder. The imported people are 
 
 Format: `import FILE_NAME`
 
-Place the CSV file in `[JAR file location]/imports`, then provide its file name, including the `.csv` extension. For example, use `import members.csv` for `[JAR file location]/imports/members.csv`.
+Place the CSV file in the `imports` folder inside HiveMind's home folder, then provide its file name, including the
+`.csv` extension. For example, use `import members.csv` for a file named `members.csv` in that folder.
 
 The CSV file must have this exact header and column order:
 
@@ -346,7 +350,8 @@ separately when HiveMind starts and exits. You do not need to save manually.
 
 ### Editing the data file
 
-HiveMind data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+HiveMind data is saved automatically as the JSON file `data/addressbook.json` inside HiveMind's home folder. Advanced
+users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, HiveMind starts with an empty directory at the next run, creates a numbered backup alongside it (e.g., `addressbook.json.bak-01`, followed by `addressbook.json.bak-02` if another backup is needed), and prevents directory changes from being saved. Repair or restore the original data file before restarting the app.<br>
@@ -372,7 +377,9 @@ computer into the folder where you will run HiveMind on the new computer. If the
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-3. **If you put the JAR file in a write-protected folder** (a folder where you cannot create files), HiveMind may fail to start, or may be unable to save your changes. The remedy is to move the JAR file to a folder you can write to, such as a new folder in your home folder, and start it from there.
+3. **If you run HiveMind from a write-protected folder** (a folder where you cannot create files), HiveMind may fail
+   to start, or may be unable to save your changes. The remedy is to start HiveMind from a folder you can write to,
+   such as a new folder in your user home folder.
 4. **Double-clicking the JAR file may not start HiveMind**, or may start it with a different Java version, on some systems. The remedy is to start it from a terminal with `java -jar`, as described in the [Quick start](#quick-start).
 5. **On macOS, if the main window is in full-screen mode**, the Help Window may open in a separate full-screen space or behind the main window. The remedy is to exit full-screen mode (e.g. press `Ctrl`+`Cmd`+`F`) before running `help`.
 
