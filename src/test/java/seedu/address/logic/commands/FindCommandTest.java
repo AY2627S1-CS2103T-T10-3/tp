@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -94,6 +95,19 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_unicodeSeparatedKeywords_returnsSameMembersAsOrdinarySpaces() throws Exception {
+        AddressBookParser parser = new AddressBookParser();
+        parser.parseCommand("find Kurz Elle Kunz").execute(expectedModel);
+        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3);
+
+        for (String separator : List.of("\u2003", "\u00A0")) {
+            Command command = parser.parseCommand("find Kurz" + separator + "Elle" + separator + "Kunz");
+            assertCommandSuccess(command, model, expectedMessage, expectedModel);
+            assertEquals(List.of(CARL, ELLE, FIONA), model.getFilteredPersonList());
+        }
+    }
+
+    @Test
     public void toStringMethod() {
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("keyword"));
         FindCommand findCommand = new FindCommand(predicate);
@@ -107,4 +121,5 @@ public class FindCommandTest {
     private NameContainsKeywordsPredicate preparePredicate(String userInput) {
         return new NameContainsKeywordsPredicate(List.of(userInput.split("\\s+")));
     }
+
 }
