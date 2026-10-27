@@ -19,6 +19,8 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.Person;
+import seedu.address.model.util.SampleDataUtil;
 
 /**
  * Contains integration tests (interaction with the Model) for {@code FindCommand}.
@@ -52,6 +54,27 @@ public class FindCommandTest {
 
         // different person -> returns false
         assertFalse(findFirstCommand.equals(findSecondCommand));
+    }
+
+    @Test
+    public void execute_controlKeywords_preservesResultsAcrossListAndFind() throws Exception {
+        AddressBookParser parser = new AddressBookParser();
+        for (String control : List.of("\u001C", "\u001D", "\u001E", "\u001F")) {
+            Model sampleModel = new ModelManager(SampleDataUtil.getSampleAddressBook(), new UserPrefs());
+            List<Person> originalPersons = List.copyOf(sampleModel.getAddressBook().getPersonList());
+
+            CommandResult result = parser.parseCommand("find alex " + control + " bernice").execute(sampleModel);
+            assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 2), result.getFeedbackToUser());
+            assertEquals(originalPersons.subList(0, 2), sampleModel.getFilteredPersonList());
+
+            parser.parseCommand("list").execute(sampleModel);
+            assertEquals(originalPersons, sampleModel.getFilteredPersonList());
+
+            result = parser.parseCommand("find alex").execute(sampleModel);
+            assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
+            assertEquals(List.of(originalPersons.get(0)), sampleModel.getFilteredPersonList());
+            assertEquals(originalPersons, sampleModel.getAddressBook().getPersonList());
+        }
     }
 
     @Test
