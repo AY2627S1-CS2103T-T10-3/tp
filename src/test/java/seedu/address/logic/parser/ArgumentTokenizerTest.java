@@ -175,7 +175,7 @@ public class ArgumentTokenizerTest {
 
     @Test
     public void verifyNoUnknownPrefixes_removedPrefixes_throwsParseException() {
-        assertUnknownPrefixRejected("1 r/Lead t/friend", "t/");
+        assertUnknownPrefixRejected("1 t/friend", "t/");
         assertUnknownPrefixRejected("1 a/Somewhere", "a/");
     }
 
@@ -202,7 +202,6 @@ public class ArgumentTokenizerTest {
     @Test
     public void verifyNoUnknownPrefixes_multipleUnknownPrefixes_firstByPositionReported() {
         assertUnknownPrefixRejected("1 S/member t/friend", "S/");
-        assertUnknownPrefixRejected("1 n/Alex r/Lead t/friend", "t/");
         assertUnknownPrefixRejected("1 t/friend S/member", "t/");
     }
 
@@ -210,6 +209,11 @@ public class ArgumentTokenizerTest {
     public void verifyNoUnknownPrefixes_wrongCaseTokensInValues_success() {
         assertDoesNotThrow(() -> ArgumentTokenizer.verifyNoUnknownPrefixes(
                 "1 r/Head of A/V g/N/A Ensemble", HIVEMIND_PREFIXES));
+        // removed prefixes inside values are kept as text, however they are spaced
+        assertDoesNotThrow(() -> ArgumentTokenizer.verifyNoUnknownPrefixes("1 r/a/v", HIVEMIND_PREFIXES));
+        assertDoesNotThrow(() -> ArgumentTokenizer.verifyNoUnknownPrefixes("1 r/ a/v", HIVEMIND_PREFIXES));
+        assertDoesNotThrow(() -> ArgumentTokenizer.verifyNoUnknownPrefixes(
+                "1 r/Student t/a g/Head of a/v", HIVEMIND_PREFIXES));
         assertDoesNotThrow(() -> ArgumentTokenizer.verifyNoUnknownPrefixes("1 r/ N/A", HIVEMIND_PREFIXES));
         assertDoesNotThrow(() -> ArgumentTokenizer.verifyNoUnknownPrefixes("1 r/ T/A S/O", HIVEMIND_PREFIXES));
         assertDoesNotThrow(() -> ArgumentTokenizer.verifyNoUnknownPrefixes("1 n/Alex S/member", HIVEMIND_PREFIXES));

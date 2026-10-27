@@ -46,13 +46,13 @@ public class ArgumentTokenizer {
      * A token is a candidate if it starts the string or follows a space, and is one or two ASCII letters followed by
      * {@code /}. A candidate that is exactly one of {@code prefixes} is accepted. Otherwise it is rejected if
      * <ul>
-     *     <li>it is one of the prefixes removed from the original AddressBook, {@code t/} or {@code a/},</li>
      *     <li>it is a HiveMind prefix that this command does not accept, or</li>
-     *     <li>it is an accepted prefix in the wrong case (e.g. {@code S/}) appearing before the first accepted prefix,
-     *     where it would otherwise be read as part of the preamble.</li>
+     *     <li>it appears before the first accepted prefix, where it would otherwise be read as part of the preamble,
+     *     and it is an accepted prefix in the wrong case (e.g. {@code S/}) or one of the prefixes removed from the
+     *     original AddressBook, {@code t/} or {@code a/}.</li>
      * </ul>
-     * Wrong-case tokens inside values are allowed, as values such as {@code N/A} or {@code A/V} are common, and so is
-     * other slash text such as {@code c/o}.
+     * Inside values, such tokens are kept as text, as values such as {@code N/A}, {@code a/v} or {@code c/o} are common
+     * and cannot be told apart from a mistyped prefix.
      *
      * @param argsString Arguments string of the form: {@code preamble <prefix>value <prefix>value ...}
      * @param prefixes   Prefixes accepted by the command that is parsing {@code argsString}
@@ -97,7 +97,7 @@ public class ArgumentTokenizer {
      */
     private static boolean isUnknownPrefix(String token, boolean isInPreamble) {
         if (containsPrefix(CliSyntax.REMOVED_PREFIXES, token)) {
-            return true;
+            return isInPreamble;
         }
         String lowercaseToken = token.toLowerCase(Locale.ROOT);
         if (!containsPrefix(CliSyntax.ALL_PREFIXES, lowercaseToken)) {

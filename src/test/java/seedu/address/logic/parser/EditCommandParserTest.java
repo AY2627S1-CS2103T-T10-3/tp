@@ -121,10 +121,18 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_removedPrefixInsideValue_keptAsText() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withRole("Head of a/v").build();
+        assertParseSuccess(parser, "1 r/Head of a/v", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+
+        descriptor = new EditPersonDescriptorBuilder().withRole("a/v").build();
+        assertParseSuccess(parser, "1 r/ a/v", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+        assertParseSuccess(parser, "1 r/a/v", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
     public void parse_unknownPrefix_failure() {
-        // removed tag prefix that the original AddressBook accepted
-        assertParseFailure(parser, "1 r/Lead t/friend",
-                String.format(Messages.MESSAGE_UNKNOWN_PREFIX, "t/", ACCEPTED_PREFIXES));
+        // removed tag prefix that the original AddressBook accepted, read as part of the index text before
         assertParseFailure(parser, "1 t/friends",
                 String.format(Messages.MESSAGE_UNKNOWN_PREFIX, "t/", ACCEPTED_PREFIXES));
 
