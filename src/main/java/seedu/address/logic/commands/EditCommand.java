@@ -101,7 +101,8 @@ public class EditCommand extends Command {
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         if (editPersonDescriptor.getGroups().isPresent()) {
-            logger.info(() -> String.format("Participation group edit applied: %d groups before, %d groups after",
+            // LogicManager persists the edit after this command returns, so this records the request only.
+            logger.info(() -> String.format("Participation group edit requested: %d groups before, %d groups after",
                     personToEdit.getGroups().size(), editedPerson.getGroups().size()));
         }
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
