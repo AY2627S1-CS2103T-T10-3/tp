@@ -88,6 +88,8 @@ public class PersonCardTest {
             FlowPane instruments = (FlowPane) card.getRoot().lookup("#instruments");
             assertNotNull(instruments);
             assertTrue(instruments.getChildren().isEmpty());
+            assertFalse(instruments.isVisible());
+            assertFalse(instruments.isManaged());
             assertTrue(groupNames(card).isEmpty());
             assertFalse(card.getRoot().lookup("#groups").isVisible());
             assertFalse(card.getRoot().lookup("#groups").isManaged());

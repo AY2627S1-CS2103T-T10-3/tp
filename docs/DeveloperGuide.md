@@ -183,6 +183,8 @@ Each `Person` has a stable UUID record ID, independent of editable contact detai
 
 `Group` stores a non-blank name and normalizes whitespace before comparing names ignoring case. `ParserUtil.parseGroups` builds a set, so repeating `g/Choir g/choir` records one group. `add` may omit all groups. `edit` preserves groups unless `g/` is supplied; named groups replace the entire set, and a single empty `g/` clears it. An empty value mixed with named groups is rejected.
 
+For older JSON files, `JsonAdaptedPerson` omits a Unicode-space-only group that earlier versions accepted, preserving the member and its remaining groups. New commands still reject such blank group names; null and previously invalid blank JSON group entries remain invalid data.
+
 `Person` keeps a defensive copy of its group set and exposes an unmodifiable view. JSON saves group names and defaults a missing groups field to an empty set for older files. `PersonCard` renders sorted group names as separate, wrapping labels below a `Groups:` heading. The whole section is hidden and unmanaged when empty. This keeps a group containing a comma distinguishable from multiple groups. Instrument and group badges are constrained to their flow pane's width, and list cells follow the viewport width so long values wrap within the card.
 
 ### Partial-name search

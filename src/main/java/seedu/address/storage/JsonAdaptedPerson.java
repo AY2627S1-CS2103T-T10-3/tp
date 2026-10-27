@@ -128,8 +128,12 @@ class JsonAdaptedPerson {
 
         final Set<Group> modelGroups = new HashSet<>();
         for (String group : groups) {
-            if (group == null || !Group.isValidName(group)) {
+            if (group == null || group.isBlank()) {
                 throw new IllegalValueException(Group.MESSAGE_CONSTRAINTS);
+            }
+            // Older versions accepted Unicode-space-only groups. Keep the member loadable without that empty group.
+            if (!Group.isValidName(group)) {
+                continue;
             }
             modelGroups.add(new Group(group));
         }

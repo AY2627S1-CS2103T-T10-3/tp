@@ -82,6 +82,9 @@ public class PersonCard extends UiPart<Region> {
         person.getInstruments().stream()
                 .sorted(Comparator.comparing(Instrument::getName, String.CASE_INSENSITIVE_ORDER))
                 .forEach(instrument -> addWrappingLabel(instruments, instrument.toDisplayString()));
+        boolean hasInstruments = !person.getInstruments().isEmpty();
+        instruments.setVisible(hasInstruments);
+        instruments.setManaged(hasInstruments);
 
         boolean hasGroups = !person.getGroups().isEmpty();
         person.getGroups().stream()

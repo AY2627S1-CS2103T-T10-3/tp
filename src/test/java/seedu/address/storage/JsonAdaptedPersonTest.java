@@ -161,6 +161,18 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void jsonRoundTrip_legacyUnicodeBlankGroup_keepsMemberAndOtherGroups() throws Exception {
+        Person expected = new PersonBuilder(BENSON).withGroups("Orchestra").build();
+        for (String whitespace : List.of("\u00a0", "\u0085", "\u2007\u202f")) {
+            String json = JsonUtil.toJsonString(new JsonAdaptedPerson(expected))
+                    .replace("\"Orchestra\"", "\"" + whitespace + "\", \"Orchestra\"");
+            Person restored = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+            assertEquals(expected, restored);
+            assertTrue(expected.isSamePerson(restored));
+        }
+    }
+
+    @Test
     public void toModelType_nullGroup_throwsIllegalValueException() {
         List<String> groups = new ArrayList<>();
         groups.add(null);
