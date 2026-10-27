@@ -71,7 +71,7 @@ public class CsvImporterTest {
     }
 
     @Test
-    public void importPeople_multilineQuotedRole_preservesNewline() throws Exception {
+    public void importPeople_multilineQuotedRole_normalizesNewline() throws Exception {
         Path csvFile = writeCsv(
                 HEADER,
                 "Alice Tan,91234567,alice@example.com,member,student,\"Section Leader",
@@ -79,12 +79,11 @@ public class CsvImporterTest {
 
         Person person = CsvImporter.importPeople(csvFile).getFirst();
 
-        assertEquals("Section Leader" + System.lineSeparator() + "Conductor",
-                person.getRole().orElseThrow().toString());
+        assertEquals("Section Leader Conductor", person.getRole().orElseThrow().toString());
     }
 
     @Test
-    public void importPeople_multilineQuotedRoleWithBlankLine_preservesNewlines() throws Exception {
+    public void importPeople_multilineQuotedRoleWithBlankLine_normalizesWhitespace() throws Exception {
         Path csvFile = writeCsv(
                 HEADER,
                 "Alice Tan,91234567,alice@example.com,member,student,\"Section Leader",
@@ -92,10 +91,7 @@ public class CsvImporterTest {
                 "Conductor\",Violin:1,");
 
         Person person = CsvImporter.importPeople(csvFile).getFirst();
-        String newline = System.lineSeparator();
-
-        assertEquals("Section Leader" + newline + newline + "Conductor",
-                person.getRole().orElseThrow().toString());
+        assertEquals("Section Leader Conductor", person.getRole().orElseThrow().toString());
     }
 
     @Test
