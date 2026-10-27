@@ -184,7 +184,7 @@ Orders the currently displayed members without changing which members are shown 
 
 Format: `sort name` or `sort status`
 
-* `sort name` orders names alphabetically, ignoring case.
+* `sort name` orders names alphabetically, ignoring case and treating repeated whitespace as a single space. Names are displayed and saved as entered. Names with the same comparison key retain their original directory order.
 * `sort status` groups members in this order: member, active alumnus, inactive alumnus. Within each status, members retain their original directory order.
 * The attribute (`name` or `status`) is case-insensitive. Exactly one attribute is required; unsupported attributes or extra arguments show the usage message.
 * Sorting works on the full directory and on `find` or `filter` results, including empty results.
