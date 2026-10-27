@@ -1,8 +1,11 @@
 package seedu.address.storage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -93,15 +96,14 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
-        final List<Instrument> personInstruments = new ArrayList<>();
+        final Map<String, Instrument> personInstruments = new HashMap<>();
         for (JsonAdaptedInstrument instrument : instruments) {
             if (instrument.canIgnoreBlankEntry()) {
                 continue;
             }
-            personInstruments.add(instrument.toModelType());
-        }
-        if (Instrument.hasDuplicateNames(personInstruments)) {
-            throw new IllegalValueException(Instrument.MESSAGE_DUPLICATE_NAMES);
+            Instrument parsed = instrument.toModelType();
+            personInstruments.merge(parsed.getName().toLowerCase(Locale.ROOT),
+                    parsed, (first, second) -> first.getYears() >= second.getYears() ? first : second);
         }
 
         final Set<Group> modelGroups = new HashSet<>();
@@ -158,7 +160,8 @@ class JsonAdaptedPerson {
         }
         final Optional<Role> modelRole = role == null ? Optional.empty() : Optional.of(new Role(role));
 
-        final Set<Instrument> modelInstruments = Set.copyOf(personInstruments);
+        final Set<Instrument> modelInstruments = Set.copyOf(personInstruments.values());
+
         return new Person(modelName, modelPhone, modelEmail, modelStatus, modelMemberType, modelRole,
                 modelInstruments, modelGroups);
     }

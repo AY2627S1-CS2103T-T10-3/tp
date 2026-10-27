@@ -133,42 +133,42 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void toModelType_unicodeDuplicateNames_throwsIllegalValueException() {
+    public void toModelType_unicodeDuplicateNames_keepsMaximumYearsInEitherOrder() throws Exception {
         for (String whitespace : List.of("\u00a0", "\u2002", "\u202f", "\u0085")) {
             JsonAdaptedInstrument lower = new JsonAdaptedInstrument("Bass Guitar", 3);
             JsonAdaptedInstrument higher = new JsonAdaptedInstrument("BASS" + whitespace + "GUITAR", 5);
             for (List<JsonAdaptedInstrument> instruments : List.of(List.of(lower, higher), List.of(higher, lower))) {
                 JsonAdaptedPerson person = adaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, instruments);
-                assertThrows(IllegalValueException.class, Instrument.MESSAGE_DUPLICATE_NAMES, person::toModelType);
+                assertEquals(Set.of(new Instrument("Bass Guitar", 5)), person.toModelType().getInstruments());
             }
         }
     }
 
     @Test
-    public void toModelType_duplicateInstrumentNames_throwsIllegalValueException() {
+    public void toModelType_duplicateInstrumentNames_keepsMaximumYears() throws Exception {
         List<JsonAdaptedInstrument> duplicateInstruments = List.of(
                 new JsonAdaptedInstrument("Violin", 4), new JsonAdaptedInstrument("violin", 2));
         JsonAdaptedPerson person =
                 adaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, duplicateInstruments);
-        assertThrows(IllegalValueException.class, Instrument.MESSAGE_DUPLICATE_NAMES, person::toModelType);
+        assertEquals(Set.of(new Instrument("Violin", 4)), person.toModelType().getInstruments());
     }
 
     @Test
-    public void toModelType_asciiWhitespaceDuplicateNames_throwsIllegalValueException() {
+    public void toModelType_asciiWhitespaceDuplicateNames_keepsMaximumYears() throws Exception {
         JsonAdaptedPerson person = adaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, List.of(
                 new JsonAdaptedInstrument("Bass Guitar", 3), new JsonAdaptedInstrument(" BASS \t GUITAR ", 5)));
-        assertThrows(IllegalValueException.class, Instrument.MESSAGE_DUPLICATE_NAMES, person::toModelType);
+        assertEquals(Set.of(new Instrument("Bass Guitar", 5)), person.toModelType().getInstruments());
     }
 
     @Test
-    public void toModelType_repeatedIdenticalInstrument_throwsIllegalValueException() {
+    public void toModelType_repeatedIdenticalInstrument_keepsOneEntry() throws Exception {
         // same name and years, in the same or a different case, is still a repeated instrument
         for (String repeatedName : List.of("Violin", "violin")) {
             List<JsonAdaptedInstrument> repeatedInstruments = List.of(
                     new JsonAdaptedInstrument("Violin", 4), new JsonAdaptedInstrument(repeatedName, 4));
             JsonAdaptedPerson person =
                     adaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, repeatedInstruments);
-            assertThrows(IllegalValueException.class, Instrument.MESSAGE_DUPLICATE_NAMES, person::toModelType);
+            assertEquals(Set.of(new Instrument("Violin", 4)), person.toModelType().getInstruments());
         }
     }
 

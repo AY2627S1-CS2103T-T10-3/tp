@@ -42,18 +42,18 @@ public class MainAppTest {
         StorageManager storageManager = createStorageManager(addressBookPath);
         AddressBook savedAddressBook = new AddressBook();
         savedAddressBook.addPerson(new PersonBuilder(ALICE).withGroups("Training")
-                .withInstruments("Blank Placeholder:3", "Bass Guitar:3", "French Placeholder:5").build());
+                .withInstruments("Blank Placeholder:3", "Bass Guitar:3", "Bass Placeholder:5").build());
         savedAddressBook.addPerson(HOON);
         storageManager.saveAddressBook(savedAddressBook);
         String savedJson = Files.readString(addressBookPath)
                 .replace("\"Blank Placeholder\"", "\"\\u00a0\"")
-                .replace("\"French Placeholder\"", "\"French\\u00a0Horn\"");
+                .replace("\"Bass Placeholder\"", "\"Bass\\u00a0Guitar\"");
         Files.writeString(addressBookPath, savedJson);
 
         Model model = new TestMainApp().initializeModelManager(storageManager);
 
         assertEquals(List.of(new PersonBuilder(ALICE).withGroups("Training")
-                .withInstruments("Bass Guitar:3", "French Horn:5").build(), HOON),
+                .withInstruments("Bass Guitar:5").build(), HOON),
                 model.getAddressBook().getPersonList());
         assertEquals(savedJson, Files.readString(addressBookPath));
 
