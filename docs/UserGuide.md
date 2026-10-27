@@ -84,7 +84,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRU
 * `r/ROLE` is optional free text, such as `Section Leader`. It cannot be blank.
 * Type and status appear beneath the member's name on the card. If a role is supplied, it appears beneath the contact details; otherwise, the role line is hidden.
 * `i/INSTRUMENT:YEARS` records an instrument the person plays and how many whole years they have played it, from `0` to `99`. For example, `i/Violin:5` or `i/Bass Guitar:1`.
-* Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case, so `Violin` and `violin` count as the same instrument.
+* Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case, surrounding whitespace, and repeated whitespace, including Unicode spaces such as non-breaking spaces and en spaces. For example, `Violin` and `violin` count as the same instrument.
 * `g/GROUP` records a participation group, such as `g/Chamber Orchestra`. It may be repeated for multiple groups. Blank group names are rejected; names are compared ignoring case and extra whitespace, so repeated names are stored only once.
 * Recorded groups appear in the command's success message and on the member card.
 
@@ -241,7 +241,7 @@ Shows people matching the specified criteria and reports the number of matches.
 * Instruments are combined with OR: `filter i/Violin i/Viola` matches people who play either instrument or both.
 * Each repeated instrument criterion is an alternative, even for the same name: `filter i/Violin:3 i/Violin:5` matches violin players with at least 3 years. A name-only criterion such as `i/Violin` accepts any years for that instrument.
 * Status and instrument groups are combined with AND: `filter s/member s/active-alumnus i/Violin:3 i/Viola:5` matches people who are members or active alumni and have at least 3 years on violin or at least 5 years on viola.
-* Matches complete instrument names, ignoring case: `guitar` matches `Guitar`, but not `Bass Guitar`.
+* Matches complete instrument names, ignoring case, surrounding whitespace, and repeated whitespace, including Unicode spaces such as non-breaking spaces and en spaces: `guitar` matches `Guitar`, but not `Bass Guitar`.
 * Spaces after `i/` and around `:` are allowed: `filter i/ Violin : 3` is equivalent to `filter i/Violin:3`.
 * Supported prefixes are `s/`, `i/`, `ty/`, `r/`, and `g/`. Other member-field prefixes such as `n/`, `p/`, or `e/` are rejected with the command format.
 * Searches the full directory, including after a previous `find` or `filter`.
