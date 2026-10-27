@@ -340,7 +340,9 @@ Format: `exit`
 
 ### Saving the data
 
-HiveMind automatically saves data after every command. You do not need to save manually.
+HiveMind automatically saves every successful change to member data. Commands that do not change member data, such as
+`list`, `find`, `filter`, `sort`, `help`, `export` and `exit`, do not rewrite the member data file. Preferences are saved
+separately when HiveMind starts and exits. You do not need to save manually.
 
 ### Editing the data file
 
@@ -360,7 +362,9 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous HiveMind home folder.
+**A**: Close HiveMind on both computers. Copy the `data` folder from the folder where you run HiveMind on the old
+computer into the folder where you will run HiveMind on the new computer. If the new installation does not have a
+`data` folder yet, copy the old folder there directly; you do not need to start HiveMind first.
 
 --------------------------------------------------------------------------------------------------------------------
 

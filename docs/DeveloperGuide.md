@@ -680,8 +680,50 @@ Start from the sample data in a disposable directory (delete `data/addressbook.j
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+Use a disposable folder containing the packaged `HiveMind.jar` for these tests. Open a terminal in that folder and run
+`java -jar HiveMind.jar`. Do not perform these tests using real member data.
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+1. Starting without a data file
 
-1. _{ more test cases …​ }_
+   1. Ensure that the disposable folder does not contain `data/addressbook.json`, then start HiveMind.<br>
+      Expected: HiveMind starts with the sample members. No `data/addressbook.json` is created yet.
+
+   1. Run `add n/Persistence Test p/81234567 e/persistence@example.com s/member`, then exit HiveMind.<br>
+      Expected: The member is added and `data/addressbook.json` is created. Copy this valid file to
+      `valid-addressbook.json` in the disposable folder for the restoration test below.
+
+1. Starting with a corrupted data file
+
+   1. Ensure HiveMind is closed, then replace the contents of `data/addressbook.json` with `{` and restart HiveMind.<br>
+      Expected: HiveMind displays an empty directory and a startup warning explaining that the data file could not be
+      loaded, where its backup was created, and that saving is disabled. In a clean test folder, the backup is
+      `data/addressbook.json.bak-01` and contains the same `{` as the corrupted original.
+
+   1. Run `add n/Recovery Check p/81234568 e/recovery@example.com s/member`.<br>
+      Expected: HiveMind reports that the change could not be saved. The recovered directory remains empty, and both
+      `addressbook.json` and its backup remain unchanged.
+
+1. Restoring a valid data file
+
+   1. Close HiveMind, replace `data/addressbook.json` with the saved `valid-addressbook.json`, and restart HiveMind.<br>
+      Expected: The previously saved members, including `Persistence Test`, are loaded without a recovery warning.
+
+   1. Run `add n/Restoration Check p/81234569 e/restoration@example.com s/member`.<br>
+      Expected: The member is added successfully and the restored `data/addressbook.json` is updated, confirming that
+      saving was re-enabled for the new session.
+
+1. Rolling back a change that cannot be saved
+
+   1. While HiveMind is running with valid data, copy `data/addressbook.json` to `before-save-failure.json`. Make
+      `data/addressbook.json` read-only using the operating system's file permissions. For example, run
+      `chmod a-w data/addressbook.json` on macOS/Linux or `attrib +R data\addressbook.json` on Windows.
+
+   1. Run `add n/Rollback Check p/81234570 e/rollback@example.com s/member`.<br>
+      Expected: HiveMind reports that the change could not be saved. `Rollback Check` is absent from the displayed
+      directory, showing that the in-memory change was rolled back. `data/addressbook.json` is byte-for-byte identical
+      to `before-save-failure.json`, showing that the previously saved data was preserved.
+
+   1. Restore write permission with `chmod u+w data/addressbook.json` on macOS/Linux or
+      `attrib -R data\addressbook.json` on Windows, then run the same `add` command again.<br>
+      Expected: The command succeeds and `Rollback Check` is saved. Close HiveMind and delete the disposable folder
+      when testing is complete.
