@@ -21,6 +21,24 @@ public class FindCommandParserTest {
     }
 
     @Test
+    public void parse_trimEmptyControlKeywords_ignoresEmptyKeywords() {
+        FindCommand expectedFindCommand =
+                new FindCommand(new NameContainsKeywordsPredicate(List.of("Alice", "Bob")));
+        for (String control : List.of("\u0000", "\u001C", "\u001D", "\u001E", "\u001F")) {
+            assertParseSuccess(parser, "Alice " + control + " Bob", expectedFindCommand);
+            assertParseSuccess(parser, control + "Alice " + control + " Bob" + control, expectedFindCommand);
+        }
+    }
+
+    @Test
+    public void parse_controlOnlyArgs_throwsParseException() {
+        for (String control : List.of("\u0000", "\u001C", "\u001D", "\u001E", "\u001F")) {
+            assertParseFailure(parser, " " + control + " ",
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+        }
+    }
+
+    @Test
     public void parse_validArgs_returnsFindCommand() {
         // no leading and trailing whitespaces
         FindCommand expectedFindCommand =
