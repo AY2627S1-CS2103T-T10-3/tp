@@ -5,11 +5,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Group;
@@ -27,6 +29,8 @@ import seedu.address.model.person.Status;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+
+    private static final Logger logger = LogsCenter.getLogger(JsonAdaptedPerson.class);
 
     private final String name;
     private final String phone;
@@ -109,6 +113,7 @@ class JsonAdaptedPerson {
             }
 
             if (!Group.isValidName(group)) {
+                logger.warning("Skipped a group entry with a Unicode-blank name while loading saved data.");
                 continue;
             }
             modelGroups.add(new Group(group));
