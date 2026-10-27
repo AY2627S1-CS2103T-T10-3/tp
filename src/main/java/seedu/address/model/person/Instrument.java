@@ -93,7 +93,7 @@ public class Instrument {
         return false;
     }
 
-    private static String normalizeName(String name) {
+    static String normalizeName(String name) {
         return name.replaceAll("(?U)\\s+", " ").trim();
     }
 
