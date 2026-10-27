@@ -19,7 +19,7 @@ HiveMind is a **desktop directory for Music CCA members and alumni, optimized fo
 
 1. Copy the file to the folder you want to use as the _home folder_ for HiveMind.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar HiveMind.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. On first launch without a data file, the app contains sample records. The screenshot shows these sample records; existing saved records are loaded instead if a data file is present.<br>
    ![HiveMind showing member cards with contact details, type, status, optional roles, and instruments](images/Ui.png)
 
