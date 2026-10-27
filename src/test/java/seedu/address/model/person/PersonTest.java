@@ -151,4 +151,10 @@ public class PersonTest {
         assertTrue(alice.equals(edited));
         assertFalse(alice.hasIdenticalDetails(edited));
     }
+
+    @Test
+    public void hasIdenticalDetails_nullOrDifferentPerson_returnsFalse() {
+        assertFalse(ALICE.hasIdenticalDetails(null));
+        assertFalse(ALICE.hasIdenticalDetails(BOB));
+    }
 }

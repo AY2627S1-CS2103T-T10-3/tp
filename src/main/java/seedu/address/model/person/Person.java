@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiPredicate;
 
 import seedu.address.commons.util.ToStringBuilder;
 
@@ -140,43 +141,17 @@ public class Person {
      * Used to detect changes that {@link #equals(Object)} cannot see.
      */
     public boolean hasIdenticalDetails(Person other) {
-        if (other == null || !equals(other)) {
-            return false;
-        }
-        return hasIdenticalInstruments(instruments, other.instruments)
-                && hasIdenticalGroups(groups, other.groups);
+        return equals(other)
+                && hasIdenticalElements(instruments, other.instruments, Instrument::isIdenticalTo)
+                && hasIdenticalElements(groups, other.groups, Group::isIdenticalTo);
     }
 
     /**
-     * Returns true if every instrument in {@code first} has a case-sensitive identical partner in
-     * {@code second}, and both sets are of the same size.
+     * Returns true if every element of {@code first} has an identical partner in {@code second}.
+     * Both sets must already be equal, so they have the same size.
      */
-    private static boolean hasIdenticalInstruments(Set<Instrument> first, Set<Instrument> second) {
-        if (first.size() != second.size()) {
-            return false;
-        }
-        for (Instrument instrument : first) {
-            if (second.stream().noneMatch(instrument::isIdenticalTo)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns true if every group in {@code first} has a case-sensitive identical partner in
-     * {@code second}, and both sets are of the same size.
-     */
-    private static boolean hasIdenticalGroups(Set<Group> first, Set<Group> second) {
-        if (first.size() != second.size()) {
-            return false;
-        }
-        for (Group group : first) {
-            if (second.stream().noneMatch(group::isIdenticalTo)) {
-                return false;
-            }
-        }
-        return true;
+    private static <T> boolean hasIdenticalElements(Set<T> first, Set<T> second, BiPredicate<T, T> isIdentical) {
+        return first.stream().allMatch(element -> second.stream().anyMatch(o -> isIdentical.test(element, o)));
     }
 
     @Override
