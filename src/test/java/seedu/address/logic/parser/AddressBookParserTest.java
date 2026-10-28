@@ -77,7 +77,9 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_export() throws Exception {
         assertTrue(parser.parseCommand(ExportCommand.COMMAND_WORD) instanceof ExportCommand);
-        assertTrue(parser.parseCommand(ExportCommand.COMMAND_WORD + " 3") instanceof ExportCommand);
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, ExportCommand.MESSAGE_USAGE), ()
+                    -> parser.parseCommand(ExportCommand.COMMAND_WORD + " n/Alex"));
     }
 
     @Test
@@ -121,14 +123,18 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_redo() throws Exception {
-        assertTrue(parser.parseCommand(RedoCommand.COMMAND_WORD) instanceof RedoCommand);
-        assertTrue(parser.parseCommand(RedoCommand.COMMAND_WORD + " 3") instanceof RedoCommand);
+        assertEquals(new RedoCommand(), parser.parseCommand(RedoCommand.COMMAND_WORD));
+        assertEquals(new RedoCommand(3), parser.parseCommand(RedoCommand.COMMAND_WORD + " 3"));
+        assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT, RedoCommand.MESSAGE_USAGE), ()
+            -> parser.parseCommand(RedoCommand.COMMAND_WORD + " all"));
     }
 
     @Test
     public void parseCommand_undo() throws Exception {
-        assertTrue(parser.parseCommand(UndoCommand.COMMAND_WORD) instanceof UndoCommand);
-        assertTrue(parser.parseCommand(UndoCommand.COMMAND_WORD + " 3") instanceof UndoCommand);
+        assertEquals(new UndoCommand(), parser.parseCommand(UndoCommand.COMMAND_WORD));
+        assertEquals(new UndoCommand(3), parser.parseCommand(UndoCommand.COMMAND_WORD + " 3"));
+        assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT, UndoCommand.MESSAGE_USAGE), ()
+            -> parser.parseCommand(UndoCommand.COMMAND_WORD + " 0"));
     }
 
     @Test

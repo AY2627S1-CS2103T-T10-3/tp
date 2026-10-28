@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiPredicate;
 
 import seedu.address.commons.util.ToStringBuilder;
 
@@ -152,6 +153,25 @@ public class Person {
                 && role.equals(otherPerson.role)
                 && instruments.equals(otherPerson.instruments)
                 && groups.equals(otherPerson.groups);
+    }
+
+    /**
+     * Returns true if both persons are equal and their instrument and group sets match exactly,
+     * including the capitalisation of instrument and group names.
+     * Used to detect changes that {@link #equals(Object)} cannot see.
+     */
+    public boolean hasIdenticalDetails(Person other) {
+        return equals(other)
+                && hasIdenticalElements(instruments, other.instruments, Instrument::isIdenticalTo)
+                && hasIdenticalElements(groups, other.groups, Group::isIdenticalTo);
+    }
+
+    /**
+     * Returns true if every element of {@code first} has an identical partner in {@code second}.
+     * Both sets must already be equal, so they have the same size.
+     */
+    private static <T> boolean hasIdenticalElements(Set<T> first, Set<T> second, BiPredicate<T, T> isIdentical) {
+        return first.stream().allMatch(element -> second.stream().anyMatch(o -> isIdentical.test(element, o)));
     }
 
     @Override

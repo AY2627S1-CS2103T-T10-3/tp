@@ -95,6 +95,31 @@ public class SharedMemberDetailsTest {
                 .map(person -> person.getName().fullName).toList());
     }
 
+    @Test
+    public void identicalDetails_caseOnlyEditUndoRedo_preservesSelectedMember() throws Exception {
+        ModelManager model = new ModelManager();
+        LogicManager logic = logicFor(model);
+        String add = "add n/Alex Same p/91234567 e/alex@example.com s/member i/Piano:5 g/Choir";
+        logic.execute(add);
+        logic.execute(add);
+        List<Person> members = model.getAddressBook().getPersonList();
+        List<UUID> ids = members.stream().map(Person::getId).toList();
+
+        logic.execute("edit 2 i/piano:5 g/choir");
+        assertEquals("Piano", members.getFirst().getInstruments().iterator().next().getName());
+        assertEquals("piano", members.get(1).getInstruments().iterator().next().getName());
+        logic.execute("undo");
+        assertEquals("Piano", members.get(1).getInstruments().iterator().next().getName());
+        assertEquals("Choir", members.get(1).getGroups().iterator().next().getName());
+        logic.execute("redo");
+        assertEquals("piano", members.get(1).getInstruments().iterator().next().getName());
+        assertEquals("choir", members.get(1).getGroups().iterator().next().getName());
+        assertEquals("Choir", members.getFirst().getGroups().iterator().next().getName());
+        assertEquals(ids, members.stream().map(Person::getId).toList());
+        assertEquals(ids, storage().readAddressBook().orElseThrow().getPersonList().stream()
+                .map(Person::getId).toList());
+    }
+
     private LogicManager logicFor(ModelManager model) {
         return new LogicManager(model, storage());
     }

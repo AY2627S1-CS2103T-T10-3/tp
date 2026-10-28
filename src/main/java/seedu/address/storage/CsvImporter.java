@@ -3,6 +3,7 @@ package seedu.address.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +40,9 @@ public class CsvImporter {
     private static final int INSTRUMENTS_INDEX = 6;
     private static final int GROUPS_INDEX = 7;
     private static final char UTF_8_BYTE_ORDER_MARK = '\ufeff';
+    private static final String MESSAGE_NON_UTF8_CSV = "The file could not be read. Please save it as CSV UTF-8 "
+            + "(not plain CSV).";
+    private static final String MESSAGE_INVALID_QUOTE_PLACEMENT = "Invalid quote placement at line %d.";
 
     /**
      * Reads people from a CSV file in HiveMind's export format.
@@ -51,36 +55,62 @@ public class CsvImporter {
     public static List<Person> importPeople(Path csvFile) throws IOException, IllegalValueException {
         requireNonNull(csvFile);
 
-        List<String> lines = Files.readAllLines(csvFile, StandardCharsets.UTF_8);
+        List<String> lines;
+        try {
+            lines = Files.readAllLines(csvFile, StandardCharsets.UTF_8);
+        } catch (CharacterCodingException e) {
+            // File is not UTF-8 encoded, likely saved with Excel's default CSV format
+            throw new IllegalValueException(MESSAGE_NON_UTF8_CSV, e);
+        }
         if (lines.isEmpty()) {
             throw new IllegalValueException("CSV file is empty.");
         }
 
-        validateHeader(lines.getFirst());
+        List<CsvRecord> records = combineMultilineRecords(lines);
+        validateHeader(records.getFirst().value());
 
         List<Person> people = new ArrayList<>();
-        for (int lineIndex = 1; lineIndex < lines.size(); lineIndex++) {
-            people.add(parsePerson(lines.get(lineIndex), lineIndex + 1));
+        for (int recordIndex = 1; recordIndex < records.size(); recordIndex++) {
+            CsvRecord record = records.get(recordIndex);
+            // Skip blank lines and rows with only empty fields
+            if (record.value().trim().isEmpty() || isBlankOrEmptyRow(record.value())) {
+                continue;
+            }
+            people.add(parsePerson(record.value(), record.startLineNumber()));
         }
         return List.copyOf(people);
     }
 
+    /**
+     * Validates that the first CSV record contains the expected columns, allowing an optional UTF-8 byte order mark.
+     *
+     * @param header CSV record containing the header fields.
+     * @throws IllegalValueException if the header is malformed or does not contain the expected columns.
+     */
     private static void validateHeader(String header) throws IllegalValueException {
         if (!header.isEmpty() && header.charAt(0) == UTF_8_BYTE_ORDER_MARK) {
             header = header.substring(1);
         }
-        if (!parseCsvLine(header, 1).equals(EXPECTED_HEADER)) {
+        if (!parseCsvRecord(header, 1).equals(EXPECTED_HEADER)) {
             throw new IllegalValueException("CSV header must be " + String.join(",", EXPECTED_HEADER) + ".");
         }
     }
 
-    private static Person parsePerson(String line, int lineNumber) throws IllegalValueException {
-        List<String> fields = parseCsvLine(line, lineNumber);
+    /**
+     * Converts one logical CSV record into a person after trimming its fields and validating their count and values.
+     *
+     * @param record CSV record representing one person.
+     * @param lineNumber Physical line where the record starts, used in validation messages.
+     * @return the person represented by the record.
+     * @throws IllegalValueException if the record is malformed or contains an invalid value.
+     */
+    private static Person parsePerson(String record, int lineNumber) throws IllegalValueException {
+        List<String> fields = parseCsvRecord(record, lineNumber);
         if (fields.size() != EXPECTED_HEADER.size()) {
             throw new IllegalValueException("Expected " + EXPECTED_HEADER.size()
                     + " columns at line " + lineNumber + ".");
         }
-        fields.replaceAll(String::trim);
+        fields.replaceAll(field -> CsvCellCodec.decode(field).trim());
 
         try {
             return new Person(
@@ -102,6 +132,13 @@ public class CsvImporter {
         return role.isEmpty() ? Optional.empty() : Optional.of(new Role(role));
     }
 
+    /**
+     * Decodes the instrument list stored in a CSV field and validates each instrument value.
+     *
+     * @param instrumentField Encoded instrument list, or an empty string for no instruments.
+     * @return the decoded instruments, or an empty set if the field is empty.
+     * @throws IllegalArgumentException if an encoded instrument is invalid.
+     */
     private static Set<Instrument> parseInstruments(String instrumentField) {
         Set<Instrument> instruments = new HashSet<>();
         if (instrumentField.isEmpty()) {
@@ -126,6 +163,13 @@ public class CsvImporter {
         return instruments;
     }
 
+    /**
+     * Decodes the group list stored in a CSV field and validates each group name.
+     *
+     * @param groupField Encoded group list, or an empty string for no groups.
+     * @return the decoded groups, or an empty set if the field is empty.
+     * @throws IllegalArgumentException if an encoded group name is invalid.
+     */
     private static Set<Group> parseGroups(String groupField) {
         Set<Group> groups = new HashSet<>();
         if (groupField.isEmpty()) {
@@ -138,19 +182,41 @@ public class CsvImporter {
         return groups;
     }
 
-    private static List<String> parseCsvLine(String line, int lineNumber) throws IllegalValueException {
+    /**
+     * Parses one complete CSV record, including quoted commas and quotation marks escaped by doubling.
+     *
+     * @param record Complete logical record to parse; it may span multiple physical lines.
+     * @param lineNumber Physical line where the record starts, used in validation messages.
+     * @return the fields in their original column order.
+     * @throws IllegalValueException if quotation marks are misplaced or a quoted field is not closed.
+     */
+    private static List<String> parseCsvRecord(String record, int lineNumber) throws IllegalValueException {
         List<String> fields = new ArrayList<>();
         StringBuilder field = new StringBuilder();
         boolean isInsideQuotes = false;
+        boolean isAfterClosingQuote = false;
 
-        for (int index = 0; index < line.length(); index++) {
-            char character = line.charAt(index);
-            if (character == '"') {
-                if (isInsideQuotes && index + 1 < line.length() && line.charAt(index + 1) == '"') {
+        for (int index = 0; index < record.length(); index++) {
+            char character = record.charAt(index);
+
+            if (isAfterClosingQuote) {
+                if (character != ',') {
+                    throw new IllegalValueException(String.format(MESSAGE_INVALID_QUOTE_PLACEMENT, lineNumber));
+                }
+                fields.add(field.toString());
+                field.setLength(0);
+                isAfterClosingQuote = false;
+            } else if (character == '"') {
+                if (!isInsideQuotes && !field.isEmpty()) {
+                    throw new IllegalValueException(String.format(MESSAGE_INVALID_QUOTE_PLACEMENT, lineNumber));
+                } else if (isInsideQuotes && index + 1 < record.length() && record.charAt(index + 1) == '"') {
                     field.append(character);
                     index++;
+                } else if (isInsideQuotes) {
+                    isInsideQuotes = false;
+                    isAfterClosingQuote = true;
                 } else {
-                    isInsideQuotes = !isInsideQuotes;
+                    isInsideQuotes = true;
                 }
             } else if (character == ',' && !isInsideQuotes) {
                 fields.add(field.toString());
@@ -161,10 +227,83 @@ public class CsvImporter {
         }
 
         if (isInsideQuotes) {
-            throw new IllegalValueException("Unclosed quoted value at line " + lineNumber + ".");
+            throw new UnclosedQuotedValueException(lineNumber);
         }
 
         fields.add(field.toString());
         return fields;
+    }
+
+    /**
+     * Returns whether a CSV record is blank or contains only empty fields.
+     * Malformed records are treated as non-empty so that normal record parsing can report the error.
+     *
+     * @param line Complete CSV record to inspect.
+     * @return true if the record is blank or every parsed field is empty after trimming.
+     */
+    private static boolean isBlankOrEmptyRow(String line) {
+        try {
+            List<String> fields = parseCsvRecord(line, -1);
+            for (String field : fields) {
+                if (!field.trim().isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (IllegalValueException e) {
+            // If parsing fails, treat as non-empty row (error will be caught later)
+            return false;
+        }
+    }
+
+    /**
+     * Combines physical lines belonging to quoted multiline fields into complete logical CSV records.
+     *
+     * @param lines Physical lines read from the CSV file.
+     * @return complete records together with their starting physical line numbers.
+     * @throws IllegalValueException if a record contains malformed or unclosed quotation marks.
+     */
+    private static List<CsvRecord> combineMultilineRecords(List<String> lines) throws IllegalValueException {
+        List<CsvRecord> records = new ArrayList<>();
+        StringBuilder record = new StringBuilder();
+        int recordStartLineNumber = 1;
+        boolean isBuildingMultilineRecord = false;
+
+        for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++) {
+            if (isBuildingMultilineRecord) {
+                record.append(System.lineSeparator());
+            }
+            record.append(lines.get(lineIndex));
+
+            try {
+                parseCsvRecord(record.toString(), recordStartLineNumber);
+                records.add(new CsvRecord(record.toString(), recordStartLineNumber));
+                record.setLength(0);
+                recordStartLineNumber = lineIndex + 2;
+                isBuildingMultilineRecord = false;
+            } catch (UnclosedQuotedValueException e) {
+                isBuildingMultilineRecord = true;
+            }
+        }
+
+        if (isBuildingMultilineRecord) {
+            throw new UnclosedQuotedValueException(recordStartLineNumber);
+        }
+        return records;
+    }
+
+    /**
+     * A complete logical CSV record and the physical line where it starts.
+     */
+    private record CsvRecord(String value, int startLineNumber) {
+    }
+
+    /**
+     * Signals that a logical CSV record ends inside a quoted field.
+     */
+    private static class UnclosedQuotedValueException extends IllegalValueException {
+        UnclosedQuotedValueException(int lineNumber) {
+            super("Unclosed quoted value at line " + lineNumber + ".");
+        }
     }
 }

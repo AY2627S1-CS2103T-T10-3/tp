@@ -135,6 +135,16 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public int getUndoableChangeCount() {
+        return addressBook.getUndoableCount();
+    }
+
+    @Override
+    public int getRedoableChangeCount() {
+        return addressBook.getRedoableCount();
+    }
+
+    @Override
     public boolean canRedoAddressBook() {
         return addressBook.canRedo();
     }
