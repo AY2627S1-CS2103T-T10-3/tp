@@ -103,6 +103,9 @@ class JsonAdaptedPerson {
     public Person toModelType() throws IllegalValueException {
         final Map<String, Instrument> personInstruments = new HashMap<>();
         for (JsonAdaptedInstrument instrument : instruments) {
+            if (instrument == null) {
+                throw new IllegalValueException(MESSAGE_NULL_INSTRUMENT);
+            }
             if (instrument.canIgnoreBlankEntry()) {
                 logger.warning("Skipped an instrument entry with a Unicode-blank name while loading saved data.");
                 continue;
