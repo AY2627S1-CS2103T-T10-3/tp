@@ -11,6 +11,43 @@ import org.junit.jupiter.api.Test;
 
 public class InstrumentTest {
 
+    private static final List<String> UNICODE_WHITESPACE = List.of(
+            "\u0085", "\u00a0", "\u1680", "\u2000", "\u2001", "\u2002", "\u2003", "\u2004", "\u2005", "\u2006",
+            "\u2007", "\u2008", "\u2009", "\u200a", "\u2028", "\u2029", "\u202f", "\u205f", "\u3000");
+
+    @Test
+    public void constructor_unicodeWhitespace_normalizesNameAndPreservesYears() {
+        for (String whitespace : UNICODE_WHITESPACE) {
+            Instrument instrument = new Instrument(
+                    whitespace + "French" + whitespace + " \t" + whitespace + "Horn" + whitespace, 3);
+            assertEquals("French Horn", instrument.getName());
+            assertEquals(3, instrument.getYears());
+        }
+    }
+
+    @Test
+    public void constructor_unicodeWhitespaceOnly_throwsIllegalArgumentException() {
+        for (String whitespace : UNICODE_WHITESPACE) {
+            assertFalse(Instrument.isValidName(whitespace));
+            assertThrows(IllegalArgumentException.class,
+                    Instrument.MESSAGE_NAME_CONSTRAINTS, () -> new Instrument(" " + whitespace + "\t", 3));
+        }
+    }
+
+    @Test
+    public void equals_unicodeWhitespace_hasSameHashCodeAndDetectsDuplicateNames() {
+        Instrument instrument = new Instrument("French Horn", 3);
+        for (String whitespace : UNICODE_WHITESPACE) {
+            String equivalentName = whitespace + "french" + whitespace + "horn" + whitespace;
+            Instrument equivalent = new Instrument(equivalentName, 3);
+            assertTrue(instrument.hasName(equivalentName));
+            assertEquals(instrument, equivalent);
+            assertEquals(equivalent, instrument);
+            assertEquals(instrument.hashCode(), equivalent.hashCode());
+            assertTrue(Instrument.hasDuplicateNames(List.of(instrument, new Instrument(equivalentName, 5))));
+        }
+    }
+
     @Test
     public void constructor_nullName_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Instrument(null, 3));

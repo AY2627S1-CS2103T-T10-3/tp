@@ -63,6 +63,31 @@ public class MainAppTest {
 
         new LogicManager(model, storageManager)
                 .execute("add n/Recovery Check p/91234567 e/recovery@example.com s/member");
+    }
+
+    @Test
+    public void initModelManager_unicodeInstrumentEntries_preservesMembersAndAllowsSaving() throws Exception {
+        Path addressBookPath = temporaryFolder.resolve("addressbook.json");
+        StorageManager storageManager = createStorageManager(addressBookPath);
+        AddressBook savedAddressBook = new AddressBook();
+        savedAddressBook.addPerson(new PersonBuilder(ALICE).withGroups("Training")
+                .withInstruments("Blank Placeholder:3", "Bass Guitar:3", "Bass Placeholder:5").build());
+        savedAddressBook.addPerson(HOON);
+        storageManager.saveAddressBook(savedAddressBook);
+        String savedJson = Files.readString(addressBookPath)
+                .replace("\"Blank Placeholder\"", "\"\\u00a0\"")
+                .replace("\"Bass Placeholder\"", "\"Bass\\u00a0Guitar\"");
+        Files.writeString(addressBookPath, savedJson);
+
+        Model model = new TestMainApp().initializeModelManager(storageManager);
+
+        assertEquals(List.of(new PersonBuilder(ALICE).withGroups("Training")
+                        .withInstruments("Bass Guitar:5").build(), HOON),
+                model.getAddressBook().getPersonList());
+        assertEquals(savedJson, Files.readString(addressBookPath));
+
+        new LogicManager(model, storageManager)
+                .execute("add n/Loading Check p/91234567 e/loading@example.com s/member");
         assertEquals(3, model.getAddressBook().getPersonList().size());
         assertEquals(model.getAddressBook(), storageManager.readAddressBook().orElseThrow());
         assertFalse(Files.readString(addressBookPath).contains("\\u00a0"));

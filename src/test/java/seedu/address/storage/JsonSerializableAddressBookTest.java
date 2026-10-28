@@ -5,6 +5,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -39,10 +40,12 @@ public class JsonSerializableAddressBookTest {
     }
 
     @Test
-    public void toModelType_duplicateInstrumentNames_throwsIllegalValueException() throws Exception {
+    public void toModelType_duplicateInstrumentNames_keepsMaximumYears() throws Exception {
         JsonSerializableAddressBook dataFromFile = JsonUtil.readJsonFile(INVALID_INSTRUMENT_FILE,
                 JsonSerializableAddressBook.class).get();
-        assertThrows(IllegalValueException.class, Instrument.MESSAGE_DUPLICATE_NAMES, dataFromFile::toModelType);
+        AddressBook addressBook = dataFromFile.toModelType();
+        assertEquals(1, addressBook.getPersonList().size());
+        assertEquals(Set.of(new Instrument("Violin", 5)), addressBook.getPersonList().getFirst().getInstruments());
     }
 
     @Test
