@@ -69,6 +69,18 @@ public class Group {
         return Objects.hash(toKey(name));
     }
 
+    /**
+     * Returns true if this group has exactly the same stored name (case-sensitive) as {@code other}.
+     * Returns false for {@code null}. Unlike {@link #equals(Object)}, a difference in capitalisation
+     * counts as a difference here.
+     */
+    public boolean isIdenticalTo(Group other) {
+        if (other == null) {
+            return false;
+        }
+        return name.equals(other.name);
+    }
+
     @Override
     public String toString() {
         return name;

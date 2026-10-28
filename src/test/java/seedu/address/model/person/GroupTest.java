@@ -69,4 +69,24 @@ public class GroupTest {
         assertFalse(group.equals(null));
         assertFalse(group.equals("Chamber Orchestra"));
     }
+
+    @Test
+    public void isIdenticalTo_sameName_returnsTrue() {
+        assertTrue(new Group("Band").isIdenticalTo(new Group("Band")));
+    }
+
+    @Test
+    public void isIdenticalTo_differentCase_returnsFalse() {
+        Group band = new Group("Band");
+        Group lowercaseBand = new Group("band");
+
+        // equals remains case-insensitive
+        assertTrue(band.equals(lowercaseBand));
+        assertFalse(band.isIdenticalTo(lowercaseBand));
+    }
+
+    @Test
+    public void isIdenticalTo_null_returnsFalse() {
+        assertFalse(new Group("Band").isIdenticalTo(null));
+    }
 }
