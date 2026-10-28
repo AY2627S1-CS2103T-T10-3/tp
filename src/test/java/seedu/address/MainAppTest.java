@@ -67,7 +67,7 @@ public class MainAppTest {
         assertEquals(model.getAddressBook(), storageManager.readAddressBook().orElseThrow());
         assertFalse(Files.readString(addressBookPath).contains("\\u00a0"));
     }
-    
+
     @Test
     public void getImportDirectory_returnsSharedImportDirectory() {
         assertSame(MainApp.IMPORT_DIRECTORY, new MainApp().getImportDirectory());
