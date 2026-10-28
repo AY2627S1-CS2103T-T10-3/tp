@@ -118,6 +118,18 @@ public class CsvImporterTest {
     }
 
     @Test
+    public void importPeople_exportedFormulaPrefixesAndTextPrefixes_roundTrips() throws Exception {
+        Person original = new PersonBuilder()
+                .withRole("=1+1")
+                .withInstruments("+Violin:3", "-Cello:2")
+                .withGroups("@SUM(A1)", "=Original")
+                .build();
+        Path exportedFile = CsvExporter.export(List.of(original), temporaryFolder);
+
+        assertEquals(List.of(original), CsvImporter.importPeople(exportedFile));
+    }
+
+    @Test
     public void importPeople_valuesWithSurroundingWhitespace_parsesTrimmedValues() throws Exception {
         Path csvFile = writeCsv(HEADER,
                 " Cara Tan , 93456789 , cara@example.com , member , student , Leader , Piano:3 , Band ");

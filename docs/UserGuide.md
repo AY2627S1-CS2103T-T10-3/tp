@@ -271,6 +271,8 @@ Format: `export`
 * The CSV contains these columns: name, phone, email, status, member type, role, instruments, and groups.
 * A member with multiple instruments or groups has them recorded in one field, separated by semicolons.
 * A semicolon within an instrument or group name is escaped as `\;`, and a backslash as `\\`.
+* Values beginning with `=`, `+`, `-`, or `@` are prefixed with a space so spreadsheet applications treat them as
+  text. Importing the exported file removes this prefix and restores the original value.
 * Exporting an empty result list still creates a CSV file containing the column headers.
 
 Examples:
