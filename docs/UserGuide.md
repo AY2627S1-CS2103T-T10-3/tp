@@ -253,7 +253,9 @@ Shows people matching the specified criteria and reports the number of matches.
 * Status and instrument groups are combined with AND: `filter s/member s/active-alumnus i/Violin:3 i/Viola:5` matches people who are members or active alumni and have at least 3 years on violin or at least 5 years on viola.
 * Matches complete instrument names, ignoring case, surrounding whitespace, and repeated whitespace, including Unicode spaces such as non-breaking spaces and en spaces: `guitar` matches `Guitar`, but not `Bass Guitar`.
 * Spaces after `i/` and around `:` are allowed: `filter i/ Violin : 3` is equivalent to `filter i/Violin:3`.
-* Supported prefixes are `s/`, `i/`, `ty/`, `r/`, and `g/`. Other member-field prefixes such as `n/`, `p/`, or `e/` are rejected with the command format.
+* Supported prefixes are `s/`, `i/`, `ty/`, `r/`, and `g/`. Unsupported member-field prefixes `n/`, `p/`, and `e/` report an error naming the prefix and listing the accepted prefixes.
+* Before the first supported prefix, removed prefixes (`t/`, `a/`) and wrong-case member-field prefixes (such as `S/`) also report a prefix error. Inside values, these remain ordinary text to preserve names such as `r/Head of a/v` and `r/Student t/a`.
+* Other unknown prefix-like text also remains part of the preceding value. Thus, `filter r/Lead x/1` searches for the complete role `Lead x/1`, and `filter s/member t/friend` reports an invalid status. Remove accidental text or replace it with a supported prefix.
 * Searches the full directory, including after a previous `find` or `filter`.
 * If no person matches, the displayed list is empty and the result reports zero matches.
 * Stored records are unchanged. Use `list` to display everyone again.
