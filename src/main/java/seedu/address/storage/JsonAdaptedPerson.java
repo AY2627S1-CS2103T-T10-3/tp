@@ -97,6 +97,7 @@ class JsonAdaptedPerson {
 
     /**
      * Converts this Jackson-friendly adapted person object into the model's {@code Person} object.
+     * Omits legacy Unicode-blank group memberships while preserving the person and valid groups.
      *
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
@@ -121,8 +122,13 @@ class JsonAdaptedPerson {
 
         final Set<Group> modelGroups = new HashSet<>();
         for (String group : groups) {
-            if (group == null || !Group.isValidName(group)) {
+            if (group == null || group.isBlank()) {
                 throw new IllegalValueException(Group.MESSAGE_CONSTRAINTS);
+            }
+
+            if (!Group.isValidName(group)) {
+                logger.warning("Skipped a group entry with a Unicode-blank name while loading saved data.");
+                continue;
             }
             modelGroups.add(new Group(group));
         }

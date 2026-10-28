@@ -26,6 +26,7 @@ public class FilterCommandParserTest {
         assertParseSuccess(parser, "g/Chamber Orchestra", singleGroup);
         assertParseSuccess(parser, "  g/  CHAMBER   orchestra  ", singleGroup);
         assertParseSuccess(parser, "g/Chamber Orchestra g/chamber orchestra", singleGroup);
+        assertParseSuccess(parser, "g/\u00a0Chamber\u2002Orchestra\u202f g/Chamber Orchestra", singleGroup);
 
         FilterCommand multipleGroups = new FilterCommand(Set.of(), Set.of(), Set.of(), Set.of(),
                 Set.of(new Group("Chamber Orchestra"), new Group("Training")));
@@ -47,7 +48,8 @@ public class FilterCommandParserTest {
 
     @Test
     public void parse_blankGroup_throwsParseException() {
-        for (String args : new String[] {"g/", "g/   ", "g/Orchestra g/", "g/ g/Orchestra",
+        for (String args : new String[] {"g/", "g/   ", "g/\u00a0", "g/\u2002\u202f", "g/Orchestra g/\u00a0",
+            "g/Orchestra g/", "g/ g/Orchestra",
             "s/member g/", "i/Violin:3 g/", "ty/teacher g/", "r/Conductor g/"}) {
             assertParseFailure(parser, args, Group.MESSAGE_CONSTRAINTS);
         }

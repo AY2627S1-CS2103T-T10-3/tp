@@ -92,8 +92,8 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRU
 * `r/ROLE` is optional free text, such as `Section Leader`. It cannot be blank. Extra spaces are removed, so `Vice   President` is saved as `Vice President`.
 * Type and status appear beneath the member's name on the card. If a role is supplied, it appears beneath the contact details; otherwise, the role line is hidden.
 * `i/INSTRUMENT:YEARS` records an instrument the person plays and how many whole years they have played it, from `0` to `99`. For example, `i/Violin:5` or `i/Bass Guitar:1`.
-* Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case, surrounding whitespace, and repeated whitespace, including Unicode spaces such as non-breaking spaces and en spaces. For example, `Violin` and `violin` count as the same instrument.
-* `g/GROUP` records a participation group, such as `g/Chamber Orchestra`. It may be repeated for multiple groups. Blank group names are rejected; names are compared ignoring case and extra whitespace, so repeated names are stored only once.
+* Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case and whitespace (including Unicode spaces). For example, `Violin` and `violin` count as the same instrument.
+* `g/GROUP` records a participation group, such as `g/Chamber Orchestra`. It may be repeated for multiple groups. Blank group names are rejected; names are compared ignoring case and whitespace (including Unicode spaces), so repeated names are stored only once.
 * Recorded groups appear in the command's success message and on the member card.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
@@ -239,7 +239,7 @@ Shows people matching the specified criteria and reports the number of matches.
 * Introduce each member type with `ty/`: use `student` or `teacher`, ignoring case and surrounding whitespace. Repeated types use OR.
 * Introduce each role with `r/`, for example `r/Section Leader`. Matches the complete role, ignoring case and extra whitespace; `r/Leader` does not match `Section Leader`. Repeated roles use OR.
 * Blank or invalid types and blank roles are rejected. People without a role do not match an explicit role criterion.
-* Introduce each participation group with `g/`, for example `g/Chamber Orchestra`. Matches the complete group name, ignoring case and extra whitespace; `g/Orchestra` does not match `Chamber Orchestra`.
+* Introduce each participation group with `g/`, for example `g/Chamber Orchestra`. Matches the complete group name, ignoring case, surrounding whitespace, and repeated whitespace, including Unicode spaces such as non-breaking spaces and en spaces; `g/Orchestra` does not match `Chamber Orchestra`.
 * Groups use OR: `filter g/Chamber Orchestra g/Training` matches people belonging to either group or both. Repeated names count once. Blank group names are rejected, and people without groups do not match an explicit group criterion.
 * Different fields use AND: `filter ty/teacher r/Conductor s/member i/Violin:3 g/Chamber Orchestra` matches member teachers who are conductors, have at least three years on violin, and belong to Chamber Orchestra.
 * Introduce each status with `s/`: use `member`, `active-alumnus`, or `inactive-alumnus`, ignoring case and surrounding whitespace.
@@ -354,6 +354,8 @@ separately when HiveMind starts and exits. You do not need to save manually.
 
 HiveMind data is saved automatically as the JSON file `data/addressbook.json` inside HiveMind's home folder. Advanced
 users are welcome to update data directly by editing that data file.
+
+When loading saved data, HiveMind ignores group entries made only of non-breaking spaces, including mixtures with ordinary spaces or tabs. Members and their other details are preserved. Empty group names and names made only of ordinary spaces or tabs make the data file invalid. Loading does not change the file; the next successful command that changes directory data saves it without the ignored group entries.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, HiveMind starts with an empty directory at the next run, creates a numbered backup alongside it (e.g., `addressbook.json.bak-01`, followed by `addressbook.json.bak-02` if another backup is needed), and prevents directory changes from being saved. Repair or restore the original data file before restarting the app.<br>
