@@ -99,6 +99,10 @@ HIVEMIND_UI_TESTS=true ./gradlew test --tests seedu.address.ui.PersonCardTest --
 
 On Windows PowerShell, set `$env:HIVEMIND_UI_TESTS = "true"` and run `./gradlew.bat test --tests seedu.address.ui.PersonCardTest --rerun-tasks`. These tests do not replace visual checks for wrapping and scrolling; use the member-card scenarios in the manual-testing section below.
 
+#### Member result count
+
+`Logic.getPersonList()` exposes the address book's unmodifiable observable full list. `MainWindow` supplies this and the filtered/sorted list to `PersonListPanel`. The result-count label binds to both lists, so a change to the total updates the label even if the displayed results stay unchanged. The full-list view stays live across resets, imports, undo/redo, and save-failure rollback. `PersonListPanelCountTest` exercises these observable updates and narrow layout with `HIVEMIND_UI_TESTS=true`.
+
 ### Logic component
 
 **API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-T10-3/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)

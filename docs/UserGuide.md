@@ -43,6 +43,10 @@ HiveMind is a **desktop directory for Music CCA members and alumni, optimized fo
 
 --------------------------------------------------------------------------------------------------------------------
 
+## Member result count
+
+The count above the member list shows **Showing X of Y members**: X is the number of members currently displayed and Y is the total directory size. It stays visible after commands, including when `find` or `filter` displays no matches, and updates when member data changes.
+
 ## Features
 
 <div markdown="block" class="alert alert-info">
