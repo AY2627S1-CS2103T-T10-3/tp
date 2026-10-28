@@ -32,6 +32,7 @@ import seedu.address.model.person.Status;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+    public static final String MESSAGE_NULL_INSTRUMENT = "Person's instrument list contains null instrument(s).";
 
     private static final Logger logger = LogsCenter.getLogger(JsonAdaptedPerson.class);
 
@@ -164,10 +165,13 @@ class JsonAdaptedPerson {
         }
         final MemberType modelMemberType = MemberType.fromString(memberType);
 
-        if (role != null && !Role.isValidRole(role)) {
+        if (role != null && role.isBlank()) {
             throw new IllegalValueException(Role.MESSAGE_CONSTRAINTS);
         }
-        final Optional<Role> modelRole = role == null ? Optional.empty() : Optional.of(new Role(role));
+        // Earlier versions saved roles made only of Unicode spaces such as U+00A0, which are no longer valid.
+        // Load them as having no role, so that existing data files still load.
+        final Optional<Role> modelRole = role == null || !Role.isValidRole(role)
+                ? Optional.empty() : Optional.of(new Role(role));
 
         final Set<Instrument> modelInstruments = Set.copyOf(personInstruments.values());
 

@@ -121,6 +121,18 @@ public class Instrument {
     }
 
     /**
+     * Returns true if this instrument has exactly the same stored name (case-sensitive) and the same
+     * number of years as {@code other}. Returns false for {@code null}.
+     * Unlike {@link #equals(Object)}, a difference in capitalisation counts as a difference here.
+     */
+    public boolean isIdenticalTo(Instrument other) {
+        if (other == null) {
+            return false;
+        }
+        return name.equals(other.name) && years == other.years;
+    }
+
+    /**
      * Formats the instrument for display as its name followed by the years played,
      * e.g. {@code Violin (5 yrs)} or {@code Flute (1 yr)}.
      */

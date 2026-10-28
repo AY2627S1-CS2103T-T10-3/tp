@@ -169,4 +169,29 @@ public class InstrumentTest {
     public void toString_returnsNameAndYears() {
         assertEquals("French Horn:3", new Instrument("French Horn", 3).toString());
     }
+
+    @Test
+    public void isIdenticalTo_sameNameAndYears_returnsTrue() {
+        assertTrue(new Instrument("Violin", 8).isIdenticalTo(new Instrument("Violin", 8)));
+    }
+
+    @Test
+    public void isIdenticalTo_differentCase_returnsFalse() {
+        Instrument violin = new Instrument("Violin", 8);
+        Instrument lowercaseViolin = new Instrument("violin", 8);
+
+        // equals remains case-insensitive
+        assertTrue(violin.equals(lowercaseViolin));
+        assertFalse(violin.isIdenticalTo(lowercaseViolin));
+    }
+
+    @Test
+    public void isIdenticalTo_differentYears_returnsFalse() {
+        assertFalse(new Instrument("Violin", 8).isIdenticalTo(new Instrument("Violin", 9)));
+    }
+
+    @Test
+    public void isIdenticalTo_null_returnsFalse() {
+        assertFalse(new Instrument("Violin", 8).isIdenticalTo(null));
+    }
 }

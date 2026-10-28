@@ -18,6 +18,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javafx.stage.Stage;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -31,8 +32,13 @@ import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.ui.Ui;
 
 public class MainAppTest {
+    private static final String VALID_ADDRESS_BOOK_JSON = "{\"persons\":[{\"name\":\"Alice\","
+            + "\"phone\":\"81234567\",\"email\":\"alice@example.com\",\"status\":\"member\","
+            + "\"memberType\":\"student\",\"role\":null,\"instruments\":[],\"groups\":[]}]}";
+
     @TempDir
     public Path temporaryFolder;
 
@@ -53,7 +59,7 @@ public class MainAppTest {
         Model model = new TestMainApp().initializeModelManager(storageManager);
 
         assertEquals(List.of(new PersonBuilder(ALICE).withGroups("Training")
-                .withInstruments("Bass Guitar:5").build(), HOON),
+                        .withInstruments("Bass Guitar:5").build(), HOON),
                 model.getAddressBook().getPersonList());
         assertEquals(savedJson, Files.readString(addressBookPath));
 
@@ -62,6 +68,11 @@ public class MainAppTest {
         assertEquals(3, model.getAddressBook().getPersonList().size());
         assertEquals(model.getAddressBook(), storageManager.readAddressBook().orElseThrow());
         assertFalse(Files.readString(addressBookPath).contains("\\u00a0"));
+    }
+
+    @Test
+    public void getImportDirectory_returnsSharedImportDirectory() {
+        assertSame(MainApp.IMPORT_DIRECTORY, new MainApp().getImportDirectory());
     }
 
     @Test
@@ -78,6 +89,17 @@ public class MainAppTest {
         assertEquals(invalidJson, Files.readString(addressBookPath.resolveSibling("addressbook.json.bak-01")));
         assertThrows(IOException.class, () -> storageManager.saveAddressBook(new AddressBook()));
         assertEquals(invalidJson, Files.readString(addressBookPath));
+
+        RecordingUi ui = new RecordingUi();
+        app.ui = ui;
+        app.start(null);
+
+        assertTrue(ui.wasStarted);
+        assertTrue(ui.startupMessage.contains(addressBookPath.toAbsolutePath().toString()));
+        assertTrue(ui.startupMessage.contains(addressBookPath.resolveSibling("addressbook.json.bak-01")
+                .toAbsolutePath().toString()));
+        assertTrue(ui.startupMessage.contains("empty recovery directory"));
+        assertTrue(ui.startupMessage.contains("Changes cannot be saved"));
     }
 
     @Test
@@ -122,7 +144,7 @@ public class MainAppTest {
     }
 
     @Test
-    public void initModelManager_backupFails_throwsIllegalStateException() {
+    public void initModelManager_backupFails_recoversWithSavingDisabled() {
         Path addressBookPath = temporaryFolder.resolve("addressbook.json");
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(addressBookPath) {
             @Override
@@ -138,10 +160,30 @@ public class MainAppTest {
         StorageManager storageManager = new StorageManager(addressBookStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
 
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
-                new TestMainApp().initializeModelManager(storageManager));
+        TestMainApp app = new TestMainApp();
+        Model model = app.initializeModelManager(storageManager);
 
-        assertInstanceOf(IOException.class, exception.getCause());
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        IOException exception = assertThrows(IOException.class, () ->
+                storageManager.saveAddressBook(new AddressBook()));
+        assertEquals("Address book saving is disabled after a failed data load.", exception.getMessage());
+
+        RecordingUi ui = new RecordingUi();
+        app.ui = ui;
+        app.start(null);
+
+        assertTrue(ui.startupMessage.contains("A backup could not be created: backup failed"));
+        assertTrue(ui.startupMessage.contains("Changes cannot be saved"));
+    }
+
+    @Test
+    public void initModelManager_trailingGarbage_recoversWithoutOverwritingData() throws Exception {
+        assertTrailingContentTriggersRecovery("trailing-garbage", "\nGARBAGE");
+    }
+
+    @Test
+    public void initModelManager_secondJsonRoot_recoversWithoutOverwritingData() throws Exception {
+        assertTrailingContentTriggersRecovery("second-root", "\n{\"persons\":[]}");
     }
 
     @Test
@@ -162,6 +204,36 @@ public class MainAppTest {
     private StorageManager createStorageManager(Path addressBookPath) {
         return new StorageManager(new JsonAddressBookStorage(addressBookPath),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
+    }
+
+    private void assertTrailingContentTriggersRecovery(String folderName, String trailingContent) throws Exception {
+        Path testFolder = Files.createDirectory(temporaryFolder.resolve(folderName));
+        Path addressBookPath = testFolder.resolve("addressbook.json");
+        String invalidJson = VALID_ADDRESS_BOOK_JSON + trailingContent;
+        Files.writeString(addressBookPath, invalidJson);
+        StorageManager storageManager = createStorageManager(addressBookPath);
+
+        Model model = new TestMainApp().initializeModelManager(storageManager);
+
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertEquals(invalidJson, Files.readString(testFolder.resolve("addressbook.json.bak-01")));
+        assertThrows(IOException.class, () -> storageManager.saveAddressBook(new AddressBook()));
+        assertEquals(invalidJson, Files.readString(addressBookPath));
+    }
+
+    private static class RecordingUi implements Ui {
+        private boolean wasStarted;
+        private String startupMessage;
+
+        @Override
+        public void start(Stage primaryStage) {
+            wasStarted = true;
+        }
+
+        @Override
+        public void showStartupMessage(String message) {
+            startupMessage = message;
+        }
     }
 
     private static class TestMainApp extends MainApp {
