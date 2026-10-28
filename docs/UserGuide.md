@@ -43,6 +43,10 @@ HiveMind is a **desktop directory for Music CCA members and alumni, optimized fo
 
 --------------------------------------------------------------------------------------------------------------------
 
+## Command feedback
+
+Command feedback has a **Success** label in green when a command completes and an **Error** label in red when it fails. Startup notices use a neutral **Information** label. Feedback wraps in narrow windows; scroll vertically in the feedback box to read longer messages, or select and copy the text.
+
 ## Features
 
 <div markdown="block" class="alert alert-info">

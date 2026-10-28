@@ -350,3 +350,20 @@
     -fx-background-radius: 2;
     -fx-font-size: 11;
 }
+
+.feedback-type {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.feedback-information .feedback-type {
+    -fx-text-fill: #dddddd;
+}
+
+.feedback-success .feedback-type {
+    -fx-text-fill: #8fdf9e;
+}
+
+.feedback-error .feedback-type {
+    -fx-text-fill: #ffaaaa;
+}

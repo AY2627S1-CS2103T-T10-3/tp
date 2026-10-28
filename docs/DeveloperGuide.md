@@ -99,6 +99,10 @@ HIVEMIND_UI_TESTS=true ./gradlew test --tests seedu.address.ui.PersonCardTest --
 
 On Windows PowerShell, set `$env:HIVEMIND_UI_TESTS = "true"` and run `./gradlew.bat test --tests seedu.address.ui.PersonCardTest --rerun-tasks`. These tests do not replace visual checks for wrapping and scrolling; use the member-card scenarios in the manual-testing section below.
 
+#### Command feedback
+
+`MainWindow` passes `FeedbackType.SUCCESS` after `Logic.execute` returns and `FeedbackType.ERROR` for `CommandException` or `ParseException`, including save failures. Startup notices use `INFORMATION`. `ResultDisplay` preserves the message text, sets an explicit outcome label and CSS class, and resets the scroll position for each message. The read-only `TextArea` wraps text and retains vertical scrolling and selection. `ResultDisplayTest` checks the rendered FXML, outcome transitions, narrow layout, and command routing with a storage failure. Enable these graphical tests with `HIVEMIND_UI_TESTS=true`.
+
 ### Logic component
 
 **API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-T10-3/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
