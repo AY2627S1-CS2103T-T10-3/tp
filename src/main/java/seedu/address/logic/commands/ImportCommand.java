@@ -40,7 +40,8 @@ public class ImportCommand extends Command {
     /**
      * Creates an ImportCommand to import the specified CSV file.
      *
-     * @param fileName Name of the CSV file to import.
+     * @param fileName Name of the CSV file to import; must not be null.
+     * @throws NullPointerException if {@code fileName} is null.
      */
     public ImportCommand(String fileName) {
         requireNonNull(fileName);
