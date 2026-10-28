@@ -157,6 +157,12 @@ The `Storage` component,
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
+`JsonAdaptedPerson` rejects null group entries and names for which `String.isBlank()` returns true. For each remaining entry, it skips the membership if `Group.isValidName()` returns false. This omits Unicode-whitespace-only names such as `"\u00A0"` while preserving the person and valid groups. Valid names are constructed as `Group` objects, which replace runs of Unicode whitespace with one ordinary space and trim the result.
+
+`JsonAdaptedPerson` also skips instrument entries whose names are not blank according to `String.isBlank()` but normalize to empty. Remaining instrument names are compared ignoring case and normalized Unicode whitespace.
+
+This loading rule applies only to saved JSON data. Command parsing rejects every group name that normalizes to empty. Loading does not rewrite the data file, and successfully loaded records remain editable and saveable. The next successful command requiring a save writes the directory without the skipped memberships.
+
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package.
@@ -219,7 +225,9 @@ Sorting tests cover case-insensitive names, membership order, ties, switching or
 
 ### Status, instrument, type, role, and group filtering
 
-`FilterCommandParser` accepts repeated `s/STATUS`, `i/NAME[:MIN_YEARS]`, `ty/TYPE`, `r/ROLE`, and `g/GROUP` arguments and requires at least one criterion. It validates statuses, member types, and roles through `ParserUtil.parseStatus`, `parseMemberType`, and `parseRole`. Groups use `ParserUtil.parseGroups`, reusing the same validation and deduplication as `add` and `edit`. Its `parseInstrumentCriterion` helper validates names through `ParserUtil.parseInstrumentName` and optional whole minimum years from 0 to 99. Name-only criteria default to a minimum of zero. Invalid minimum years use `InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS`. Unsupported contact-field prefixes are tokenized and rejected rather than absorbed into criterion values.
+`FilterCommandParser` accepts repeated `s/STATUS`, `i/NAME[:MIN_YEARS]`, `ty/TYPE`, `r/ROLE`, and `g/GROUP` arguments and requires at least one criterion. It validates statuses, member types, and roles through `ParserUtil.parseStatus`, `parseMemberType`, and `parseRole`. Groups use `ParserUtil.parseGroups`, reusing the same validation and deduplication as `add` and `edit`. Its `parseInstrumentCriterion` helper validates names through `ParserUtil.parseInstrumentName` and optional whole minimum years from 0 to 99. Name-only criteria default to a minimum of zero. Invalid minimum years use `InstrumentCriterion.MESSAGE_MINIMUM_YEARS_CONSTRAINTS`.
+
+Before tokenizing, the parser reuses `ArgumentTokenizer.verifyNoUnknownPrefixes` with its five accepted prefixes. This replaces the separate unsupported-prefix check: `n/`, `p/`, and `e/` receive specific errors, while removed and wrong-case prefixes are rejected only before the first accepted prefix, matching `edit`. Ambiguous slash text inside values remains literal to preserve valid free text; field validation then applies as usual.
 
 `FilterCommand` stores immutable sets of statuses, `InstrumentCriterion` values, member types, roles, and groups. Each instrument criterion has a normalized `name` and an explicit `minimumYears`. Its `matches(Instrument)` method checks the whole name through `Instrument.hasName` and an inclusive experience threshold on the same recorded instrument. `Instrument` continues to represent actual years played in member records and storage. `PersonMatchesFilterPredicate` checks the selected statuses and member types and delegates instrument matching to each criterion. Roles match complete names, ignoring case and surrounding whitespace, without changing `Role.equals`. A missing role fails an explicit role criterion. Groups match any recorded participation group using `Group.equals`, which ignores case and extra whitespace while matching the whole name. People without groups fail an explicit group criterion. Criteria within a field use OR, including repeated names with different minimums, and different fields use AND. An omitted field imposes no restriction, so status-only filters also include matching people without instruments, roles, or groups.
 

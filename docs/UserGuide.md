@@ -96,7 +96,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRU
 * `r/ROLE` is optional free text, such as `Section Leader`. It cannot be blank. Extra spaces are removed, so `Vice   President` is saved as `Vice President`.
 * Type and status appear beneath the member's name on the card. If a role is supplied, it appears beneath the contact details; otherwise, the role line is hidden.
 * `i/INSTRUMENT:YEARS` records an instrument the person plays and how many whole years they have played it, from `0` to `99`. For example, `i/Violin:5` or `i/Bass Guitar:1`.
-* Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case, so `Violin` and `violin` count as the same instrument.
+* Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case, surrounding whitespace, and repeated whitespace, including Unicode spaces, so `Violin` and `violin` count as the same instrument.
 * `g/GROUP` records a participation group, such as `g/Chamber Orchestra`. It may be repeated for multiple groups. Blank group names are rejected; names are compared ignoring case, surrounding whitespace, and repeated whitespace, including Unicode spaces such as non-breaking spaces and en spaces, so repeated names are stored only once.
 * Recorded groups appear in the command's success message and as separate badges on the member card. A single group called `Dance, Music` has one badge; `g/Dance g/Music` produces two badges.
 * Start **each** group with the lowercase prefix `g/`, for example `g/Training g/Orchestra`. In `add`, an unrecognized prefix after a group can become part of that group's name: `g/Training gr/Orchestra` records one group named `Training gr/Orchestra`. Check the success message and correct a mistake with `edit INDEX g/Training g/Orchestra`.
@@ -260,9 +260,11 @@ Shows people matching the specified criteria and reports the number of matches.
 * Instruments are combined with OR: `filter i/Violin i/Viola` matches people who play either instrument or both.
 * Each repeated instrument criterion is an alternative, even for the same name: `filter i/Violin:3 i/Violin:5` matches violin players with at least 3 years. A name-only criterion such as `i/Violin` accepts any years for that instrument.
 * Status and instrument groups are combined with AND: `filter s/member s/active-alumnus i/Violin:3 i/Viola:5` matches people who are members or active alumni and have at least 3 years on violin or at least 5 years on viola.
-* Matches complete instrument names, ignoring case: `guitar` matches `Guitar`, but not `Bass Guitar`.
+* Matches complete instrument names, ignoring case, surrounding whitespace, and repeated whitespace, including Unicode spaces such as non-breaking spaces and en spaces: `guitar` matches `Guitar`, but not `Bass Guitar`.
 * Spaces after `i/` and around `:` are allowed: `filter i/ Violin : 3` is equivalent to `filter i/Violin:3`.
-* Supported prefixes are `s/`, `i/`, `ty/`, `r/`, and `g/`. Other member-field prefixes such as `n/`, `p/`, or `e/` are rejected with the command format.
+* Supported prefixes are `s/`, `i/`, `ty/`, `r/`, and `g/`. Unsupported member-field prefixes `n/`, `p/`, and `e/` report an error naming the prefix and listing the accepted prefixes.
+* Before the first supported prefix, removed prefixes (`t/`, `a/`) and wrong-case member-field prefixes (such as `S/`) also report a prefix error. Inside values, these remain ordinary text to preserve names such as `r/Head of a/v` and `r/Student t/a`.
+* Other unknown prefix-like text also remains part of the preceding value. Thus, `filter r/Lead x/1` searches for the complete role `Lead x/1`, and `filter s/member t/friend` reports an invalid status. Remove accidental text or replace it with a supported prefix.
 * Searches the full directory, including after a previous `find` or `filter`.
 * If no person matches, the displayed list is empty and the result reports zero matches.
 * Stored records are unchanged. Use `list` to display everyone again.
@@ -365,6 +367,8 @@ HiveMind data is saved automatically as the JSON file `data/addressbook.json` in
 users are welcome to update data directly by editing that data file.
 
 Keep an existing member's `id` unchanged when editing the data file. To create another member, use `add` so the new record receives its own ID.
+
+When loading saved data, HiveMind ignores group entries made only of non-breaking spaces, including mixtures with ordinary spaces or tabs. Members and their other details are preserved. Empty group names and names made only of ordinary spaces or tabs make the data file invalid. Loading does not change the file; the next successful command that changes directory data saves it without the ignored group entries.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, HiveMind starts with an empty directory at the next run, creates a numbered backup alongside it (e.g., `addressbook.json.bak-01`, followed by `addressbook.json.bak-02` if another backup is needed), and prevents directory changes from being saved. Repair or restore the original data file before restarting the app.<br>
