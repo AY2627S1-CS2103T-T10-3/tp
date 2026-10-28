@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
@@ -118,6 +119,39 @@ public class SharedMemberDetailsTest {
         assertEquals(ids, members.stream().map(Person::getId).toList());
         assertEquals(ids, storage().readAddressBook().orElseThrow().getPersonList().stream()
                 .map(Person::getId).toList());
+    }
+
+    @Test
+    public void importSharedNames_undoRedoAndReload_preserveRecordIds() throws Exception {
+        ModelManager model = new ModelManager();
+        LogicManager logic = logicFor(model);
+        logic.execute("add n/Alex Same p/91234567 e/one@example.com s/member");
+        UUID firstId = model.getAddressBook().getPersonList().getFirst().getId();
+        logic.execute("find Missing");
+
+        Path importFile = Path.of("imports", "shared-records-" + UUID.randomUUID() + ".csv");
+        Files.createDirectories(importFile.getParent());
+        try {
+            Files.writeString(importFile, "name,phone,email,status,memberType,role,instruments,groups\n"
+                    + "Alex Same,92345678,two@example.com,member,student,,,\n");
+            logic.execute("import " + importFile.getFileName());
+            assertEquals(2, model.getFilteredPersonList().size());
+            List<UUID> ids = model.getAddressBook().getPersonList().stream().map(Person::getId).toList();
+            assertEquals(firstId, ids.getFirst());
+            assertNotEquals(firstId, ids.get(1));
+
+            logic.execute("undo");
+            assertEquals(List.of(firstId), model.getAddressBook().getPersonList().stream()
+                    .map(Person::getId).toList());
+            logic.execute("redo");
+            assertEquals(ids, storage().readAddressBook().orElseThrow().getPersonList().stream()
+                    .map(Person::getId).toList());
+            logic.execute("delete 2");
+            assertEquals(firstId, model.getAddressBook().getPersonList().getFirst().getId());
+            assertEquals(1, model.getAddressBook().getPersonList().size());
+        } finally {
+            Files.deleteIfExists(importFile);
+        }
     }
 
     private LogicManager logicFor(ModelManager model) {

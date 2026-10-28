@@ -71,6 +71,23 @@ public class ImportCommandIntegrationTest {
     }
 
     @Test
+    public void execute_validPersonWithActiveFilter_showsAllPeople() throws IOException {
+        Person existingPerson = new PersonBuilder().withName("Existing Person").withPhone("81111111")
+                .withEmail("existing@example.com").build();
+        Person importedPerson = new PersonBuilder().withName("Alice Tan").withPhone("91234567")
+                .withEmail("alice@example.com").build();
+        model.addPerson(existingPerson);
+        model.updateFilteredPersonList(person -> person.isSamePerson(existingPerson));
+        writeImportFile(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,,");
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.addPerson(importedPerson);
+
+        assertCommandSuccess(new ImportCommand(FILE_NAME), model,
+                String.format(ImportCommand.MESSAGE_SUCCESS_SINGULAR, 1, IMPORT_FILE), expectedModel);
+    }
+
+    @Test
     public void execute_rowWithWrongColumnCount_failureIsAtomic() throws IOException {
         writeImportFile(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin:8");
 
@@ -113,11 +130,29 @@ public class ImportCommandIntegrationTest {
     @Test
     public void execute_duplicateExistingPerson_failureIsAtomic() throws IOException {
         Person existingPerson = new PersonBuilder().withName("Existing Person").withPhone("81111111")
+                .withEmail("existing@example.com").withRole("Section Leader").build();
+        model.addPerson(existingPerson);
+        writeImportFile(HEADER,
+                "Existing Person,81111111,existing@example.com,member,student,\"Section",
+                "Leader\",,");
+        String expectedMessage = String.format(ImportCommand.MESSAGE_DUPLICATE_PERSON, "Existing Person", 2);
+
+        assertCommandFailure(new ImportCommand(FILE_NAME), model, expectedMessage);
+    }
+
+    @Test
+    public void execute_duplicateAfterMultilineRecord_reportsPhysicalLineAndFailsAtomically() throws IOException {
+        Person existingPerson = new PersonBuilder().withName("Existing Person").withPhone("81111111")
                 .withEmail("existing@example.com").build();
         model.addPerson(existingPerson);
-        writeImportFile(HEADER, "Existing Person,81111111,existing@example.com,member,student,,,");
+        model.updateFilteredPersonList(person -> false);
+        writeImportFile(HEADER,
+                "New Person,91234567,new@example.com,member,student,\"Section",
+                "Leader\",,",
+                "Existing Person,81111111,existing@example.com,member,student,,,");
 
-        assertCommandFailure(new ImportCommand(FILE_NAME), model, ImportCommand.MESSAGE_DUPLICATE_PERSON);
+        String expectedMessage = String.format(ImportCommand.MESSAGE_DUPLICATE_PERSON, "Existing Person", 4);
+        assertCommandFailure(new ImportCommand(FILE_NAME), model, expectedMessage);
     }
 
     @Test
@@ -127,7 +162,9 @@ public class ImportCommandIntegrationTest {
                 "Alice Tan,91234567,alice@example.com,member,student,,,",
                 "Alice Tan,91234567,alice@example.com,member,student,,,");
 
-        assertCommandFailure(new ImportCommand(FILE_NAME), model, ImportCommand.MESSAGE_DUPLICATE_PERSON);
+        String expectedMessage = String.format(ImportCommand.MESSAGE_DUPLICATE_PERSON, "Alice Tan", 3);
+
+        assertCommandFailure(new ImportCommand(FILE_NAME), model, expectedMessage);
     }
 
     private void writeImportFile(String... lines) throws IOException {

@@ -53,6 +53,21 @@ public class CsvImporter {
      * @throws IllegalValueException if the CSV does not match HiveMind's export format or contains invalid data.
      */
     public static List<Person> importPeople(Path csvFile) throws IOException, IllegalValueException {
+        return importPeopleWithLineNumbers(csvFile).stream()
+                .map(ImportedPerson::person)
+                .toList();
+    }
+
+    /**
+     * Reads people and their starting physical line numbers from a CSV file in HiveMind's export format.
+     *
+     * @param csvFile the CSV file to read.
+     * @return the people represented by the CSV rows, together with their starting line numbers.
+     * @throws IOException if the file cannot be read.
+     * @throws IllegalValueException if the CSV does not match HiveMind's export format or contains invalid data.
+     */
+    public static List<ImportedPerson> importPeopleWithLineNumbers(Path csvFile)
+            throws IOException, IllegalValueException {
         requireNonNull(csvFile);
 
         List<String> lines;
@@ -69,14 +84,15 @@ public class CsvImporter {
         List<CsvRecord> records = combineMultilineRecords(lines);
         validateHeader(records.getFirst().value());
 
-        List<Person> people = new ArrayList<>();
+        List<ImportedPerson> people = new ArrayList<>();
         for (int recordIndex = 1; recordIndex < records.size(); recordIndex++) {
             CsvRecord record = records.get(recordIndex);
             // Skip blank lines and rows with only empty fields
             if (record.value().trim().isEmpty() || isBlankOrEmptyRow(record.value())) {
                 continue;
             }
-            people.add(parsePerson(record.value(), record.startLineNumber()));
+            Person person = parsePerson(record.value(), record.startLineNumber());
+            people.add(new ImportedPerson(person, record.startLineNumber()));
         }
         return List.copyOf(people);
     }
@@ -91,7 +107,9 @@ public class CsvImporter {
         if (!header.isEmpty() && header.charAt(0) == UTF_8_BYTE_ORDER_MARK) {
             header = header.substring(1);
         }
-        if (!parseCsvRecord(header, 1).equals(EXPECTED_HEADER)) {
+        List<String> headerFields = parseCsvRecord(header, 1);
+        headerFields.replaceAll(String::trim);
+        if (!headerFields.equals(EXPECTED_HEADER)) {
             throw new IllegalValueException("CSV header must be " + String.join(",", EXPECTED_HEADER) + ".");
         }
     }
@@ -140,27 +158,18 @@ public class CsvImporter {
      * @throws IllegalArgumentException if an encoded instrument is invalid.
      */
     private static Set<Instrument> parseInstruments(String instrumentField) {
-        Set<Instrument> instruments = new HashSet<>();
         if (instrumentField.isEmpty()) {
-            return instruments;
+            return new HashSet<>();
         }
 
+        List<Instrument> instruments = new ArrayList<>();
         for (String instrumentFieldValue : CsvListCodec.split(instrumentField)) {
-            int separatorIndex = instrumentFieldValue.lastIndexOf(':');
-            if (separatorIndex <= 0 || separatorIndex == instrumentFieldValue.length() - 1) {
-                throw new IllegalArgumentException(Instrument.MESSAGE_FORMAT_CONSTRAINTS);
-            }
-
-            String name = instrumentFieldValue.substring(0, separatorIndex);
-            int years;
-            try {
-                years = Integer.parseInt(instrumentFieldValue.substring(separatorIndex + 1));
-            } catch (NumberFormatException exception) {
-                throw new IllegalArgumentException(Instrument.MESSAGE_FORMAT_CONSTRAINTS, exception);
-            }
-            instruments.add(new Instrument(name, years));
+            instruments.add(Instrument.fromString(instrumentFieldValue));
         }
-        return instruments;
+        if (Instrument.hasDuplicateNames(instruments)) {
+            throw new IllegalArgumentException(Instrument.MESSAGE_DUPLICATE_NAMES);
+        }
+        return new HashSet<>(instruments);
     }
 
     /**
@@ -296,6 +305,15 @@ public class CsvImporter {
      * A complete logical CSV record and the physical line where it starts.
      */
     private record CsvRecord(String value, int startLineNumber) {
+    }
+
+    /**
+     * A person read from a CSV file and the physical line where that person's record starts.
+     */
+    public record ImportedPerson(Person person, int lineNumber) {
+        public ImportedPerson {
+            requireNonNull(person);
+        }
     }
 
     /**
