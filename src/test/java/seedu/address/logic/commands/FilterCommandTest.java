@@ -42,6 +42,26 @@ public class FilterCommandTest {
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
+    public void execute_editThenFilterInstrument_matchesUnicodeWhitespaceInEitherCommand() throws Exception {
+        AddressBookParser parser = new AddressBookParser();
+        for (String whitespace : List.of("\u00a0", "\u2002", "\u2003", "\u2009", "\u202f", "\u3000")) {
+            Model customModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+            parser.parseCommand("edit 1 i/" + whitespace + "French" + whitespace + "Horn" + whitespace + ":3")
+                    .execute(customModel);
+            Person editedPerson = customModel.getFilteredPersonList().getFirst();
+
+            CommandResult result = parser.parseCommand("filter i/French Horn").execute(customModel);
+            assertEquals(List.of(editedPerson), customModel.getFilteredPersonList());
+            assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
+
+            result = parser.parseCommand("filter i/" + whitespace + "FRENCH" + whitespace + "horn" + whitespace + ":3")
+                    .execute(customModel);
+            assertEquals(List.of(editedPerson), customModel.getFilteredPersonList());
+            assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
+        }
+    }
+
+    @Test
     public void execute_groups_searchesWholeDirectoryAndListRestoresEveryone() throws Exception {
         Person orchestraMember = new PersonBuilder(ALICE).withGroups("Chamber Orchestra").build();
         Person trainingMember = new PersonBuilder(BENSON).withGroups("Training", "Quartet").build();

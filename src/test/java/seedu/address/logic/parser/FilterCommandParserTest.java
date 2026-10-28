@@ -78,6 +78,16 @@ public class FilterCommandParserTest {
     }
 
     @Test
+    public void parse_unicodeWhitespaceInInstrumentName_normalizesAndDeduplicatesCriteria() {
+        FilterCommand expected = new FilterCommand(Set.of(),
+                Set.of(new InstrumentCriterion("French Horn", 0)), Set.of(), Set.of(), Set.of());
+        assertParseSuccess(parser, "i/\u00a0French\u2002Horn\u202f i/French Horn", expected);
+        FilterCommand withMinimum = new FilterCommand(Set.of(),
+                Set.of(new InstrumentCriterion("French Horn", 3)), Set.of(), Set.of(), Set.of());
+        assertParseSuccess(parser, "i/\u00a0French\u2002Horn\u202f:3 i/French Horn:3", withMinimum);
+    }
+
+    @Test
     public void parse_missingCriteria_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "", expectedMessage);
@@ -110,6 +120,8 @@ public class FilterCommandParserTest {
     @Test
     public void parse_invalidInstrument_throwsParseException() {
         assertParseFailure(parser, "i/", Instrument.MESSAGE_NAME_CONSTRAINTS);
+        assertParseFailure(parser, "i/\u00a0", Instrument.MESSAGE_NAME_CONSTRAINTS);
+        assertParseFailure(parser, "i/\u2002\u202f:3", Instrument.MESSAGE_NAME_CONSTRAINTS);
         assertParseFailure(parser, "i/:3", Instrument.MESSAGE_NAME_CONSTRAINTS);
         assertParseFailure(parser, "i/Violin i/", Instrument.MESSAGE_NAME_CONSTRAINTS);
         assertParseFailure(parser, "i/:3 i/Cello", Instrument.MESSAGE_NAME_CONSTRAINTS);
