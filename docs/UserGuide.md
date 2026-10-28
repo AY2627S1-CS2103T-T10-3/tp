@@ -43,6 +43,10 @@ HiveMind is a **desktop directory for Music CCA members and alumni, optimized fo
 
 --------------------------------------------------------------------------------------------------------------------
 
+## Empty member lists
+
+When the directory has no members, the list area guides you to enter `add` with member details and use `help` for examples. When a search or filter has no matches in a nonempty directory, it shows **No matching members. Enter list to show everyone.** Enter `list` to restore the full directory.
+
 ## Features
 
 <div markdown="block" class="alert alert-info">

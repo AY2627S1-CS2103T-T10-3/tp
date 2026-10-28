@@ -99,6 +99,10 @@ HIVEMIND_UI_TESTS=true ./gradlew test --tests seedu.address.ui.PersonCardTest --
 
 On Windows PowerShell, set `$env:HIVEMIND_UI_TESTS = "true"` and run `./gradlew.bat test --tests seedu.address.ui.PersonCardTest --rerun-tasks`. These tests do not replace visual checks for wrapping and scrolling; use the member-card scenarios in the manual-testing section below.
 
+#### Empty member lists
+
+`MainWindow` supplies the displayed list and the full directory through `Logic.getPersonList()` to `PersonListPanel`. A wrapped `ListView` placeholder binds its guidance to whether the full directory is empty; `ListView` controls its visibility from the displayed list. Observing the full list prevents stale guidance when a nonmatching record is removed or the directory is reset while no results are shown. The placeholder width follows the list viewport. `PersonListPanelEmptyStateTest` exercises both states, model transitions, and narrow rendering with `HIVEMIND_UI_TESTS=true`.
+
 ### Logic component
 
 **API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-T10-3/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
