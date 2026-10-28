@@ -113,12 +113,13 @@ public class FilterCommandTest {
     public void execute_groupsWithOtherFields_requiresEverySpecifiedField() throws Exception {
         Person matching = new PersonBuilder(ALICE).withMemberType("teacher").withRole("Conductor")
                 .withInstruments("Violin:3").withGroups("Orchestra").build();
-        Person wrongGroup = new PersonBuilder(matching).withName("Bob").withGroups("Training").build();
-        Person wrongStatus = new PersonBuilder(matching).withName("Carol").withStatus("inactive-alumnus").build();
-        Person insufficientExperience = new PersonBuilder(matching).withName("Dan").withInstruments("Violin:2")
-                .build();
-        Person wrongType = new PersonBuilder(matching).withName("Eve").withMemberType("student").build();
-        Person wrongRole = new PersonBuilder(matching).withName("Frank").withoutRole().build();
+        Person wrongGroup = new PersonBuilder(matching).withNewId().withName("Bob").withGroups("Training").build();
+        Person wrongStatus = new PersonBuilder(matching).withNewId().withName("Carol")
+                .withStatus("inactive-alumnus").build();
+        Person insufficientExperience = new PersonBuilder(matching).withNewId().withName("Dan")
+                .withInstruments("Violin:2").build();
+        Person wrongType = new PersonBuilder(matching).withNewId().withName("Eve").withMemberType("student").build();
+        Person wrongRole = new PersonBuilder(matching).withNewId().withName("Frank").withoutRole().build();
         AddressBook addressBook = new AddressBook();
         for (Person person : List.of(matching, wrongGroup, wrongStatus, insufficientExperience, wrongType, wrongRole)) {
             addressBook.addPerson(person);
@@ -374,7 +375,7 @@ public class FilterCommandTest {
     public void execute_typeAndRole_searchesWholeDirectoryAndListRestoresEveryone() throws Exception {
         Person teacher = new PersonBuilder().withName("Teacher").withMemberType("teacher")
                 .withRole("Section Leader").withInstruments("Violin:3").build();
-        Person student = new PersonBuilder(teacher).withName("Student").withMemberType("student").build();
+        Person student = new PersonBuilder(teacher).withNewId().withName("Student").withMemberType("student").build();
         AddressBook addressBook = new AddressBook();
         addressBook.addPerson(student);
         addressBook.addPerson(teacher);

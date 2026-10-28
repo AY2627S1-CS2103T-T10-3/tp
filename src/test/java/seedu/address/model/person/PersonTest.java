@@ -47,18 +47,22 @@ public class PersonTest {
                 .withInstruments(VALID_INSTRUMENT_PIANO).build();
         assertTrue(ALICE.isSamePerson(editedAlice));
 
-        // different name, all other attributes same -> returns false
+        // Editing a name keeps the same record identity.
         editedAlice = new PersonBuilder(ALICE).withName(VALID_NAME_BOB).build();
-        assertFalse(ALICE.isSamePerson(editedAlice));
+        assertTrue(ALICE.isSamePerson(editedAlice));
 
-        // name differs in case, all other attributes same -> returns false
+        // Changing name case or spacing also preserves identity.
         Person editedBob = new PersonBuilder(BOB).withName(VALID_NAME_BOB.toLowerCase()).build();
-        assertFalse(BOB.isSamePerson(editedBob));
+        assertTrue(BOB.isSamePerson(editedBob));
 
-        // name has trailing spaces, all other attributes same -> returns false
         String nameWithTrailingSpaces = VALID_NAME_BOB + " ";
         editedBob = new PersonBuilder(BOB).withName(nameWithTrailingSpaces).build();
-        assertFalse(BOB.isSamePerson(editedBob));
+        assertTrue(BOB.isSamePerson(editedBob));
+
+        // A separately added member may have identical details but a different ID.
+        Person anotherAlice = new PersonBuilder(ALICE).withNewId().build();
+        assertFalse(ALICE.isSamePerson(anotherAlice));
+        assertEquals(ALICE, anotherAlice);
     }
 
     @Test

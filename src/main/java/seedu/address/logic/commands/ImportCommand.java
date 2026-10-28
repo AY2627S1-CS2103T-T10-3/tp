@@ -76,7 +76,8 @@ public class ImportCommand extends Command {
         AddressBook updatedAddressBook = new AddressBook(model.getAddressBook());
         for (ImportedPerson importedPerson : importedPeople) {
             Person person = importedPerson.person();
-            if (updatedAddressBook.hasPerson(person)) {
+            // CSV has no record IDs: reject identical recorded details, but allow shared names/phones.
+            if (updatedAddressBook.getPersonList().contains(person)) {
                 throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON,
                         person.getName(), importedPerson.lineNumber()));
             }

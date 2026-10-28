@@ -43,6 +43,22 @@ public class JsonAdaptedPersonTest {
             .collect(Collectors.toList());
 
     @Test
+    public void jsonRoundTrip_preservesRecordIdentity() throws Exception {
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON));
+        Person restored = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+        assertTrue(BENSON.isSamePerson(restored));
+    }
+
+    @Test
+    public void toModelType_invalidRecordId_throwsIllegalValueException() {
+        for (String id : List.of("not-an-id", "1-1-1-1-1", "")) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(id, VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                    VALID_STATUS, VALID_MEMBER_TYPE, null, VALID_INSTRUMENTS, List.of());
+            assertThrows(IllegalValueException.class, JsonAdaptedPerson.INVALID_ID_MESSAGE, person::toModelType);
+        }
+    }
+
+    @Test
     public void toModelType_validPersonDetails_returnsPerson() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(BENSON);
         assertEquals(BENSON, person.toModelType());
@@ -224,6 +240,18 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
                 VALID_STATUS, VALID_MEMBER_TYPE, null, VALID_INSTRUMENTS, List.of("\u00a0", "\u202f"));
         assertEquals(new PersonBuilder(BENSON).withoutRole().withGroups().build(), person.toModelType());
+    }
+
+    @Test
+    public void jsonRoundTrip_legacyUnicodeBlankGroup_keepsMemberAndOtherGroups() throws Exception {
+        Person expected = new PersonBuilder(BENSON).withGroups("Orchestra").build();
+        for (String whitespace : List.of("\u00a0", "\u0085", "\u2007\u202f")) {
+            String json = JsonUtil.toJsonString(new JsonAdaptedPerson(expected))
+                    .replace("\"Orchestra\"", "\"" + whitespace + "\", \"Orchestra\"");
+            Person restored = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+            assertEquals(expected, restored);
+            assertTrue(expected.isSamePerson(restored));
+        }
     }
 
     @Test

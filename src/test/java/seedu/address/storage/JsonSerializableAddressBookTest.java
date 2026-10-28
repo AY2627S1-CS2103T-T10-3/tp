@@ -1,10 +1,12 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.AddressBook;
 import seedu.address.model.person.Instrument;
+import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.TypicalPersons;
 
 public class JsonSerializableAddressBookTest {
@@ -46,6 +49,19 @@ public class JsonSerializableAddressBookTest {
         AddressBook addressBook = dataFromFile.toModelType();
         assertEquals(1, addressBook.getPersonList().size());
         assertEquals(Set.of(new Instrument("Violin", 5)), addressBook.getPersonList().getFirst().getInstruments());
+    }
+
+    @Test
+    public void toModelType_legacySharedNames_assignsIndependentIds() throws Exception {
+        var first = new PersonBuilder().withName("Alex Same").build();
+        var legacyFirst = new JsonAdaptedPerson(first.getName().fullName, first.getPhone().value,
+                first.getEmail().value, first.getStatus().toString(), first.getMemberType().toString(),
+                null, List.of(), List.of());
+        AddressBook restored = new JsonSerializableAddressBook(List.of(legacyFirst, legacyFirst)).toModelType();
+
+        assertEquals(2, restored.getPersonList().size());
+        assertEquals(restored.getPersonList().get(0), restored.getPersonList().get(1));
+        assertFalse(restored.getPersonList().get(0).isSamePerson(restored.getPersonList().get(1)));
     }
 
     @Test

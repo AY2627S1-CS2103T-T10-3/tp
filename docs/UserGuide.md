@@ -88,13 +88,20 @@ Adds a person to HiveMind.
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL s/STATUS [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`
 
 * `s/STATUS` is required: use `member`, `active-alumnus`, or `inactive-alumnus`. Status is case-insensitive.
+* `n/NAME` supports international letters and accents, numbers, ordinary spaces, apostrophes (`'` or `’`), hyphens and full stops. A name must start with a letter or number and cannot be blank or contain `/`. For example, `Zoé Tan`, `张伟`, `Anne-Marie` and `O'Neil Tan` are accepted; `-Alex` and `Alex/Tan` are rejected.
+* `p/PHONE_NUMBER` accepts at least three digits (`0`–`9`) with no spaces, hyphens or `+`. For example, `91234567` and `00123456789` are accepted; `12`, `ab`, `9123 4567` and `+6591234567` are rejected.
+* `e/EMAIL` must have a local part, `@`, and a domain. The local part uses letters (`A`–`Z`, `a`–`z`) and digits, with single `+`, `_`, `.`, or `-` characters allowed between alphanumeric sequences. Each domain label uses letters and digits, with single hyphens allowed between alphanumeric sequences; the final label must have at least two characters. For example, `sean@example.com` and `sean.tan+cca@example-school.sg` are accepted; `not-email`, `.sean@example.com`, `sean..tan@example.com` and `sean@example.c` are rejected.
+* If the name matches an existing member's name ignoring case, or the phone number matches, HiveMind shows a warning for each possible duplicate and still adds the new member. Even identical details can belong to separate records; check the warning to avoid accidental duplicates.
 * `ty/TYPE` is optional: use `student` or `teacher`. It defaults to `student` when omitted.
 * `r/ROLE` is optional free text, such as `Section Leader`. It cannot be blank. Extra spaces are removed, so `Vice   President` is saved as `Vice President`.
 * Type and status appear beneath the member's name on the card. If a role is supplied, it appears beneath the contact details; otherwise, the role line is hidden.
 * `i/INSTRUMENT:YEARS` records an instrument the person plays and how many whole years they have played it, from `0` to `99`. For example, `i/Violin:5` or `i/Bass Guitar:1`.
-* Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case and whitespace (including Unicode spaces). For example, `Violin` and `violin` count as the same instrument.
-* `g/GROUP` records a participation group, such as `g/Chamber Orchestra`. It may be repeated for multiple groups. Blank group names are rejected; names are compared ignoring case and whitespace (including Unicode spaces), so repeated names are stored only once.
-* Recorded groups appear in the command's success message and on the member card.
+* Instrument names cannot be blank or contain `:`. Each instrument can be listed only once per person; names are compared ignoring case, surrounding whitespace, and repeated whitespace, including Unicode spaces, so `Violin` and `violin` count as the same instrument.
+* `g/GROUP` records a participation group, such as `g/Chamber Orchestra`. It may be repeated for multiple groups. Blank group names are rejected; names are compared ignoring case, surrounding whitespace, and repeated whitespace, including Unicode spaces such as non-breaking spaces and en spaces, so repeated names are stored only once.
+* Recorded groups appear in the command's success message and as separate badges on the member card. A single group called `Dance, Music` has one badge; `g/Dance g/Music` produces two badges.
+* Start **each** group with the lowercase prefix `g/`, for example `g/Training g/Orchestra`. In `add`, an unrecognized prefix after a group can become part of that group's name: `g/Training gr/Orchestra` records one group named `Training gr/Orchestra`. Check the success message and correct a mistake with `edit INDEX g/Training g/Orchestra`.
+
+The name, phone and email rules also apply when editing those fields or importing a CSV file. Spaces at the start and end of a command field are removed. Within names, repeated ordinary spaces are preserved: `Alex Tan` and `Alex  Tan` are different name spellings. The possible-duplicate name warning ignores letter case, but does not collapse those spaces.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of instruments, including zero.
@@ -138,7 +145,7 @@ name,phone,email,status,memberType,role,instruments,groups
 "Benjamin Lee","92345678","benjamin.lee@example.com","active-alumnus","teacher","","Cello:12",""
 ```
 
-If any row has invalid data, does not contain eight columns, or duplicates an existing person or another CSV row, the entire import fails and the directory remains unchanged.
+If any row has invalid data, does not contain eight columns, or has the same recorded details as an existing member or another CSV row, the entire import fails and the directory remains unchanged. Sharing only a name or phone number is allowed. Unlike `add`, import rejects identical records so a repeated CSV import cannot silently duplicate the directory. Instrument and group names are compared ignoring case when identifying identical records.
 
 Example: `import members.csv`
 
@@ -155,9 +162,11 @@ Each member card displays:
 * Phone number and email address.
 * A `Role:` line when a role is recorded. No role line is shown when it is absent.
 * Recorded instruments and their years of experience, sorted alphabetically by instrument name, ignoring case. For example, `Piano (5 yrs)` and `Violin (1 yr)`. No instrument labels appear when none are recorded.
-* A `Groups:` line listing participation groups alphabetically when any are recorded. No groups line is shown when none are recorded.
+* A `Groups:` heading with one badge per participation group, ordered alphabetically ignoring case. No groups section is shown when none are recorded.
 
 The same card details are shown in `find` and `filter` results. Displayed indices start at `1` and refer to the current list, so a member's index may change after a search, filter or sort. Use the current displayed index for commands such as `edit` and `delete`.
+
+Members with matching names or contact details remain separate records. Use their current displayed indices to edit or delete the intended member.
 
 Example: after `find alex david`, enter `list` to show everyone again. The result message is `Listed all persons.`
 
@@ -356,6 +365,8 @@ separately when HiveMind starts and exits. You do not need to save manually.
 
 HiveMind data is saved automatically as the JSON file `data/addressbook.json` inside HiveMind's home folder. Advanced
 users are welcome to update data directly by editing that data file.
+
+Keep an existing member's `id` unchanged when editing the data file. To create another member, use `add` so the new record receives its own ID.
 
 When loading saved data, HiveMind ignores group entries made only of non-breaking spaces, including mixtures with ordinary spaces or tabs. Members and their other details are preserved. Empty group names and names made only of ordinary spaces or tabs make the data file invalid. Loading does not change the file; the next successful command that changes directory data saves it without the ignored group entries.
 
