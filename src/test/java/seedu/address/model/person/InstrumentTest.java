@@ -98,6 +98,23 @@ public class InstrumentTest {
     }
 
     @Test
+    public void fromString_invalidValue_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, Instrument.MESSAGE_FORMAT_CONSTRAINTS, ()
+            -> Instrument.fromString("Violin"));
+        assertThrows(IllegalArgumentException.class, Instrument.MESSAGE_NAME_CONSTRAINTS, ()
+            -> Instrument.fromString(":5"));
+        assertThrows(IllegalArgumentException.class, Instrument.MESSAGE_YEARS_CONSTRAINTS, ()
+            -> Instrument.fromString("Violin:+5"));
+        assertThrows(IllegalArgumentException.class, Instrument.MESSAGE_YEARS_CONSTRAINTS, ()
+            -> Instrument.fromString("Violin:100"));
+    }
+
+    @Test
+    public void fromString_validValue_returnsInstrument() {
+        assertEquals(new Instrument("Violin", 5), Instrument.fromString(" Violin : 5 "));
+    }
+
+    @Test
     public void hasName() {
         Instrument instrument = new Instrument("French Horn", 3);
 

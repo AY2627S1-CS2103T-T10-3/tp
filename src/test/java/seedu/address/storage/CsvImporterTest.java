@@ -8,11 +8,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.person.Group;
 import seedu.address.model.person.Instrument;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
@@ -56,6 +58,18 @@ public class CsvImporterTest {
         Path csvFile = writeCsv("\ufeff" + HEADER);
 
         assertEquals(List.of(), CsvImporter.importPeople(csvFile));
+    }
+
+    @Test
+    public void importPeople_headerWithSurroundingWhitespace_importsPerson() throws Exception {
+        Path csvFile = writeCsv(
+                " name , phone , email , status , memberType , role , instruments , groups ",
+                "Alice Tan,91234567,alice@example.com,member,student,,Violin:1,");
+
+        List<Person> people = CsvImporter.importPeople(csvFile);
+
+        assertEquals(1, people.size());
+        assertEquals("Alice Tan", people.getFirst().getName().toString());
     }
 
     @Test
@@ -178,7 +192,7 @@ public class CsvImporterTest {
     @Test
     public void importPeople_instrumentWithoutYears_throwsIllegalValueException() throws Exception {
         Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin:,");
-        String expectedMessage = "Invalid value at line 2: " + Instrument.MESSAGE_FORMAT_CONSTRAINTS;
+        String expectedMessage = "Invalid value at line 2: " + Instrument.MESSAGE_YEARS_CONSTRAINTS;
 
         assertThrows(IllegalValueException.class, expectedMessage, () -> CsvImporter.importPeople(csvFile));
     }
@@ -186,7 +200,33 @@ public class CsvImporterTest {
     @Test
     public void importPeople_nonNumericInstrumentYears_throwsIllegalValueException() throws Exception {
         Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin:many,");
-        String expectedMessage = "Invalid value at line 2: " + Instrument.MESSAGE_FORMAT_CONSTRAINTS;
+        String expectedMessage = "Invalid value at line 2: " + Instrument.MESSAGE_YEARS_CONSTRAINTS;
+
+        assertThrows(IllegalValueException.class, expectedMessage, () -> CsvImporter.importPeople(csvFile));
+    }
+
+    @Test
+    public void importPeople_instrumentWithWhitespaceAroundSeparator_importsPerson() throws Exception {
+        Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin : 5,");
+
+        Person person = CsvImporter.importPeople(csvFile).getFirst();
+
+        assertEquals(Set.of(new Instrument("Violin", 5)), person.getInstruments());
+    }
+
+    @Test
+    public void importPeople_instrumentWithSignedYears_throwsIllegalValueException() throws Exception {
+        Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin:+5,");
+        String expectedMessage = "Invalid value at line 2: " + Instrument.MESSAGE_YEARS_CONSTRAINTS;
+
+        assertThrows(IllegalValueException.class, expectedMessage, () -> CsvImporter.importPeople(csvFile));
+    }
+
+    @Test
+    public void importPeople_duplicateInstrumentNames_throwsIllegalValueException() throws Exception {
+        Path csvFile = writeCsv(HEADER,
+                "Alice Tan,91234567,alice@example.com,member,student,,Violin:8;violin:8,");
+        String expectedMessage = "Invalid value at line 2: " + Instrument.MESSAGE_DUPLICATE_NAMES;
 
         assertThrows(IllegalValueException.class, expectedMessage, () -> CsvImporter.importPeople(csvFile));
     }
@@ -206,6 +246,14 @@ public class CsvImporterTest {
         Person person = CsvImporter.importPeople(csvFile).getFirst();
 
         assertEquals(0, person.getGroups().size());
+    }
+
+    @Test
+    public void importPeople_nonBreakingSpaceOnlyGroup_throwsIllegalValueException() throws Exception {
+        Path csvFile = writeCsv(HEADER, "Alice Tan,91234567,alice@example.com,member,student,,Violin:1,\u00A0");
+        String expectedMessage = "Invalid value at line 2: " + Group.MESSAGE_CONSTRAINTS;
+
+        assertThrows(IllegalValueException.class, expectedMessage, () -> CsvImporter.importPeople(csvFile));
     }
 
     @Test

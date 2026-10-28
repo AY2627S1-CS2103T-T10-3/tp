@@ -22,8 +22,15 @@ public class GroupTest {
     }
 
     @Test
+    public void constructor_unicodeWhitespaceName_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, Group.MESSAGE_CONSTRAINTS, ()
+            -> new Group("\u00A0\u2007\u202F"));
+    }
+
+    @Test
     public void constructor_extraWhitespace_normalizesName() {
         assertEquals("Chamber Orchestra", new Group("  Chamber   Orchestra  ").getName());
+        assertEquals("Chamber Orchestra", new Group("\u00A0Chamber\u2007Orchestra\u202F").getName());
     }
 
     @Test
