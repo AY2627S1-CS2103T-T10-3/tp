@@ -39,6 +39,8 @@ HiveMind is a **desktop directory for Music CCA members and alumni, optimized fo
 
    * `exit` : Exits the app.
 
+1. Use [Up and Down](#recalling-commands-with-arrow-keys) in the command box to recall recent submissions.
+
 1. Refer to the [Features](#features) section below for details of each command.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -71,6 +73,21 @@ HiveMind is a **desktop directory for Music CCA members and alumni, optimized fo
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
+
+### Recalling commands with arrow keys
+
+With the command box focused, press **↑ (Up)** to recall an older submission or **↓ (Down)** to move towards newer submissions. Recalled text is editable. **Only pressing Enter executes it**; browsing does not change members or the displayed results.
+
+* HiveMind remembers the latest **100 nonblank submissions** in this app session, including failed commands and repeats. Closing the app clears this history.
+* If you have unfinished input, Up saves it while you browse. Down after the newest submission restores that input.
+* If you edit a recalled command, that edited text becomes a new draft. The next Up starts again at the newest submission; Down can restore your edited draft. Stored submissions remain unchanged.
+* Up stops at the oldest available submission; Down stops at your draft. With no history, both keys leave your input unchanged.
+* Use the arrow keys without Shift, Ctrl, Alt or Command/Meta. Modified arrow shortcuts keep their usual editing behaviour.
+* Successful submissions still clear the command box. Failed submissions stay in the box so you can correct them.
+
+For example, submit `list`, then `find Alex`. Type `find Ber` without pressing Enter. Up recalls `find Alex`; another Up recalls `list`. Press Down twice to return to `find Ber`, finish the command and press Enter when ready.
+
+Command recall is separate from `undo` and `redo`: it recalls text and does not reverse changes to member records.
 
 ### Viewing help: `help`
 

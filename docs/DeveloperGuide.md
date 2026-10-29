@@ -83,6 +83,23 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
+#### Command input and recall
+
+`CommandBox` owns one package-private `CommandHistory` for its lifetime. This helper is UI state rather than member data: it stores at most 100 exact nonblank submissions, including duplicates and failures, and is never persisted. Oldest entries are evicted when the capacity is reached. The UI class diagram focuses on visible components; this internal helper does not extend `UiPart`.
+
+`CommandHistory` keeps a cursor between the oldest entry and a position just after the newest entry. Up from the latter position captures the current input as a draft, then visits older entries. Down visits newer entries and restores the draft when the cursor reaches the end. Boundaries do not wrap. An edit or new submission resets navigation to the end without changing previously recorded text.
+
+`CommandBox` filters unmodified Up/Down key presses on its text field. Programmatic recall uses `isRecallingHistory` so the existing text-change listener clears error styling without resetting the browsing cursor. User edits reset the cursor, making an edited recall a new draft. Replacing text positions the caret at the end. Enter records the nonblank input before calling the executor, so parsing and execution failures can both be recalled. Existing success clearing and failure feedback remain in place. Browsing never calls the executor or changes the address book's undo/redo history.
+
+`CommandHistoryTest` tests the bounded state machine without JavaFX. `CommandBoxTest` dispatches keyboard and action events through the real FXML text field with a recording executor, covering draft restoration, edited recalls, modifiers, failed submissions and independent histories. Like `PersonCardTest`, the graphical class requires a graphical session and `HIVEMIND_UI_TESTS=true`:
+
+```sh
+./gradlew test --tests seedu.address.ui.CommandHistoryTest
+HIVEMIND_UI_TESTS=true ./gradlew test --tests seedu.address.ui.CommandBoxTest --rerun-tasks
+```
+
+On Windows PowerShell, set `$env:HIVEMIND_UI_TESTS = "true"` before running the corresponding `./gradlew.bat` command. Without this variable, only the graphical class is skipped; the history state-machine tests still run in ordinary CI.
+
 #### Member cards
 
 `PersonListPanel` observes the filtered and sorted person view exposed by `Logic`. Its list cells create a `PersonCard` for each displayed person, passing the cell's one-based index. When `find`, `filter`, `sort`, or `list` changes the displayed results, the list updates the cards and their indices. The existing UI class diagram shows this relationship; the card enhancement adds no new classes or dependencies.
@@ -666,6 +683,21 @@ Start another disposable scenario with `clear`.
    Expected: Alicia's groups are removed and no empty heading or row remains. Ben's groups remain visible.
 1. Restart the application.<br>
    Expected: Alicia still has no groups and Ben retains both groups. Resize the window and check that the badges wrap without overlap.
+
+### Recalling commands
+
+Start a new app session with sample records or a disposable data directory. Keep the command box focused for the arrow-key checks.
+
+1. Submit `list`, then `find Alex`. Press Up twice, then Up again.<br>
+   Expected: The input recalls `find Alex`, then `list`, and stays at `list`. Results do not change while browsing. Down recalls `find Alex`; another Down restores the empty input.
+1. Type `find Ber` without Enter. Press Up, then Down.<br>
+   Expected: The input recalls `find Alex`, then restores the unfinished `find Ber`. No command runs.
+1. Press Up and edit the recalled text to `find Bernice`. Press Up, then Down, then Enter.<br>
+   Expected: Up recalls `find Alex`, Down restores `find Bernice`, and only Enter executes it. Up now recalls `find Bernice`; a second Up still recalls the original `find Alex`.
+1. Submit `unknowncommand`. Press Up twice.<br>
+   Expected: The failed command initially stays in the box with error styling. It can be recalled as the newest submission; another Up reaches `find Bernice` and clears the command box's error styling. Browsing does not execute either command or change the result message.
+1. Submit a blank input, then try Up/Down. Close and restart HiveMind, type a draft and press Up/Down again.<br>
+   Expected: Blank input creates no history entry. After restarting, the previous session's history is unavailable and the draft remains unchanged.
 
 ### Viewing member cards
 
