@@ -6,7 +6,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
@@ -32,6 +35,7 @@ public class ExportCommand extends Command {
             + "Make sure the export location is a writable folder.";
 
     private static final Path DEFAULT_EXPORT_DIRECTORY = Path.of("exports");
+    private static final Logger logger = LogsCenter.getLogger(ExportCommand.class);
 
     private final Path exportDirectory;
     private final List<ExportField> fields;
@@ -64,6 +68,8 @@ public class ExportCommand extends Command {
 
         try {
             Path outputPath = CsvExporter.export(currentResults, exportDirectory, fields);
+            logger.info(() -> String.format("Exported %d rows with fields %s to %s.",
+                    currentResults.size(), fields.stream().map(ExportField::getHeader).toList(), outputPath));
             String successMessage = currentResults.size() == 1
                     ? MESSAGE_EXPORT_SUCCESS_SINGULAR
                     : MESSAGE_EXPORT_SUCCESS;
@@ -71,6 +77,8 @@ public class ExportCommand extends Command {
             return new CommandResult(
                 String.format(successMessage, currentResults.size(), outputPath));
         } catch (IOException ioe) {
+            logger.log(Level.WARNING, ioe, () -> String.format("Export failed: %d rows, fields %s, directory %s.",
+                    currentResults.size(), fields.stream().map(ExportField::getHeader).toList(), exportDirectory));
             throw new CommandException(
                 String.format(MESSAGE_EXPORT_FAILURE, exportDirectory), ioe);
         }
