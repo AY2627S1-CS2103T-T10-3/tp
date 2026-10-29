@@ -5,11 +5,13 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.storage.CsvExporter;
+import seedu.address.storage.ExportField;
 
 /**
  * Exports the people in the current filtered list to a CSV file.
@@ -19,7 +21,10 @@ public class ExportCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Exports the people currently shown to a CSV file.\n"
-            + "Example: " + COMMAND_WORD;
+            + "Parameters: [f/FIELD]...\n"
+            + "Fields: " + CsvExporter.HEADER + ". Each field may be selected once, in the desired column order.\n"
+            + "Omit fields to export all eight columns.\n"
+            + "Example: " + COMMAND_WORD + " f/name f/phone f/instruments";
 
     public static final String MESSAGE_EXPORT_SUCCESS = "Exported %d people to %s.";
     public static final String MESSAGE_EXPORT_SUCCESS_SINGULAR = "Exported %d person to %s.";
@@ -29,13 +34,26 @@ public class ExportCommand extends Command {
     private static final Path DEFAULT_EXPORT_DIRECTORY = Path.of("exports");
 
     private final Path exportDirectory;
+    private final List<ExportField> fields;
 
     public ExportCommand() {
         this(DEFAULT_EXPORT_DIRECTORY);
     }
 
     ExportCommand(Path exportDirectory) {
+        this(exportDirectory, ExportField.DEFAULT_FIELDS);
+    }
+
+    /**
+     * Creates a command exporting the selected columns in the requested order.
+     */
+    public ExportCommand(List<ExportField> fields) {
+        this(DEFAULT_EXPORT_DIRECTORY, fields);
+    }
+
+    ExportCommand(Path exportDirectory, List<ExportField> fields) {
         this.exportDirectory = requireNonNull(exportDirectory);
+        this.fields = List.copyOf(fields);
     }
 
     @Override
@@ -45,7 +63,7 @@ public class ExportCommand extends Command {
         List<Person> currentResults = model.getFilteredPersonList();
 
         try {
-            Path outputPath = CsvExporter.export(currentResults, exportDirectory);
+            Path outputPath = CsvExporter.export(currentResults, exportDirectory, fields);
             String successMessage = currentResults.size() == 1
                     ? MESSAGE_EXPORT_SUCCESS_SINGULAR
                     : MESSAGE_EXPORT_SUCCESS;
@@ -61,5 +79,18 @@ public class ExportCommand extends Command {
     @Override
     public boolean requiresSave() {
         return false;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other == this
+                || (other instanceof ExportCommand otherCommand
+                && exportDirectory.equals(otherCommand.exportDirectory)
+                && fields.equals(otherCommand.fields));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(exportDirectory, fields);
     }
 }
