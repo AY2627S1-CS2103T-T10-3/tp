@@ -688,6 +688,23 @@ Use a disposable directory for these checks so the test records do not affect yo
 1. Run `add n/Card Width p/91234567 e/music.coordinator.long.contact.address@example.com s/member r/Student Coordinator for the University Chamber Orchestra i/Historical Keyboard and String Instrument Ensemble Performance Specialisation:12 g/University Chamber Orchestra Alumni and Student Combined Performance Group`. Resize the window to its minimum 450 × 600, then widen and narrow it again.<br>
    Expected: The full instrument name and `12 yrs` remain readable on wrapped lines, as does the group name. Neither badge pushes contact details or other card content beyond the visible right edge. Scroll vertically if the card is taller than the available area.
 
+### Checking persistent member counts
+
+Use Java 25 and the released JAR in a disposable writable folder. These steps clear test data; do not use a real directory.
+
+1. Run `clear`.<br>
+   Expected: The label above the member list shows `Showing 0 of 0 members`.
+1. Run `add n/Alice p/11111 e/alice@example.com s/member`, then `add n/Bob p/22222 e/bob@example.com s/inactive-alumnus`.<br>
+   Expected: The count is `Showing 2 of 2 members`.
+1. Run `find Alice`, then `filter s/inactive-alumnus`, then `find Nobody`.<br>
+   Expected: The counts are `Showing 1 of 2 members`, `Showing 1 of 2 members`, and `Showing 0 of 2 members` respectively. The label remains visible with no matches.
+1. Run `find` without a keyword.<br>
+   Expected: An error is shown, and the count remains `Showing 0 of 2 members`.
+1. Run `list`, `delete 1`, `undo`, then `redo`.<br>
+   Expected: The counts are `Showing 2 of 2 members`, `Showing 1 of 1 members`, `Showing 2 of 2 members`, and `Showing 1 of 1 members` respectively.
+1. Resize the window to its minimum 450 × 600.<br>
+   Expected: The count remains readable above the member list, independently of the last command's feedback.
+
 ### Sorting displayed members
 
 Use a disposable directory with only these four records, added in this order:
