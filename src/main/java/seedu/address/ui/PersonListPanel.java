@@ -27,6 +27,9 @@ public class PersonListPanel extends UiPart<Region> {
     @FXML
     private Label emptyState;
 
+    @FXML
+    private Label resultCount;
+
     /**
      * Creates a panel displaying the complete directory.
      */
@@ -47,6 +50,9 @@ public class PersonListPanel extends UiPart<Region> {
                         + "Enter help for command examples.")
                 .otherwise("No matching members. Enter list to show everyone."));
         emptyState.maxWidthProperty().bind(personListView.widthProperty().subtract(40));
+        resultCount.textProperty().bind(Bindings.format("Showing %d of %d %s",
+                Bindings.size(personList), Bindings.size(allPersons),
+                Bindings.when(Bindings.size(allPersons).isEqualTo(1)).then("member").otherwise("members")));
     }
 
     /**
