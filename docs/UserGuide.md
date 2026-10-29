@@ -189,12 +189,14 @@ Format: `list`
 
 Each member card displays:
 
-* The member's displayed index and name.
-* Member type (`student` or `teacher`) and membership status (`member`, `active-alumnus`, or `inactive-alumnus`).
+* The member's displayed index and name in a prominent heading.
+* Text badges for member type (`Student` or `Teacher`) and membership status (`Member`, `Active alumnus`, or `Inactive alumnus`). The text identifies each value without relying on colour; command inputs still use the keywords listed under `add`.
 * Phone number and email address.
 * A `Role:` line when a role is recorded. No role line is shown when it is absent.
 * Recorded instruments and their years of experience, sorted alphabetically by instrument name, ignoring case. For example, `Piano (5 yrs)` and `Violin (1 yr)`. No instrument labels appear when none are recorded.
 * A `Groups:` heading with one badge per participation group, ordered alphabetically ignoring case. No groups section is shown when none are recorded.
+
+Long names, contact details, roles, instruments and groups wrap as the window narrows. Scroll down to see details or members below the visible area.
 
 The same card details are shown in `find` and `filter` results. Displayed indices start at `1` and refer to the current list, so a member's index may change after a search, filter or sort. Use the current displayed index for commands such as `edit` and `delete`.
 
