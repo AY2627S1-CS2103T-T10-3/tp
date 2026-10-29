@@ -11,13 +11,20 @@ public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
             "Names must start with a letter or number and contain only letters, numbers, spaces, "
-            + "apostrophes, hyphens or full stops";
+            + "apostrophes, hyphens or full stops. The markers s/o, d/o, a/l and a/p may appear between "
+            + "name parts";
 
     /**
      * Supports international letters and combining accents while excluding CLI prefix separators.
      * Requiring a letter or number first also rejects blank or punctuation-only names.
      */
-    public static final String VALIDATION_REGEX = "[\\p{L}\\p{N}][\\p{L}\\p{M}\\p{N} .'\u2019-]*";
+    private static final String NAME_PART = "[\\p{L}\\p{N}][\\p{L}\\p{M}\\p{N} .'\u2019-]*";
+
+    /**
+     * Allows {@code /} only within the standalone relationship markers s/o, d/o, a/l and a/p (ASCII, any case),
+     * so other slashes, such as mistyped prefixes, are still rejected.
+     */
+    public static final String VALIDATION_REGEX = NAME_PART + "(?: (?i:[sd]/o|a/[lp]) +" + NAME_PART + ")*";
 
     public final String fullName;
 

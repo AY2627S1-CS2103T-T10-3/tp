@@ -179,6 +179,19 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_nameWithRelationshipMarker_success() {
+        // uppercase S/O, as a lowercase s/ starts the status
+        Person expectedPerson = new PersonBuilder(AMY).withName("Ravi S/O Kumar").withInstruments().build();
+        assertParseSuccess(parser, " " + PREFIX_NAME + "Ravi S/O Kumar" + PHONE_DESC_AMY + EMAIL_DESC_AMY
+                + STATUS_DESC_AMY, new AddCommand(expectedPerson));
+
+        // d/ is not a prefix, so a lowercase d/o is kept as text
+        expectedPerson = new PersonBuilder(AMY).withName("Priya d/o Raman").withInstruments().build();
+        assertParseSuccess(parser, " " + PREFIX_NAME + "Priya d/o Raman" + PHONE_DESC_AMY + EMAIL_DESC_AMY
+                + STATUS_DESC_AMY, new AddCommand(expectedPerson));
+    }
+
+    @Test
     public void parse_compulsoryFieldMissing_failure() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
 

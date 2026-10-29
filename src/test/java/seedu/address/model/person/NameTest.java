@@ -57,6 +57,24 @@ public class NameTest {
     }
 
     @Test
+    public void isValidName_relationshipMarkers_accepts() {
+        for (String name : new String[] {"Ravi s/o Kumar", "Priya d/o Raman", "Muthu a/l Samy",
+            "Siti a/p Ahmad", "Ravi S/O Kumar", "Ravi s/O Kumar", "Ravi  s/o  Kumar",
+            "Ravi s/o Kumar s/o Raj", "Zo\u00e9 d/o \u5f20\u4f1f"}) {
+            assertTrue(Name.isValidName(name), name);
+        }
+    }
+
+    @Test
+    public void isValidName_otherSlashes_rejects() {
+        for (String name : new String[] {"Alex/Tan", "Alex n/Other", "Ravi s/oKumar", "Ravi s/o",
+            "s/o Kumar", "Ravi x/y Kumar", "Ravi s/ Kumar", "Ravi /o Kumar", "Ravi s//o Kumar",
+            "Ravi so/ Kumar", "Ravi c/o Kumar", "Ravi s/o\nKumar", "Ravi\u00a0s/o Kumar"}) {
+            assertFalse(Name.isValidName(name), name);
+        }
+    }
+
+    @Test
     public void equals() {
         Name name = new Name("Valid Name");
 
