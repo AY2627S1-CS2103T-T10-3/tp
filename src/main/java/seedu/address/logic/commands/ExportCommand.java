@@ -1,9 +1,11 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.AppUtil.checkArgument;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -50,14 +52,29 @@ public class ExportCommand extends Command {
 
     /**
      * Creates a command exporting the selected columns in the requested order.
+     *
+     * @param fields the non-empty list of distinct columns to export.
+     * @throws IllegalArgumentException if the selection is empty or contains repeated fields.
+     * @throws NullPointerException if the list or any field is null.
      */
     public ExportCommand(List<ExportField> fields) {
         this(DEFAULT_EXPORT_DIRECTORY, fields);
     }
 
+    /**
+     * Creates a command exporting the selected columns to the specified directory.
+     *
+     * @param exportDirectory the directory in which to create the CSV file.
+     * @param fields the non-empty list of distinct columns, in the requested order.
+     * @throws IllegalArgumentException if the selection is empty or contains repeated fields.
+     * @throws NullPointerException if the directory, list or any field is null.
+     */
     ExportCommand(Path exportDirectory, List<ExportField> fields) {
         this.exportDirectory = requireNonNull(exportDirectory);
         this.fields = List.copyOf(fields);
+        checkArgument(!this.fields.isEmpty(), "At least one export field must be selected.");
+        checkArgument(new HashSet<>(this.fields).size() == this.fields.size(),
+                "Each export field may only be selected once.");
     }
 
     @Override

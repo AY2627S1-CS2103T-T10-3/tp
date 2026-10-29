@@ -45,6 +45,23 @@ public class ExportCommandTest {
     }
 
     @Test
+    public void constructor_emptyFields_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new ExportCommand(List.of()));
+        assertThrows(IllegalArgumentException.class, () -> new ExportCommand(testFolder, List.of()));
+    }
+
+    @Test
+    public void constructor_repeatedFields_throwsIllegalArgumentException() {
+        List<ExportField> adjacentDuplicates = List.of(ExportField.NAME, ExportField.NAME);
+        List<ExportField> separatedDuplicates = List.of(ExportField.NAME, ExportField.PHONE, ExportField.NAME);
+
+        assertThrows(IllegalArgumentException.class, () -> new ExportCommand(adjacentDuplicates));
+        assertThrows(IllegalArgumentException.class, () -> new ExportCommand(separatedDuplicates));
+        assertThrows(IllegalArgumentException.class, () -> new ExportCommand(testFolder, adjacentDuplicates));
+        assertThrows(IllegalArgumentException.class, () -> new ExportCommand(testFolder, separatedDuplicates));
+    }
+
+    @Test
     public void execute_filteredList_exportsOnlyDisplayedPersons() throws Exception {
         model.updateFilteredPersonList(person -> person.equals(ALICE));
         Path outputPath = testFolder.resolve("current-results-01.csv");
