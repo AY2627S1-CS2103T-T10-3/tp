@@ -60,7 +60,7 @@ HiveMind is a **desktop directory for Music CCA members and alumni, optimized fo
 * Items followed by `…`​ can appear zero or more times.<br>
   For example, `[i/INSTRUMENT:YEARS]…​` may be omitted, or written as `i/Violin:5` or `i/Violin:5 i/Piano:2`.
 
-* Parameters can be in any order.<br>
+* Parameters can be in any order. For `export`, their order determines the CSV column order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
 * A parameter value cannot contain a space followed by another prefix of the same command, as HiveMind reads that as the start of a new parameter.<br>
@@ -143,6 +143,9 @@ The CSV file must have this exact header and column order:
 ```text
 name,phone,email,status,memberType,role,instruments,groups
 ```
+
+The default `export` command produces this format. Partial exports, or exports with all eight columns in a different order,
+cannot be imported. Use `export` without field selections when preparing a file for import.
 
 Each subsequent row must have exactly these eight columns:
 
@@ -295,22 +298,33 @@ Examples:
 
 Exports the members currently shown in the list to a CSV file.
 
-Format: `export`
+Format: `export [f/FIELD]...`
 
-* Exports the current displayed results. Run `find` or `filter` first to export only matching members; run `list` first to export everyone.
+* Without field selections, `export` writes all eight columns in this order: `name`, `phone`, `email`, `status`, `memberType`, `role`, `instruments`, `groups`.
+* To choose columns, write one `f/FIELD` for each field you need. For example, `export f/name f/phone f/instruments` writes only the `name`, `phone`, and `instruments` columns, in that order.
+* Select any combination of the eight field names above, using their exact spelling and case, including the capital `T` in `memberType`. Each field may be selected only once.
+* Unsupported names (such as `f/address`), empty selections (`f/`), repeated selections (`f/name f/name`), and extra arguments are rejected with an error. No CSV file is created for an invalid command.
+* Exports only the currently displayed members, in their displayed order. Run `find` or `filter` first to choose matching members, and `sort` to choose their order. Run `list` first to export everyone in insertion order.
 * Creates a CSV file in the `exports` folder inside HiveMind’s home folder.
 * Each export receives the first unused numbered filename: `current-results-01.csv`, then `current-results-02.csv`, and so on. Existing export files are not overwritten.
-* The CSV contains these columns: name, phone, email, status, member type, role, instruments, and groups.
+* Values are enclosed in double quotes. A double quote within a value is written as two double quotes.
 * A member with multiple instruments or groups has them recorded in one field, separated by semicolons.
 * A semicolon within an instrument or group name is escaped as `\;`, and a backslash as `\\`.
 * Values beginning with `=`, `+`, `-`, or `@` are prefixed with a space so spreadsheet applications treat them as
-  text. Importing the exported file removes this prefix and restores the original value.
-* Exporting an empty result list still creates a CSV file containing the column headers.
+  text. Importing a compatible full export removes this prefix and restores the original value.
+* Exporting an empty result list still creates a CSV file containing only the selected column headers, or all eight headers if no fields were selected.
+* Exporting does not change member records, the displayed results, or undo/redo history.
+
+**Import compatibility:** Partial exports cannot be imported using `import`. The importer requires all eight columns in
+the default order. An export containing all eight columns in a different order is also incompatible. Use `export`
+without field selections to retain the existing import-compatible format.
 
 Examples:
 
-* `find alex` followed by `export` exports the members whose names contain `alex`.
-* `filter s/member i/Violin` followed by `export` exports the current members who play violin.
+* `export` exports all eight fields for the currently displayed members.
+* `find alex` followed by `export f/name f/phone` exports only the names and phone numbers of members whose names contain `alex`.
+* `filter s/member i/Violin` followed by `sort name`, then `export f/name f/phone f/instruments`, exports those three fields for current members who play violin, in the displayed name order.
+* `export f/groups f/name` writes the `groups` column before the `name` column.
 
 ### Deleting a person: `delete`
 
@@ -427,7 +441,7 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [s/STATUS] [ty/TYPE] [r/ROLE] [i/INSTRUMENT:YEARS]…​ [g/GROUP]…​`<br> e.g., `edit 2 n/James Lee g/Chamber Orchestra`
-**Export** | `export`
+**Export** | `export [f/FIELD]...`<br> e.g., `export f/name f/phone f/instruments`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…`<br> e.g., `find alex david`
 **Filter** | `filter [s/STATUS]... [i/NAME[:MIN_YEARS]]... [ty/TYPE]... [r/ROLE]... [g/GROUP]...`<br> e.g., `filter s/member i/Violin:3 g/Chamber Orchestra`
 **List** | `list`
