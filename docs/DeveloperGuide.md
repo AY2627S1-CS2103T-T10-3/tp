@@ -202,6 +202,25 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Application file locations
+
+`ApplicationPaths` provides one application home for every file owned by HiveMind. In a packaged launch, it converts
+the application code-source URI to a `Path`, resolves the canonical JAR location, and uses the JAR's parent directory.
+Converting the URI through `Path.of(URI)` preserves spaces and non-ASCII characters correctly. In a development or
+test launch, where the code source is a classes directory rather than a packaged file, it retains the normalized
+working directory for compatibility with Gradle and IDE launches.
+
+`LogsCenter` obtains its log path from `ApplicationPaths` during its initial static configuration, before the first
+application log entry can create a file. `MainApp` uses the same abstraction for preferences, member data and the
+imports directory. `ImportCommand` and `ExportCommand` use it for their default directories. Recovery backups remain
+beside the configured member-data file, so they are under the same application home. Tests can continue to pass
+explicit temporary import and export directories to the commands, avoiding writes to the repository during unit and
+integration testing.
+
+`ApplicationPathsTest` covers packaged paths containing spaces and non-ASCII characters, the development-launch
+fallback, and confinement of every configured application path under the shared home directory. The packaged-JAR
+manual test below verifies the startup and command paths together from a different working directory.
+
 ### Adding members and record identity
 
 `AddCommandParser` validates the required name, phone, email and status, defaults an omitted type to `student`, and constructs a `Person`. `Name` accepts Unicode letters, combining accents and numbers, ordinary spaces, apostrophes, hyphens and full stops; the first character must be a letter or number. Prefix separators such as `/` remain invalid in names.
@@ -937,6 +956,26 @@ Start from the sample data in a disposable directory (delete `data/addressbook.j
 
 Use a disposable folder containing the packaged `HiveMind.jar` for these tests. Open a terminal in that folder and run
 `java -jar HiveMind.jar`. Do not perform these tests using real member data.
+
+1. Resolving the JAR home from another working directory
+
+   1. Create separate disposable `jar-home` and `launch-folder` directories. Include spaces and non-ASCII characters
+      in the `jar-home` path, place only `HiveMind.jar` there, and open a terminal in `launch-folder`.
+
+   1. Put a valid synthetic `data/addressbook.json` containing a uniquely named member in `launch-folder`, then run
+      the JAR using its absolute path.<br>
+      Expected: HiveMind does not load the synthetic member. It creates `preferences.json`, the application log, and
+      the `imports` folder beside `HiveMind.jar`; it does not create or modify application files in `launch-folder`.
+
+   1. Add a synthetic member, place a compatible CSV file in the `imports` folder beside the JAR, run `import` for
+      that file, and run `export`.<br>
+      Expected: Saved member data is written to `jar-home/data/addressbook.json`, the CSV is read from
+      `jar-home/imports`, and the exported file is written to `jar-home/exports`. No application file is written to
+      `launch-folder`.
+
+   1. Close and restart HiveMind using the same absolute JAR path.<br>
+      Expected: The saved and imported members are loaded from `jar-home/data/addressbook.json`. Repeat this scenario
+      on each supported platform available to the team and record any platform that could not be checked.
 
 1. Starting without a data file
 
