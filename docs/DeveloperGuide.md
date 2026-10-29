@@ -795,6 +795,43 @@ Use a disposable directory with only these four records, added in this order:
 1. Close and reopen the app.<br>
    Expected: The remaining records appear in stored directory order, Amy, Bob, alice. Status changes and deletion persist, but sorting does not.
 
+### Exporting current results
+
+Use Java 25 and the released JAR in a disposable writable folder. Remove any existing `exports` folder before this
+scenario so that the expected file numbers are predictable. Run `clear`, then add these records in order:
+
+* `add n/Ben Lee p/90000002 e/ben@example.com s/inactive-alumnus r/Conductor i/Cello:4 g/Orchestra`
+* `add n/Alicia Tan p/90000001 e/alicia@example.com s/member r/=1+1 i/Drums;Percussion:5 g/Band;Choir`
+* `add n/Chloe Lim p/90000003 e/chloe@example.com s/member i/Violin:3 g/Concert Band`
+
+1. Run `sort name`, then `export`.<br>
+   Expected: The displayed order changes from Ben, Alicia, Chloe to Alicia, Ben, Chloe. The feedback reports that
+   three people were exported to the `current-results-01.csv` file in the `exports` folder. The file starts with the
+   header `name,phone,email,status,memberType,role,instruments,groups` and contains Alicia, Ben and Chloe in that
+   displayed order. In a text editor, Alicia's instrument and group cells are written as
+   `"Drums\;Percussion:5"` and `"Band\;Choir"`.
+1. Open the `current-results-01.csv` file in the `exports` folder using Microsoft Excel or another spreadsheet
+   application.<br>
+   Expected: Alicia's role appears as the text `=1+1` rather than the calculated value `2`; no protective prefix is
+   visible. Her semicolon-containing instrument and group names remain in their respective single cells.
+1. Run `filter s/member`, `sort name`, then `export f/phone f/name f/instruments`.<br>
+   Expected: The feedback reports that two people were exported to the `current-results-02.csv` file in the `exports`
+   folder. Its header is exactly `phone,name,instruments`, in that requested order. Its two member rows are
+   `"90000001","Alicia Tan","Drums\;Percussion:5"` and `"90000003","Chloe Lim","Violin:3"`, in displayed name
+   order. Ben is absent, and the command does not change the two displayed results.
+1. Run `find zzznomatch`, then `export f/groups f/name`.<br>
+   Expected: The `current-results-03.csv` file is created in the `exports` folder with only the headers `groups,name`,
+   in that requested order. It has no member rows.
+1. Run `export f/name f/name`, `export f/address`, `export f/` and `export n/Alicia`.<br>
+   Expected: Each command shows the relevant repeated-field, unsupported-field, empty-field or invalid-format error.
+   No export is created, and the `current-results-04.csv` file does not exist in the `exports` folder.
+1. Run `list`, then `export` again.<br>
+   Expected: All three people are exported to the `current-results-04.csv` file in the `exports` folder; the three
+   earlier files remain unchanged, and exporting has not changed any member record.
+1. Run `undo`, then `redo`.<br>
+   Expected: `undo` removes Chloe, the most recent data change before the exports; it does not undo an export. `redo`
+   restores Chloe. The four exported files remain unchanged.
+
 ### Checking empty member lists
 
 Use Java 25 and the released JAR in a disposable writable folder. These steps clear test data; do not use a real directory.
