@@ -716,6 +716,21 @@ Use a disposable directory with only these four records, added in this order:
 1. Close and reopen the app.<br>
    Expected: The remaining records appear in stored directory order, Amy, Bob, alice. Status changes and deletion persist, but sorting does not.
 
+### Checking empty member lists
+
+Use Java 25 and the released JAR in a disposable writable folder. These steps clear test data; do not use a real directory.
+
+1. Run `clear`.<br>
+   Expected: The list area starts with `No members yet.` and offers `add` and `help` guidance.
+1. Run `add n/Alice p/11111 e/alice@example.com s/member`.<br>
+   Expected: Alice's card replaces the empty-directory guidance.
+1. Run `find Nobody`, then resize the window to its minimum 450 × 600.<br>
+   Expected: The list area says `No matching members. Enter list to show everyone.` The entire message remains readable on wrapped lines, without a card being shown.
+1. Run `list`, then `filter s/inactive-alumnus`.<br>
+   Expected: `list` restores Alice and hides the guidance; the filter shows the no-matching-members guidance again.
+1. Run `clear`, `undo`, then `redo`.<br>
+   Expected: `clear` shows the empty-directory guidance, `undo` restores Alice with no guidance, and `redo` shows the empty-directory guidance again.
+
 ### Deleting a person
 
 1. Deleting a person while all persons are being shown
