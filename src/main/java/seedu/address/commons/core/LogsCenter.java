@@ -23,7 +23,6 @@ public class LogsCenter {
 
     private static final int MAX_FILE_COUNT = 5;
     private static final int MAX_FILE_SIZE_IN_BYTES = (int) (Math.pow(2, 20) * 5); // 5MB
-    private static final String LOG_FILE = "addressbook.log";
     private static final Logger logger; // logger for this class
     private static Logger baseLogger; // to be used as the parent of all other loggers created by this class.
 
@@ -85,7 +84,7 @@ public class LogsCenter {
         baseLogger.addHandler(consoleHandler);
 
         // add a FileHandler to log to a file
-        addFileHandler(baseLogger, LOG_FILE);
+        addFileHandler(baseLogger, ApplicationPaths.getLogFile().toString());
     }
 
     /**
