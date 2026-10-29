@@ -25,6 +25,9 @@ public class PersonListPanel extends UiPart<Region> {
     private ListView<Person> personListView;
 
     @FXML
+    private Label emptyState;
+
+    @FXML
     private Label resultCount;
 
     /**
@@ -42,6 +45,11 @@ public class PersonListPanel extends UiPart<Region> {
         requireAllNonNull(personList, allPersons);
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
+        emptyState.textProperty().bind(Bindings.when(Bindings.isEmpty(allPersons))
+                .then("No members yet. Enter add with member details to start your directory. "
+                        + "Enter help for command examples.")
+                .otherwise("No matching members. Enter list to show everyone."));
+        emptyState.maxWidthProperty().bind(personListView.widthProperty().subtract(40));
         resultCount.textProperty().bind(Bindings.format("Showing %d of %d %s",
                 Bindings.size(personList), Bindings.size(allPersons),
                 Bindings.when(Bindings.size(allPersons).isEqualTo(1)).then("member").otherwise("members")));

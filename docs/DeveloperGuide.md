@@ -116,6 +116,10 @@ HIVEMIND_UI_TESTS=true ./gradlew test --tests seedu.address.ui.PersonCardTest --
 
 On Windows PowerShell, set `$env:HIVEMIND_UI_TESTS = "true"` and run `./gradlew.bat test --tests seedu.address.ui.PersonCardTest --rerun-tasks`. These tests do not replace visual checks for wrapping and scrolling; use the member-card scenarios in the manual-testing section below.
 
+#### Empty member lists
+
+`MainWindow` supplies the displayed list and the full directory through `Logic.getPersonList()` to `PersonListPanel`. A wrapped `ListView` placeholder binds its guidance to whether the full directory is empty; `ListView` controls its visibility from the displayed list. Observing the full list prevents stale guidance when a nonmatching record is removed or the directory is reset while no results are shown. The placeholder width follows the list viewport. `PersonListPanelEmptyStateTest` exercises both states, model transitions, and narrow rendering with `HIVEMIND_UI_TESTS=true`.
+
 #### Member result count
 
 `Logic.getPersonList()` exposes the address book's unmodifiable observable full list. `MainWindow` supplies this and the filtered/sorted list to `PersonListPanel`. The result-count label binds to both lists, so a change to the total updates the label even if the displayed results stay unchanged. The full-list view stays live across resets, imports, undo/redo, and save-failure rollback. `PersonListPanelCountTest` exercises these observable updates and narrow layout with `HIVEMIND_UI_TESTS=true`.
@@ -790,6 +794,21 @@ Use a disposable directory with only these four records, added in this order:
    Expected: The empty results stay empty and sorting reports success.
 1. Close and reopen the app.<br>
    Expected: The remaining records appear in stored directory order, Amy, Bob, alice. Status changes and deletion persist, but sorting does not.
+
+### Checking empty member lists
+
+Use Java 25 and the released JAR in a disposable writable folder. These steps clear test data; do not use a real directory.
+
+1. Run `clear`.<br>
+   Expected: The list area starts with `No members yet.` and offers `add` and `help` guidance.
+1. Run `add n/Alice p/11111 e/alice@example.com s/member`.<br>
+   Expected: Alice's card replaces the empty-directory guidance.
+1. Run `find Nobody`, then resize the window to its minimum 450 × 600.<br>
+   Expected: The list area says `No matching members. Enter list to show everyone.` The entire message remains readable on wrapped lines, without a card being shown.
+1. Run `list`, then `filter s/inactive-alumnus`.<br>
+   Expected: `list` restores Alice and hides the guidance; the filter shows the no-matching-members guidance again.
+1. Run `clear`, `undo`, then `redo`.<br>
+   Expected: `clear` shows the empty-directory guidance, `undo` restores Alice with no guidance, and `redo` shows the empty-directory guidance again.
 
 ### Deleting a person
 

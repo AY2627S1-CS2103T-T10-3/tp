@@ -6,5 +6,10 @@
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
   <Label fx:id="resultCount" styleClass="result-count" wrapText="true" maxWidth="Infinity" />
-  <ListView fx:id="personListView" VBox.vgrow="ALWAYS" />
+  <ListView fx:id="personListView" VBox.vgrow="ALWAYS">
+    <placeholder>
+      <Label fx:id="emptyState" styleClass="empty-state" wrapText="true" alignment="CENTER"
+             textAlignment="CENTER" minWidth="0" />
+    </placeholder>
+  </ListView>
 </VBox>
