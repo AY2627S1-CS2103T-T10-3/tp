@@ -83,6 +83,23 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
+#### Command input and recall
+
+`CommandBox` owns one package-private `CommandHistory` for its lifetime. This helper is UI state rather than member data: it stores at most 100 exact nonblank submissions, including duplicates and failures, and is never persisted. Oldest entries are evicted when the capacity is reached. The UI class diagram focuses on visible components; this internal helper does not extend `UiPart`.
+
+`CommandHistory` keeps a cursor between the oldest entry and a position just after the newest entry. Up from the latter position captures the current input as a draft, then visits older entries. Down visits newer entries and restores the draft when the cursor reaches the end. Boundaries do not wrap. An edit or new submission resets navigation to the end without changing previously recorded text.
+
+`CommandBox` filters unmodified Up/Down key presses on its text field. Programmatic recall uses `isRecallingHistory` so the existing text-change listener clears error styling without resetting the browsing cursor. User edits reset the cursor, making an edited recall a new draft. Replacing text positions the caret at the end. Enter records the nonblank input before calling the executor, so parsing and execution failures can both be recalled. Existing success clearing and failure feedback remain in place. Browsing never calls the executor or changes the address book's undo/redo history.
+
+`CommandHistoryTest` tests the bounded state machine without JavaFX. `CommandBoxTest` dispatches keyboard and action events through the real FXML text field with a recording executor, covering draft restoration, edited recalls, modifiers, failed submissions and independent histories. Like `PersonCardTest`, the graphical class requires a graphical session and `HIVEMIND_UI_TESTS=true`:
+
+```sh
+./gradlew test --tests seedu.address.ui.CommandHistoryTest
+HIVEMIND_UI_TESTS=true ./gradlew test --tests seedu.address.ui.CommandBoxTest --rerun-tasks
+```
+
+On Windows PowerShell, set `$env:HIVEMIND_UI_TESTS = "true"` before running the corresponding `./gradlew.bat` command. Without this variable, only the graphical class is skipped; the history state-machine tests still run in ordinary CI.
+
 #### Member cards
 
 `PersonListPanel` observes the filtered and sorted person view exposed by `Logic`. Its list cells create a `PersonCard` for each displayed person, passing the cell's one-based index. When `find`, `filter`, `sort`, or `list` changes the displayed results, the list updates the cards and their indices. The existing UI class diagram shows this relationship; the card enhancement adds no new classes or dependencies.
@@ -102,6 +119,10 @@ On Windows PowerShell, set `$env:HIVEMIND_UI_TESTS = "true"` and run `./gradlew.
 #### Member result count
 
 `Logic.getPersonList()` exposes the address book's unmodifiable observable full list. `MainWindow` supplies this and the filtered/sorted list to `PersonListPanel`. The result-count label binds to both lists, so a change to the total updates the label even if the displayed results stay unchanged. The full-list view stays live across resets, imports, undo/redo, and save-failure rollback. `PersonListPanelCountTest` exercises these observable updates and narrow layout with `HIVEMIND_UI_TESTS=true`.
+
+#### Command feedback
+
+`MainWindow` passes `FeedbackType.SUCCESS` after `Logic.execute` returns and `FeedbackType.ERROR` for `CommandException` or `ParseException`, including save failures. Startup notices use `INFORMATION`. `ResultDisplay` preserves the message text, sets an explicit outcome label and CSS class, and resets the scroll position for each message. The read-only `TextArea` wraps text and retains vertical scrolling and selection. `ResultDisplayTest` checks the rendered FXML, outcome transitions, narrow layout, and command routing with a storage failure. Enable these graphical tests with `HIVEMIND_UI_TESTS=true`.
 
 ### Logic component
 
@@ -239,13 +260,23 @@ The command replaces the predicate on the full directory's `FilteredList`, repor
 
 ### Exporting current results
 
-`AddressBookParser` delegates `export` to `ExportCommandParser`, which rejects arguments because the command takes none. When executed, `ExportCommand` obtains the current displayed results through `Model#getFilteredPersonList()` and passes them to `CsvExporter` with the `exports` directory. Exporting does not modify the model, so it does not save the address book or create an undo state.
+`AddressBookParser` delegates `export [f/FIELD]...` to `ExportCommandParser`. With no arguments, the parser creates a default `ExportCommand` using `ExportField.DEFAULT_FIELDS`: name, phone, email, status, memberType, role, instruments, and groups. Otherwise, it tokenizes repeated `f/` values, matches their exact case-sensitive names against `ExportField` headers, and preserves the requested order. Unsupported, empty or repeated field selections and unexpected arguments cause a `ParseException` before execution, so no file is created.
 
-`CsvExporter` creates CSV content with columns for name, phone, email, status, member type, role, instruments, and groups. Each field is quoted, with embedded quotation marks escaped. `CsvCellCodec` prefixes values that spreadsheet applications could interpret as formulas with a space. `CsvImporter` removes this prefix to preserve export/import round trips. `CsvExporter` sorts a person's instruments and groups by name and joins them with semicolons. `CsvListCodec` escapes semicolons and backslashes within each list value; `CsvImporter` decodes them before constructing instruments and groups. Empty results produce a file containing only the CSV header.
+`ExportCommand` stores an immutable copy of the selected fields. Its constructors reject empty selections and repeated fields with an `IllegalArgumentException`; null lists or entries cause a `NullPointerException`. When executed, it obtains the current results through `Model#getFilteredPersonList()`, which returns the filtered and sorted display view, and passes them to `CsvExporter.export(currentResults, exportDirectory, fields)`. Exporting does not update records or the display view. `requiresSave()` returns `false`, so `LogicManager` neither saves the address book nor changes undo/redo history.
 
-Before writing, `CsvExporter` finds the first unused filename in the form `current-results-XX.csv`, beginning with `current-results-01.csv`; existing exports are therefore preserved rather than overwritten. If file creation or writing fails, `ExportCommand` converts the `IOException` into a `CommandException`. Parser and exporter tests cover recognition of the command, normal and empty exports, and selecting the first available numbered filename while preserving existing files.
+`ExportField` defines each supported header and its value extractor. `CsvExporter` builds the header and each row from the same ordered selection. The existing two-argument `export(people, exportDirectory)` overload delegates to the full default selection. The three-argument overload also validates the selection before creating a file, protecting direct callers. Empty results produce only the selected headers. `CsvImporter` still requires the original eight headers in their original order, so partial exports and reordered full exports cannot be imported; the default export retains import compatibility.
 
-![Export command sequence diagram](images/ExportSequenceDiagram.png)
+Each exported value uses the existing CSV quoting and escaping: embedded quotation marks are doubled, and `CsvCellCodec` prefixes values that spreadsheet applications could interpret as formulas with a space. `ExportField` sorts instruments and groups by name, applies `CsvListCodec` to escape semicolons and backslashes within each list value, and joins the values with semicolons. `CsvImporter` decodes these escapes and removes the spreadsheet protection prefix when importing a compatible full export.
+
+Before writing, `CsvExporter` finds the first unused filename in the form `current-results-XX.csv`, beginning with `current-results-01.csv`; existing exports are preserved rather than overwritten. `ExportCommand` logs successful exports at `INFO` with the row count, ordered columns and output path. If writing fails, it logs the row count, columns, export directory and exception stack trace at `WARNING`, then converts the `IOException` into a `CommandException`. These export outcome logs do not include member values or CSV contents.
+
+`ExportCommandParserTest` and `AddressBookParserTest` cover default and selected-field commands and invalid syntax. `ExportCommandTest` covers constructor validation, results after `find`, `filter` and `sort`, empty results, immutable selections, and preservation of records and undo/redo history. `CsvExporterTest` covers selected column order, CSV quoting, list escaping, formula protection, empty results, and preservation of existing files and filename numbering. `CsvImporterTest` covers default export/import round trips and rejection of partial exports.
+
+The following sequence diagram traces execution of a parsed `export f/name f/phone f/instruments` command. Parsing, model snapshots, logging, CSV encoding internals and error paths are omitted.
+
+![Export sequence diagram showing field selection, retrieval of displayed results, and CSV creation](images/ExportSequenceDiagram.png)
+
+[Open the sequence diagram at full size](images/ExportSequenceDiagram.png). [PlantUML source](diagrams/ExportSequenceDiagram.puml).
 
 The following sequence diagram traces `filter s/member i/Violin:3 ty/teacher r/Conductor g/Chamber Orchestra`, using all five supported fields. Parsing creates a `FilterCommand` containing the criteria; executing that command creates the `PersonMatchesFilterPredicate` and applies it through `ModelManager.updateFilteredPersonList`. The participant `m:Model` is implemented by `ModelManager`.
 
@@ -635,6 +666,18 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases …​ }_
 
+### Checking command feedback
+
+Use Java 25 and the released JAR in a fresh, disposable writable folder. Keep the sample records for this scenario.
+
+1. Before entering a command, check that the feedback label is the neutral `Information` label.
+1. Run `list`.<br>
+   Expected: A green `Success` label accompanies `Listed all persons.`
+1. Run `add` without parameters, then resize the window to its minimum 450 × 600.<br>
+   Expected: A red `Error` label accompanies the invalid-format message and add usage. The text wraps within the feedback box; scroll vertically to read the complete usage. Select the text and check that it can be copied. No member is added.
+1. Run `list` again.<br>
+   Expected: The label returns to green `Success`, the previous error is replaced, and the new feedback starts at the top of the box. The same sample records remain visible.
+
 ### Adding members and checking possible duplicates
 
 Use Java 25 and the released JAR in a disposable writable folder. Run `clear` before this scenario.
@@ -670,6 +713,21 @@ Start another disposable scenario with `clear`.
    Expected: Alicia's groups are removed and no empty heading or row remains. Ben's groups remain visible.
 1. Restart the application.<br>
    Expected: Alicia still has no groups and Ben retains both groups. Resize the window and check that the badges wrap without overlap.
+
+### Recalling commands
+
+Start a new app session with sample records or a disposable data directory. Keep the command box focused for the arrow-key checks.
+
+1. Submit `list`, then `find Alex`. Press Up twice, then Up again.<br>
+   Expected: The input recalls `find Alex`, then `list`, and stays at `list`. Results do not change while browsing. Down recalls `find Alex`; another Down restores the empty input.
+1. Type `find Ber` without Enter. Press Up, then Down.<br>
+   Expected: The input recalls `find Alex`, then restores the unfinished `find Ber`. No command runs.
+1. Press Up and edit the recalled text to `find Bernice`. Press Up, then Down, then Enter.<br>
+   Expected: Up recalls `find Alex`, Down restores `find Bernice`, and only Enter executes it. Up now recalls `find Bernice`; a second Up still recalls the original `find Alex`.
+1. Submit `unknowncommand`. Press Up twice.<br>
+   Expected: The failed command initially stays in the box with error styling. It can be recalled as the newest submission; another Up reaches `find Bernice` and clears the command box's error styling. Browsing does not execute either command or change the result message.
+1. Submit a blank input, then try Up/Down. Close and restart HiveMind, type a draft and press Up/Down again.<br>
+   Expected: Blank input creates no history entry. After restarting, the previous session's history is unavailable and the draft remains unchanged.
 
 ### Viewing member cards
 
