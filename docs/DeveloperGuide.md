@@ -832,6 +832,60 @@ scenario so that the expected file numbers are predictable. Run `clear`, then ad
    Expected: `undo` removes Chloe, the most recent data change before the exports; it does not undo an export. `redo`
    restores Chloe. The four exported files remain unchanged.
 
+### Importing people from CSV
+
+Use Java 25 and the released JAR in a disposable writable folder. Start HiveMind once so that it creates the `imports`
+folder. Save the following files as CSV UTF-8 in that folder.
+
+Create `sample-members.csv` with:
+
+```csv
+name,phone,email,status,memberType,role,instruments,groups
+"Alicia Tan","91234567","alicia.tan@example.com","member","student"," =1+1","Drums\;Percussion:5;Piano:2","Band\;Choir;Leadership Team"
+"Benjamin Lee","92345678","benjamin.lee@example.com","active-alumnus","teacher","","Cello:12",""
+```
+
+Create `invalid-members.csv` with a valid first member followed by an invalid status:
+
+```csv
+name,phone,email,status,memberType,role,instruments,groups
+"Cara Ng","93456789","cara.ng@example.com","member","student","Librarian","Flute:4","Concert Band"
+"Derek Wong","94567890","derek.wong@example.com","alumnus","student","","Trumpet:3",""
+```
+
+Create `partial-members.csv` with an incompatible partial header:
+
+```csv
+name,phone
+"Evelyn Goh","95678901"
+```
+
+1. Run `clear`, then `add n/Existing Member p/90000000 e/existing@example.com s/member`.<br>
+   Expected: The directory contains only Existing Member.
+1. Run `find Existing`, then `import sample-members.csv`.<br>
+   Expected: The feedback reports that two people were imported from the `sample-members.csv` file in the `imports`
+   folder. The active search is cleared, and the full directory shows Existing Member, Alicia Tan and Benjamin Lee in
+   insertion order. The existing member remains; import adds records rather than replacing the directory.
+1. Inspect the two imported member cards.<br>
+   Expected: Alicia's role is `=1+1`; her instruments are Drums;Percussion with 5 years and Piano with 2 years; her
+   groups are Band;Choir and Leadership Team. Benjamin is an active-alumnus teacher with Cello:12 and no role or
+   groups.
+1. Run `import sample-members.csv` again.<br>
+   Expected: Import fails because `Alicia Tan` at line 2 already exists. No member is added, and all three existing
+   records remain unchanged.
+1. Run `undo`, then `redo`.<br>
+   Expected: `undo` removes Alicia and Benjamin together as one imported change while preserving Existing Member.
+   `redo` restores both imported members. The three CSV files remain unchanged.
+1. Run `import invalid-members.csv`.<br>
+   Expected: The error identifies the invalid status at line 3. Neither Cara nor Derek is added, proving that a file
+   with any invalid row is rejected atomically; the three existing records remain unchanged.
+1. Run `import partial-members.csv`.<br>
+   Expected: Import fails because the header is not
+   `name,phone,email,status,memberType,role,instruments,groups`. No member is added.
+1. Run `import missing.csv`, `import ../sample-members.csv`, `import sample-members.txt` and `import`.<br>
+   Expected: The first command reports that the file is absent. The path-containing name is rejected as an invalid
+   filename, and the final two commands show the import format. The directory remains unchanged.
+
 ### Checking empty member lists
 
 Use Java 25 and the released JAR in a disposable writable folder. These steps clear test data; do not use a real directory.
