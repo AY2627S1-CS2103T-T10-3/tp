@@ -95,7 +95,9 @@ public class LogsCenter {
      */
     static void addFileHandler(Logger logger, String logFile) {
         try {
-            FileHandler fileHandler = new FileHandler(logFile, MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
+            // FileHandler accepts a pattern, so literal directory names must escape percent tokens.
+            String logPattern = logFile.replace("%", "%%");
+            FileHandler fileHandler = new FileHandler(logPattern, MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
             fileHandler.setFormatter(new SimpleFormatter());
             fileHandler.setLevel(Level.ALL);
             logger.addHandler(fileHandler);
