@@ -42,8 +42,9 @@ public class PersonListPanel extends UiPart<Region> {
         requireAllNonNull(personList, allPersons);
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
-        resultCount.textProperty().bind(Bindings.format("Showing %d of %d members",
-                Bindings.size(personList), Bindings.size(allPersons)));
+        resultCount.textProperty().bind(Bindings.format("Showing %d of %d %s",
+                Bindings.size(personList), Bindings.size(allPersons),
+                Bindings.when(Bindings.size(allPersons).isEqualTo(1)).then("member").otherwise("members")));
     }
 
     /**

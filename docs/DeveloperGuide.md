@@ -701,7 +701,7 @@ Use Java 25 and the released JAR in a disposable writable folder. These steps cl
 1. Run `find` without a keyword.<br>
    Expected: An error is shown, and the count remains `Showing 0 of 2 members`.
 1. Run `list`, `delete 1`, `undo`, then `redo`.<br>
-   Expected: The counts are `Showing 2 of 2 members`, `Showing 1 of 1 members`, `Showing 2 of 2 members`, and `Showing 1 of 1 members` respectively.
+   Expected: The counts are `Showing 2 of 2 members`, `Showing 1 of 1 member`, `Showing 2 of 2 members`, and `Showing 1 of 1 member` respectively.
 1. Resize the window to its minimum 450 × 600.<br>
    Expected: The count remains readable above the member list, independently of the last command's feedback.
 

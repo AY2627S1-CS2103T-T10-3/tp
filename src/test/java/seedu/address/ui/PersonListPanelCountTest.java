@@ -69,6 +69,32 @@ public class PersonListPanelCountTest {
     }
 
     @Test
+    public void count_directorySizeChanges_selectsSingularOrPlural() throws Exception {
+        runOnFxThread(() -> {
+            ModelManager model = new ModelManager();
+            Person alice = new PersonBuilder().withName("Alice").build();
+            Person bob = new PersonBuilder().withName("Bob").build();
+            PersonListPanel panel = new PersonListPanel(model.getFilteredPersonList(),
+                    model.getAddressBook().getPersonList());
+            Label count = (Label) panel.getRoot().lookup("#resultCount");
+            assertEquals("Showing 0 of 0 members", count.getText());
+
+            model.addPerson(alice);
+            assertEquals("Showing 1 of 1 member", count.getText());
+            model.updateFilteredPersonList(person -> false);
+            assertEquals("Showing 0 of 1 member", count.getText());
+            model.addPerson(bob);
+            assertEquals("Showing 2 of 2 members", count.getText());
+            model.updateFilteredPersonList(person -> person.getName().fullName.equals("Alice"));
+            assertEquals("Showing 1 of 2 members", count.getText());
+            model.deletePerson(bob);
+            assertEquals("Showing 1 of 1 member", count.getText());
+            model.deletePerson(alice);
+            assertEquals("Showing 0 of 0 members", count.getText());
+        });
+    }
+
+    @Test
     public void commands_findListDeleteClearUndoAndRedo_keepCountAccurate() throws Exception {
         runOnFxThread(() -> {
             ModelManager model = new ModelManager();
@@ -157,6 +183,7 @@ public class PersonListPanelCountTest {
     private static void assertCount(PersonListPanel panel, int displayed, int total) {
         Label count = (Label) panel.getRoot().lookup("#resultCount");
         assertNotNull(count);
-        assertEquals(String.format("Showing %d of %d members", displayed, total), count.getText());
+        String noun = total == 1 ? "member" : "members";
+        assertEquals(String.format("Showing %d of %d %s", displayed, total, noun), count.getText());
     }
 }
