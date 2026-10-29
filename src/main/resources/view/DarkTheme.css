@@ -351,6 +351,12 @@
     -fx-font-size: 11;
 }
 
+.result-count {
+    -fx-text-fill: #dddddd;
+    -fx-font-size: 13px;
+    -fx-padding: 0 0 8 0;
+}
+
 .feedback-type {
     -fx-font-size: 13px;
     -fx-font-weight: bold;

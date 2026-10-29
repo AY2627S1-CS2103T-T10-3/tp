@@ -45,6 +45,10 @@ HiveMind is a **desktop directory for Music CCA members and alumni, optimized fo
 
 --------------------------------------------------------------------------------------------------------------------
 
+## Member result count
+
+The count above the member list shows **Showing X of Y members**: X is the number of members currently displayed and Y is the total directory size. For a directory with one member, the label uses **member**, for example **Showing 0 of 1 member** when a search has no matches. It stays visible after commands, including when `find` or `filter` displays no matches, and updates when member data changes.
+
 ## Command feedback
 
 Command feedback has a **Success** label in green when a command completes and an **Error** label in red when it fails. Startup notices use a neutral **Information** label. Feedback wraps in narrow windows; scroll vertically in the feedback box to read longer messages, or select and copy the text.

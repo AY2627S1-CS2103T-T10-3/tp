@@ -116,6 +116,10 @@ HIVEMIND_UI_TESTS=true ./gradlew test --tests seedu.address.ui.PersonCardTest --
 
 On Windows PowerShell, set `$env:HIVEMIND_UI_TESTS = "true"` and run `./gradlew.bat test --tests seedu.address.ui.PersonCardTest --rerun-tasks`. These tests do not replace visual checks for wrapping and scrolling; use the member-card scenarios in the manual-testing section below.
 
+#### Member result count
+
+`Logic.getPersonList()` exposes the address book's unmodifiable observable full list. `MainWindow` supplies this and the filtered/sorted list to `PersonListPanel`. The result-count label binds to both lists, so a change to the total updates the label even if the displayed results stay unchanged. The full-list view stays live across resets, imports, undo/redo, and save-failure rollback. `PersonListPanelCountTest` exercises these observable updates and narrow layout with `HIVEMIND_UI_TESTS=true`.
+
 #### Command feedback
 
 `MainWindow` passes `FeedbackType.SUCCESS` after `Logic.execute` returns and `FeedbackType.ERROR` for `CommandException` or `ParseException`, including save failures. Startup notices use `INFORMATION`. `ResultDisplay` preserves the message text, sets an explicit outcome label and CSS class, and resets the scroll position for each message. The read-only `TextArea` wraps text and retains vertical scrolling and selection. `ResultDisplayTest` checks the rendered FXML, outcome transitions, narrow layout, and command routing with a storage failure. Enable these graphical tests with `HIVEMIND_UI_TESTS=true`.
@@ -741,6 +745,23 @@ Use a disposable directory for these checks so the test records do not affect yo
    Expected: Text wraps without overlapping other fields, instrument labels flow onto additional rows, and all recorded details remain accessible. Check both full and empty optional fields again after scrolling.
 1. Run `add n/Card Width p/91234567 e/music.coordinator.long.contact.address@example.com s/member r/Student Coordinator for the University Chamber Orchestra i/Historical Keyboard and String Instrument Ensemble Performance Specialisation:12 g/University Chamber Orchestra Alumni and Student Combined Performance Group`. Resize the window to its minimum 450 × 600, then widen and narrow it again.<br>
    Expected: The full instrument name and `12 yrs` remain readable on wrapped lines, as does the group name. Neither badge pushes contact details or other card content beyond the visible right edge. Scroll vertically if the card is taller than the available area.
+
+### Checking persistent member counts
+
+Use Java 25 and the released JAR in a disposable writable folder. These steps clear test data; do not use a real directory.
+
+1. Run `clear`.<br>
+   Expected: The label above the member list shows `Showing 0 of 0 members`.
+1. Run `add n/Alice p/11111 e/alice@example.com s/member`, then `add n/Bob p/22222 e/bob@example.com s/inactive-alumnus`.<br>
+   Expected: The count is `Showing 2 of 2 members`.
+1. Run `find Alice`, then `filter s/inactive-alumnus`, then `find Nobody`.<br>
+   Expected: The counts are `Showing 1 of 2 members`, `Showing 1 of 2 members`, and `Showing 0 of 2 members` respectively. The label remains visible with no matches.
+1. Run `find` without a keyword.<br>
+   Expected: An error is shown, and the count remains `Showing 0 of 2 members`.
+1. Run `list`, `delete 1`, `undo`, then `redo`.<br>
+   Expected: The counts are `Showing 2 of 2 members`, `Showing 1 of 1 member`, `Showing 2 of 2 members`, and `Showing 1 of 1 member` respectively.
+1. Resize the window to its minimum 450 × 600.<br>
+   Expected: The count remains readable above the member list, independently of the last command's feedback.
 
 ### Sorting displayed members
 
