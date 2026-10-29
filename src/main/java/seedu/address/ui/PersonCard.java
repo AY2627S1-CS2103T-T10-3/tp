@@ -109,6 +109,8 @@ public class PersonCard extends UiPart<Region> {
         Label label = new Label(text);
         label.setWrapText(true);
         label.setMinWidth(0);
+        // Font metrics differ between platforms; do not squeeze wrapped lines below their preferred height.
+        label.setMinHeight(Region.USE_PREF_SIZE);
         label.maxWidthProperty().bind(pane.widthProperty());
         pane.getChildren().add(label);
     }
