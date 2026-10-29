@@ -282,11 +282,11 @@ The following sequence diagram traces execution of a parsed `export f/name f/pho
 
 [Open the sequence diagram at full size](images/ExportSequenceDiagram.png). [PlantUML source](diagrams/ExportSequenceDiagram.puml).
 
-The following sequence diagram traces `filter s/member i/Violin:3 ty/teacher r/Conductor g/Chamber Orchestra`, using all five supported fields. Parsing creates a `FilterCommand` containing the criteria; executing that command creates the `PersonMatchesFilterPredicate` and applies it through `ModelManager.updateFilteredPersonList`. The participant `m:Model` is implemented by `ModelManager`.
+The following sequence diagram traces `filter s/member i/Violin:3 ty/teacher r/Conductor g/Chamber Orchestra`, using all five supported fields. Parsing creates a `FilterCommand` containing the criteria; executing that command creates the `PersonMatchesFilterPredicate` and applies it through `ModelManager.updateFilteredPersonList`. The participant `m:Model` is implemented by `ModelManager`, and `p:Predicate` is the `PersonMatchesFilterPredicate` created during execution. The diagram uses `criteria` as shorthand for the five sets passed to the command and predicate constructors.
 
 ![Sequence diagram for filter, showing criteria parsing, predicate creation during execution, filtered-list evaluation, and the result count](images/FilterSequenceDiagram.png)
 
-[Open the sequence diagram at full size](images/FilterSequenceDiagram.png). [PlantUML source](diagrams/FilterSequenceDiagram.puml). The diagram focuses on successful parsing and execution; model snapshots and UI list-change notifications are omitted.
+[Open the sequence diagram at full size](images/FilterSequenceDiagram.png). [PlantUML source](diagrams/FilterSequenceDiagram.puml). The diagram summarizes successful parsing in a reference frame so the execution flow remains readable at the guide's width; model snapshots and UI list-change notifications are omitted.
 
 ### Importing people from CSV
 
@@ -342,15 +342,11 @@ Step 4. The user now decides that adding the person was a mistake, and decides t
 
 </div>
 
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
+The following sequence diagram shows a successful `undo 2` operation through the `Logic` component. The command checks the available history before undoing either step, refreshes the full member list once, and saves once. It returns `false` from `recordsChange()`, so `LogicManager` does not commit a new history state. Model snapshots and save-failure rollback are omitted from the diagram; rollback is described in Step 3 above.
 
 ![UndoSequenceDiagram](images/UndoSequenceDiagram-Logic.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-
-</div>
-
-Similarly, how an undo operation goes through the `Model` component is shown below:
+The following diagram expands one successful `Model#undoAddressBook()` call. `VersionedAddressBook` checks `canUndo()`, decrements `currentStatePointer`, and restores the snapshot at that index. The Logic diagram repeats this model operation once per requested step; plain `undo` uses a count of 1, as in Step 4.
 
 ![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
 
