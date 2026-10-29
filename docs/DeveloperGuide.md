@@ -791,6 +791,97 @@ Use a disposable directory with only these four records, added in this order:
 1. Close and reopen the app.<br>
    Expected: The remaining records appear in stored directory order, Amy, Bob, alice. Status changes and deletion persist, but sorting does not.
 
+### Exporting current results
+
+Use Java 25 and the released JAR in a disposable writable folder. Remove any existing `exports` folder before this
+scenario so that the expected file numbers are predictable. Run `clear`, then add these records in order:
+
+* `add n/Ben Lee p/90000002 e/ben@example.com s/inactive-alumnus r/Conductor i/Cello:4 g/Orchestra`
+* `add n/Alicia Tan p/90000001 e/alicia@example.com s/member r/=1+1 i/Drums;Percussion:5 g/Band;Choir`
+* `add n/Chloe Lim p/90000003 e/chloe@example.com s/member i/Violin:3 g/Concert Band`
+
+1. Run `sort name`, then `export`.<br>
+   Expected: The displayed order changes from Ben, Alicia, Chloe to Alicia, Ben, Chloe. The feedback reports that
+   three people were exported to the `current-results-01.csv` file in the `exports` folder. The file starts with the
+   header `name,phone,email,status,memberType,role,instruments,groups` and contains Alicia, Ben and Chloe in that
+   displayed order. In a text editor, Alicia's instrument and group cells are written as
+   `"Drums\;Percussion:5"` and `"Band\;Choir"`.
+1. Open the `current-results-01.csv` file in the `exports` folder using Microsoft Excel or another spreadsheet
+   application.<br>
+   Expected: Alicia's role appears as the text `=1+1` rather than the calculated value `2`; no protective prefix is
+   visible. Her semicolon-containing instrument and group names remain in their respective single cells.
+1. Run `filter s/member`, `sort name`, then `export f/phone f/name f/instruments`.<br>
+   Expected: The feedback reports that two people were exported to the `current-results-02.csv` file in the `exports`
+   folder. Its header is exactly `phone,name,instruments`, in that requested order. Its two member rows are
+   `"90000001","Alicia Tan","Drums\;Percussion:5"` and `"90000003","Chloe Lim","Violin:3"`, in displayed name
+   order. Ben is absent, and the command does not change the two displayed results.
+1. Run `find zzznomatch`, then `export f/groups f/name`.<br>
+   Expected: The `current-results-03.csv` file is created in the `exports` folder with only the headers `groups,name`,
+   in that requested order. It has no member rows.
+1. Run `export f/name f/name`, `export f/address`, `export f/` and `export n/Alicia`.<br>
+   Expected: Each command shows the relevant repeated-field, unsupported-field, empty-field or invalid-format error.
+   No export is created, and the `current-results-04.csv` file does not exist in the `exports` folder.
+1. Run `list`, then `export` again.<br>
+   Expected: All three people are exported to the `current-results-04.csv` file in the `exports` folder; the three
+   earlier files remain unchanged, and exporting has not changed any member record.
+1. Run `undo`, then `redo`.<br>
+   Expected: `undo` removes Chloe, the most recent data change before the exports; it does not undo an export. `redo`
+   restores Chloe. The four exported files remain unchanged.
+
+### Importing people from CSV
+
+Use Java 25 and the released JAR in a disposable writable folder. Start HiveMind once so that it creates the `imports`
+folder. Save the following files as CSV UTF-8 in that folder.
+
+Create `sample-members.csv` with:
+
+```csv
+name,phone,email,status,memberType,role,instruments,groups
+"Alicia Tan","91234567","alicia.tan@example.com","member","student"," =1+1","Drums\;Percussion:5;Piano:2","Band\;Choir;Leadership Team"
+"Benjamin Lee","92345678","benjamin.lee@example.com","active-alumnus","teacher","","Cello:12",""
+```
+
+Create `invalid-members.csv` with a valid first member followed by an invalid status:
+
+```csv
+name,phone,email,status,memberType,role,instruments,groups
+"Cara Ng","93456789","cara.ng@example.com","member","student","Librarian","Flute:4","Concert Band"
+"Derek Wong","94567890","derek.wong@example.com","alumnus","student","","Trumpet:3",""
+```
+
+Create `partial-members.csv` with an incompatible partial header:
+
+```csv
+name,phone
+"Evelyn Goh","95678901"
+```
+
+1. Run `clear`, then `add n/Existing Member p/90000000 e/existing@example.com s/member`.<br>
+   Expected: The directory contains only Existing Member.
+1. Run `find Existing`, then `import sample-members.csv`.<br>
+   Expected: The feedback reports that two people were imported from the `sample-members.csv` file in the `imports`
+   folder. The active search is cleared, and the full directory shows Existing Member, Alicia Tan and Benjamin Lee in
+   insertion order. The existing member remains; import adds records rather than replacing the directory.
+1. Inspect the two imported member cards.<br>
+   Expected: Alicia's role is `=1+1`; her instruments are Drums;Percussion with 5 years and Piano with 2 years; her
+   groups are Band;Choir and Leadership Team. Benjamin is an active-alumnus teacher with Cello:12 and no role or
+   groups.
+1. Run `import sample-members.csv` again.<br>
+   Expected: Import fails because `Alicia Tan` at line 2 already exists. No member is added, and all three existing
+   records remain unchanged.
+1. Run `undo`, then `redo`.<br>
+   Expected: `undo` removes Alicia and Benjamin together as one imported change while preserving Existing Member.
+   `redo` restores both imported members. The three CSV files remain unchanged.
+1. Run `import invalid-members.csv`.<br>
+   Expected: The error identifies the invalid status at line 3. Neither Cara nor Derek is added, proving that a file
+   with any invalid row is rejected atomically; the three existing records remain unchanged.
+1. Run `import partial-members.csv`.<br>
+   Expected: Import fails because the header is not
+   `name,phone,email,status,memberType,role,instruments,groups`. No member is added.
+1. Run `import missing.csv`, `import ../sample-members.csv`, `import sample-members.txt` and `import`.<br>
+   Expected: The first command reports that the file is absent. The path-containing name is rejected as an invalid
+   filename, and the final two commands show the import format. The directory remains unchanged.
+
 ### Checking empty member lists
 
 Use Java 25 and the released JAR in a disposable writable folder. These steps clear test data; do not use a real directory.
