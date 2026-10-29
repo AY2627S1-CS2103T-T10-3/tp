@@ -635,6 +635,18 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases …​ }_
 
+### Checking command feedback
+
+Use Java 25 and the released JAR in a fresh, disposable writable folder. Keep the sample records for this scenario.
+
+1. Before entering a command, check that the feedback label is the neutral `Information` label.
+1. Run `list`.<br>
+   Expected: A green `Success` label accompanies `Listed all persons.`
+1. Run `add` without parameters, then resize the window to its minimum 450 × 600.<br>
+   Expected: A red `Error` label accompanies the invalid-format message and add usage. The text wraps within the feedback box; scroll vertically to read the complete usage. Select the text and check that it can be copied. No member is added.
+1. Run `list` again.<br>
+   Expected: The label returns to green `Success`, the previous error is replaced, and the new feedback starts at the top of the box. The same sample records remain visible.
+
 ### Adding members and checking possible duplicates
 
 Use Java 25 and the released JAR in a disposable writable folder. Run `clear` before this scenario.
