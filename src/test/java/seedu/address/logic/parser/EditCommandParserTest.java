@@ -131,6 +131,23 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_nameWithRelationshipMarker_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName("Ravi S/O Kumar").build();
+        assertParseSuccess(parser, "1 n/Ravi S/O Kumar", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+
+        descriptor = new EditPersonDescriptorBuilder().withName("Priya d/o Raman").build();
+        assertParseSuccess(parser, "1 n/Priya d/o Raman", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
+    public void parse_mistypedPrefixInsideName_failure() {
+        // other slashes in a name are still rejected rather than saved as part of the name
+        assertParseFailure(parser, "1 n/Joe ph/91234567", Name.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1 n/Joe a/l 5 Street", Name.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1 n/Joe c/o Tan", Name.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_unknownPrefix_failure() {
         // removed tag prefix that the original AddressBook accepted, read as part of the index text before
         assertParseFailure(parser, "1 t/friends",
