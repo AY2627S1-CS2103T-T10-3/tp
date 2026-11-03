@@ -403,8 +403,9 @@ separately when HiveMind starts and exits. You do not need to save manually.
 
 ### Editing the data file
 
-HiveMind data is saved automatically as the JSON file `data/addressbook.json` inside HiveMind's home folder. Advanced
-users are welcome to update data directly by editing that data file.
+HiveMind data is saved automatically as the JSON file `data/addressbook.json` inside HiveMind's home folder. Advanced users are welcome to update data directly by editing that data file.
+
+Close HiveMind before editing `data/addressbook.json`. Save your edits before restarting HiveMind. Changes made while HiveMind is running may be overwritten by the next successful command that changes member data, even if the edits are valid.
 
 Keep an existing member's `id` unchanged when editing the data file. To create another member, use `add` so the new record receives its own ID.
 
